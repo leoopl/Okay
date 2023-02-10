@@ -19,12 +19,6 @@ Vá até a pasta do projeto
   cd Okay
 ```
 
-Abra o Projeto  |       |   Instale as dependencias
-                |       |
-```bash         |   ou  |   ```bash
-  code .        |       |      yarn install
-```             |       |   ```
-
 Instale as dependencias
 
 ```bash
@@ -35,6 +29,12 @@ Execute o projeto
 
 ```bash
   yarn dev
+```
+
+Abra o Projeto
+
+```bash
+  code .
 ```
 
 ## Badges
