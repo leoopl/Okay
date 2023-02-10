@@ -1,0 +1,80 @@
+.backGroundGrid{
+    height: 100vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    
+	background-color: rgba(251, 242, 211, 0.9);
+}
+
+.topCard, .breath, .feeling, .beck{
+    background-color: #F7BE02;
+    border-radius: 20px;
+    width: 320px;
+    
+}
+
+.topCard{
+    gap: 2;
+}
+
+.breath{
+    height: 65px;
+    font-size: x-small;
+}
+
+.topCard:hover,
+.breath:hover,
+.feeling:hover,
+.beck:hover,
+.professionCard:hover,
+.routineCard:hover{
+    box-shadow: 5px 11px 27px 3px rgba(0,0,0,0.61);
+    -webkit-box-shadow: 5px 11px 27px 3px rgba(0,0,0,0.61);
+    -moz-box-shadow: 5px 11px 27px 3px rgba(0,0,0,0.61);
+}
+
+.title {
+    align-items: center;
+    margin-bottom: 0.5;
+    margin-left: 60px;
+}
+
+.h3{
+    text-align: end;
+}
+
+.h1{
+    font-weight: bold;
+    margin: auto;
+}
+
+.profileBox{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.link {
+    text-decoration: none;
+    color: #000;
+}
+
+.middleBox{
+    display: flex;
+    gap: inherit;
+}
+
+.professionCard,
+.routineCard {
+    width: 155px;
+    height: 180px;
+    background-color: #F7BE02;
+    border-radius: 20px;
+}
+
+.routineCard {
+    justify-content: flex-end;
+}

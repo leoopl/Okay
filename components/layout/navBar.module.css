@@ -1,0 +1,21 @@
+
+.xsLogoImage{
+    display: none;
+    margin-right: 0.6vw;
+}
+
+.mdLogoImage {
+    display: flex;
+    margin-right: 0.6vw;
+}
+
+@media screen and (min-width: 1024px){
+    .xsLogoImage {
+      display: flex;
+    }
+}
+@media screen and (min-width: 768px){
+    .mdLogoImage{
+        display: none;
+    }
+}

@@ -1,0 +1,19 @@
+.backGroundGrid{
+    display: flex;
+    height: 90vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    margin: 0%;
+}
+
+.form{
+    display: grid;
+    gap: 8px;
+    width: 600px;
+}
+
+.p {
+    font-variant-caps: petite-caps;
+    text-align-last: center;
+}

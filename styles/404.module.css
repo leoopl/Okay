@@ -1,0 +1,26 @@
+.containerBox{
+    display: flex;
+    height: 90vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.centerBox{
+    display: flex;
+    flex-direction: column;
+    gap: 50px;
+    max-width: 100%;
+    align-items: center;
+}
+
+.centerBox img {
+    width: 35vw;
+}
+
+.button{
+    border-radius: 8px;
+}
+.button:hover{
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}

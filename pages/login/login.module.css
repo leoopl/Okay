@@ -1,0 +1,26 @@
+.loginImage{
+	width: 510px;
+	height: 450px;
+}
+.backGroundGrid{
+    height: 75vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.form{
+    display: grid;
+    gap: 8px;
+    width: 325px;
+}
+
+.h1{
+    margin-bottom: 1em;
+}
+
+.p {
+    font-variant-caps: petite-caps;
+    text-align-last: center;
+}

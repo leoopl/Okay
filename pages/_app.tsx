@@ -1,6 +1,25 @@
-import '../styles/globals.css'
-import type { AppProps } from 'next/app'
+import '../styles/globals.scss';
+import Navbar from '../components/layout/navBar';
+import type { AppProps } from 'next/app';
+
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+
+const theme = createTheme({
+	typography: {
+		fontFamily: ['Varela Round', 'sans-serif'].join(','),
+		button: {
+			fontWeight: 500,
+		},
+	},
+});
 
 export default function App({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />
+	return (
+		<>
+			{/* <ThemeProvider theme={theme}> */}
+			<Navbar />
+			<Component {...pageProps} />
+			{/* </ThemeProvider> */}
+		</>
+	);
 }

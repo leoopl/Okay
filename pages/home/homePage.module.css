@@ -1,0 +1,23 @@
+.bgContainer{
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    padding: 0;
+    margin-left: 10vw;
+    gap: 10vw;
+}
+
+.gridIntroText {
+    align-self: center;
+    width: fit-content;
+    line-height: 1.4vw;
+}
+
+.gridTreeImage{
+    align-self: center;
+}
+
+.gridIntroText{
+    font-family: 'Varela Round';
+    text-align: center;
+}

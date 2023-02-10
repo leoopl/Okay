@@ -1,0 +1,180 @@
+.boxContainer{
+    height: 100vh;
+    width: 100vw;
+    display: wrap;
+    align-content: flex-start;
+    padding: 0;
+}
+
+.top{
+    width: 100%;
+    margin: 2rem 0 4rem 0;
+    text-align: center;
+}
+.top img {
+    margin: 0;
+    width: 200px;
+    height: 200px; 
+}
+
+.title{
+    padding-bottom: 1rem;
+}
+
+.techniques{
+    width: 768px;
+    margin: 1rem auto;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: auto;
+    grid-gap: 2rem;
+}
+
+.breathButtons{
+    color: rgb(0, 0, 0);
+    font-size: 1.25rem;
+    height: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    cursor: pointer;
+}
+.breathButtons span {
+    font-size: 0.65rem;
+    transition: all 0.3s ease-out;
+    visibility: hidden;
+    opacity: 0;
+    position: relative;
+    top: 20px;
+}
+.breathButtons:hover span {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(-10px);
+}
+
+
+.sheetBox{
+    margin: 1.5rem 0px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.imageBox{
+    margin: 1rem 0px;
+    width: 150px;
+}
+.imageBox img{
+    width: 100%;
+}
+
+.descriptionText{
+    margin: 1rem 0px;
+    width: 75%;
+    max-width: 768px;
+}
+
+.modalTitle{
+    display: block;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    margin-top: 0.5rem;
+    margin: 0px;
+}
+
+/* .modalBox{
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.95);
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #000;
+    transition: visibility 0.3s, opacity 0.1s linear;
+    visibility: hidden;
+    opacity: 0;
+}*/
+
+.startButton {
+    background-color: #a29bfe;
+    color: #fff;
+    width: 100px;
+    height: 45px;
+    line-height: 45px;
+    border-radius: 5px;
+    margin: 1rem 0px;
+    cursor: pointer;
+}
+
+.modal{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0.8;
+}
+
+.closeButton{
+    top: calc(-1/4 * var(--IconButton-size));
+    right: calc(-1/4 * var(--IconButton-size));
+    box-shadow: 0 2px 12px 0 rgba(0 0 0 / 0.2);
+    border-radius: 40%;
+}
+
+.closeButton2{
+    right: calc(-17/3 * var(--IconButton-size));
+    top: calc(-9/5 * var(--IconButton-size));
+    box-shadow: 0 2px 12px 0 rgba(0 0 0 / 0.2);
+    border-radius: 40%;
+}
+
+
+.secondModal{
+    width: 350px;
+    height: 350px;
+    margin: 0;
+    background: transparent;
+    position: absolute;
+    top: calc(50% - 200px);
+    left: calc(50% - 175px);
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.secondModalTitle{
+    text-align: center;
+    margin: 1rem 0;
+}
+
+.breathBox{
+    border-radius: 50%;
+    width: 225px;
+    height: 225px;
+    background-color: #ecf0f1;
+    margin: 1rem 0;
+}
+
+.breathSpan{
+    width: 90%;
+    height: 90%;
+    border-radius: 50%;
+    text-align: center;
+    display: block;
+    position: relative;
+    top: 5%;
+    left: 5%;
+    transform: scale(0.63);
+    background-color: #f1c40f;
+}
