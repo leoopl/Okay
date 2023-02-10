@@ -10,19 +10,31 @@ Desenvolvendo um sonho e aprendendo com ele.
 Clone o projeto
 
 ```bash
-  git clone https://github.com/leoopl/Okay-.git
+  git clone https://github.com/leoopl/Okay.git
 ```
 
 Vá até a pasta do projeto
 
 ```bash
-  cd Okay-
+  cd Okay
 ```
 
-Abra o Projeto
+Abra o Projeto  |       |   Instale as dependencias
+                |       |
+```bash         |   ou  |   ```bash
+  code .        |       |      yarn install
+```             |       |   ```
+
+Instale as dependencias
 
 ```bash
-  xed .
+  yarn install
+```
+
+Execute o projeto
+
+```bash
+  yarn dev
 ```
 
 ## Badges
@@ -30,6 +42,7 @@ Abra o Projeto
 ![Sass](https://img.shields.io/badge/Sass-black?style=flat&logo=Sass&logoColor=pink)
 ![Material UI](https://img.shields.io/badge/Material%20UI-black?style=flat&logo=MUI&logoColor=blue)
 ![Next.js](https://img.shields.io/badge/Next.js-black?style=flat&logo=Next.js&logoColor=white)
+
 ## Authors
 
 - [@leopl](https://www.github.com/leoopl)
