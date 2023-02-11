@@ -158,7 +158,7 @@ export default function Navbar() {
 
 					<Box sx={{ flexGrow: 0 }}>
 						<IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-							<Avatar alt="Leonardo" src="profile.png" />
+							<Avatar alt="Leonardo" src="avatar8.svg" />
 						</IconButton>
 						<Menu
 							sx={{ mt: '45px' }}
