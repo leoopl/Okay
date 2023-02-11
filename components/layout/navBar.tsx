@@ -21,7 +21,7 @@ export default function Navbar() {
 		{ name: 'Home', link: 'home' },
 		{ name: 'Recursos e informações', link: 'information' },
 		{ name: 'Técnica de respiração', link: 'breath' },
-		{ name: 'Ajuda profissional', link: 'profisionalhelp' },
+		{ name: 'Ajuda profissional', link: 'professionalhelp' },
 		{ name: 'Chat de suporte', link: 'chatcvv' },
 		{ name: 'Como está se sentindo?', link: 'questionnaire' },
 	];

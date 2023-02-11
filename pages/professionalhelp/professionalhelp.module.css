@@ -1,0 +1,49 @@
+.container{
+    align-items: stretch;
+}
+
+.topBox{
+    display: flex;
+    justify-content: space-evenly;
+}
+.topBox img {
+    max-width: 40rem;
+}
+
+.gridContainer{
+    gap: 3;
+    flex-grow: 1;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: auto;
+    align-items: stretch;
+}
+
+.gridItem{
+    display: flex;
+    align-items: center;
+}
+
+.card{
+    gap: 2;
+    height: 100%;
+    cursor: pointer;
+}
+.card:hover{
+    box-shadow: rgba(14, 30, 37, 0.12) 0px 2px 4px 0px, rgba(14, 30, 37, 0.32) 0px 2px 16px 0px;
+}
+
+.ratio{
+    width: 220px;
+}
+
+.profileContainer{
+}
+
+.centerBox{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
