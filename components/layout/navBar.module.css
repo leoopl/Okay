@@ -19,3 +19,20 @@
         display: none;
     }
 }
+
+.logoName{
+    font-weight: 1000;
+    letter-spacing: .2rem;
+    margin-right: 2;
+    text-decoration: none;
+    color: inherit;
+}
+
+.logoName2{
+    font-weight: 700;
+    letter-spacing: .3rem;
+    margin-right: 2;
+    text-decoration: none;
+    color: inherit;
+    flex-grow: 1;
+}

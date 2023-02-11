@@ -61,16 +61,9 @@ export default function Navbar() {
 						variant="h3"
 						noWrap
 						component="a"
+						className={style.logoName}
 						href="/"
-						sx={{
-							mr: 2,
-							display: { xs: 'none', md: 'flex' },
-							fontFamily: 'Varela Round',
-							fontWeight: 1000,
-							letterSpacing: '.2rem',
-							color: 'inherit',
-							textDecoration: 'none',
-						}}
+						sx={{ display: { xs: 'none', md: 'flex' } }}
 					>
 						Okay?
 					</Typography>
@@ -109,10 +102,7 @@ export default function Navbar() {
 									key={page.name}
 									onClick={async () => (await router.push(`/${page.link}`)) && handleCloseNavMenu()}
 								>
-									<Typography
-										textAlign="center"
-										sx={{ color: '#F4B400', fontWeight: 'bold', fontFamily: 'Varela Round' }}
-									>
+									<Typography textAlign="center" sx={{ color: '#F4B400', fontWeight: 'bold' }}>
 										{page.name}
 									</Typography>
 								</MenuItem>
@@ -125,16 +115,8 @@ export default function Navbar() {
 						noWrap
 						component="a"
 						href=""
-						sx={{
-							mr: 2,
-							display: { xs: 'flex', md: 'none' },
-							flexGrow: 1,
-							fontFamily: 'Varela Round',
-							fontWeight: 700,
-							letterSpacing: '.3rem',
-							color: 'inherit',
-							textDecoration: 'none',
-						}}
+						className={style.logoName2}
+						sx={{ display: { xs: 'flex', md: 'none' } }}
 					>
 						Okay?
 					</Typography>
@@ -148,7 +130,6 @@ export default function Navbar() {
 									color: '#F4B400',
 									display: 'block',
 									fontWeight: 'bold',
-									fontFamily: 'Varela Round',
 								}}
 							>
 								{page.name}
