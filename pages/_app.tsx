@@ -3,6 +3,7 @@ import Navbar from '../components/layout/navBar';
 import type { AppProps } from 'next/app';
 
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import Footer from '../components/layout/footer';
 
 const theme = createTheme({
 	typography: {
@@ -19,6 +20,7 @@ export default function App({ Component, pageProps }: AppProps) {
 			{/* <ThemeProvider theme={theme}> */}
 			<Navbar />
 			<Component {...pageProps} />
+			<Footer />
 			{/* </ThemeProvider> */}
 		</>
 	);

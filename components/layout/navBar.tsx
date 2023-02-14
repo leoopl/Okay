@@ -3,6 +3,7 @@ import {
 	Avatar,
 	Box,
 	Button,
+	ButtonGroup,
 	Container,
 	IconButton,
 	Menu,
@@ -17,6 +18,7 @@ import style from './navBar.module.css';
 import { useRouter } from 'next/router';
 
 export default function Navbar() {
+	const user = true;
 	const pages = [
 		{ name: 'Home', link: 'home' },
 		{ name: 'Recursos e informações', link: 'information' },
@@ -137,33 +139,40 @@ export default function Navbar() {
 						))}
 					</Box>
 
-					<Box sx={{ flexGrow: 0 }}>
-						<IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-							<Avatar alt="Leonardo" src="avatar8.svg" />
-						</IconButton>
-						<Menu
-							sx={{ mt: '45px' }}
-							id="menu-appbar"
-							anchorEl={anchorElUser}
-							anchorOrigin={{
-								vertical: 'top',
-								horizontal: 'right',
-							}}
-							keepMounted
-							transformOrigin={{
-								vertical: 'top',
-								horizontal: 'right',
-							}}
-							open={Boolean(anchorElUser)}
-							onClose={handleCloseUserMenu}
-						>
-							{settings.map(setting => (
-								<MenuItem key={setting.name} onClick={handleCloseUserMenu}>
-									<Typography textAlign="center">{setting.name}</Typography>
-								</MenuItem>
-							))}
-						</Menu>
-					</Box>
+					{user ? (
+						<ButtonGroup variant="text" aria-label="buttonGroup" color="inherit">
+							<Button onClick={() => router.push('/login')}>Login</Button>
+							<Button onClick={() => router.push('/signup')}>Cadastro</Button>
+						</ButtonGroup>
+					) : (
+						<Box sx={{ flexGrow: 0 }}>
+							<IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+								<Avatar alt="Leonardo" src="avatar8.svg" />
+							</IconButton>
+							<Menu
+								sx={{ mt: '45px' }}
+								id="menu-appbar"
+								anchorEl={anchorElUser}
+								anchorOrigin={{
+									vertical: 'top',
+									horizontal: 'right',
+								}}
+								keepMounted
+								transformOrigin={{
+									vertical: 'top',
+									horizontal: 'right',
+								}}
+								open={Boolean(anchorElUser)}
+								onClose={handleCloseUserMenu}
+							>
+								{settings.map(setting => (
+									<MenuItem key={setting.name} onClick={handleCloseUserMenu}>
+										<Typography textAlign="center">{setting.name}</Typography>
+									</MenuItem>
+								))}
+							</Menu>
+						</Box>
+					)}
 				</Toolbar>
 			</Container>
 		</AppBar>

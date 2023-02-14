@@ -37,7 +37,7 @@ export default function Signup() {
 
 	return (
 		<Grid container className={style.backGroundGrid} spacing={3}>
-			<img src="SmileLogo.png" alt="Logo" />
+			<img src="login2.png" alt="Logo" />
 			<LocalizationProvider dateAdapter={AdapterMoment}>
 				<FormContainer onSuccess={handleSubmit}>
 					<Grid className={style.form}>

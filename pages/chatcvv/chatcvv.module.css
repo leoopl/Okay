@@ -21,6 +21,11 @@
 .link{
     text-decoration: none;
     border-radius: 8px;
+    height: 4vh;
+    width: 20vw;
+    justify-content: center;
+    display: flex;
+    align-items: center;
 }
 .link:hover{
     box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;

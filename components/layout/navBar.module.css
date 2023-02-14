@@ -36,3 +36,14 @@
     color: inherit;
     flex-grow: 1;
 }
+
+.footerDiv{
+    position: relative;
+    margin: 0;
+    padding: .8rem;
+    display: flex;
+    justify-content: center;
+    color: #FFF;
+    background: #768577;
+    gap: 15px;
+}

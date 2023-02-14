@@ -3,8 +3,13 @@
     height: 90vh;
     flex-direction: column;
     align-items: center;
-    justify-content: space-evenly;
+    justify-content: center;
     margin: 0%;
+    flex-wrap: nowrap;
+}
+
+.backGroundGrid img{
+    max-width: 15vw;
 }
 
 .form{
