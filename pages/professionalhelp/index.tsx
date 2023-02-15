@@ -4,6 +4,7 @@ import Card from '@mui/joy/Card';
 import style from './professionalhelp.module.css';
 import professionals from '../api/professionals.json';
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 
 export default function ProfessionalHelp() {
 	const router = useRouter();
@@ -11,7 +12,7 @@ export default function ProfessionalHelp() {
 		<Container className={style.container}>
 			<Box className={style.topBox}>
 				<Typography variant="h1">Title</Typography>
-				<img alt="professional image" src="professional.svg" />
+				<Image width={600} height={400} alt="professional image" src="/professional.svg" />
 			</Box>
 			<Grid
 				container
@@ -34,7 +35,7 @@ export default function ProfessionalHelp() {
 						>
 							<CardOverflow>
 								<AspectRatio ratio="1" className={style.ratio}>
-									<img src={item.photo} alt="perfil photo" />
+									<Image width={220} height={220} src={`/${item.photo}`} alt="perfil photo" />
 								</AspectRatio>
 							</CardOverflow>
 							<div>

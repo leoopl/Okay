@@ -11,6 +11,7 @@ import {
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import style from './signup.module.css';
+import Image from 'next/image';
 
 type InputForm = {
 	name: string;
@@ -35,9 +36,11 @@ export default function Signup() {
 		return;
 	}
 
+	//TODO: calendario aparecendo no canto superior esquerdo, corrigir!!
+
 	return (
 		<Grid container className={style.backGroundGrid} spacing={3}>
-			<img src="login2.png" alt="Logo" />
+			<Image width={240} height={200} src="/login2.png" alt="brain-woman" />
 			<LocalizationProvider dateAdapter={AdapterMoment}>
 				<FormContainer onSuccess={handleSubmit}>
 					<Grid className={style.form}>

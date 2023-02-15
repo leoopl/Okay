@@ -1,5 +1,6 @@
 // import { LoadingButton } from '@mui/lab';
 import { Alert, Button, Grid, Stack, TextField } from '@mui/material';
+import Image from 'next/image';
 import React from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { FormContainer, TextFieldElement } from 'react-hook-form-mui';
@@ -13,10 +14,9 @@ type Inputs = {
 export default function Login() {
 	const loading = false;
 	const onSubmit: SubmitHandler<Inputs> = async data => console.log(data.passwordInput);
-	//TODO: corrigir imagem sobrepondo a navbar
 	return (
 		<Grid container className={styled.backGroundGrid}>
-			<img className={styled.loginImage} src="login.png" alt="experience" />
+			<Image alt="experience" width={510} height={450} src="/login.png" />
 			<h1 className={styled.h1}>ESPERO QUE ESTEJA TENDO UM BOM DIA!</h1>
 			<FormContainer onSuccess={onSubmit}>
 				<Grid className={styled.form}>

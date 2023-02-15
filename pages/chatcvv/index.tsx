@@ -1,11 +1,14 @@
 import { Box } from '@mui/joy';
+import Image from 'next/image';
 import style from './chatcvv.module.css';
 
+// #TODO: Qualidade da img melhor que do next/image
 export default function ChatCvv() {
 	return (
 		<Box className={style.containerBox}>
 			<Box className={style.centerBox}>
-				<img src="https://www.cvv.org.br/wp-content/themes/cvv/assets/images/logo.png" />
+				<Image alt="cvv-logo" width={150} height={95} src="/cvv.png" />
+				{/* <img src="https://www.cvv.org.br/wp-content/themes/cvv/assets/images/logo.png" /> */}
 				<h2 className={style.text}>
 					Aqui, como em qualquer outra forma de contato com o CVV, você é atendido por um
 					voluntário, com respeito, anonimato, que guardará sigilo sobre tudo que for dito. <br />

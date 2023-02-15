@@ -4,6 +4,7 @@ import data from '../api/breath.json';
 import { useRef, useState } from 'react';
 import { ModalClose, Modal, Sheet } from '@mui/joy';
 import { gsap } from 'gsap';
+import Image from 'next/image';
 
 interface Item {
 	id: number;
@@ -129,7 +130,7 @@ export default function Breathing() {
 	return (
 		<Box className={style.boxContainer}>
 			<Box className={style.top}>
-				<img alt="breath-avatar" src="./meditation1.svg" />
+				<Image width={200} height={200} alt="breath-avatar" src="/meditation1.svg" />
 				<Typography variant="h2" className={style.title}>
 					Técnicas de respiração
 				</Typography>

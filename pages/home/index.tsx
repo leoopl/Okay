@@ -1,10 +1,11 @@
-import { Container, Grid, Typography } from '@mui/joy';
+import { Container, Grid, Typography } from '@mui/material';
+import Image from 'next/image';
 import style from './homePage.module.css';
 export default function HomePage() {
 	return (
 		<Container className={style.bgContainer}>
 			<Grid className={style.gridIntroText}>
-				<Typography variant="solid" className={style.introText}>
+				<Typography className={style.introText}>
 					Bem-vindo ao Okay?, um lugar onde você pode encontrar o apoio e a orientação de que
 					precisa para administrar seus problemas. Entendemos que lidar com essas condições pode ser
 					desafiador, mas você não precisa passar por isso sozinho. Nosso site oferece uma variedade
@@ -16,7 +17,7 @@ export default function HomePage() {
 				</Typography>
 			</Grid>
 			<Grid className={style.gridTreeImage}>
-				<img src="./tree.png" className={style.treeImage} alt="tree" />
+				<Image alt="tree" width={800} height={800} src="/tree.png" />
 			</Grid>
 		</Container>
 	);

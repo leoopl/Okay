@@ -1,4 +1,5 @@
 import { Box, Button } from '@mui/material';
+import Image from 'next/image';
 import { useRouter } from 'next/router';
 import style from '../styles/404.module.css';
 
@@ -11,7 +12,7 @@ export default function NotFound() {
 	return (
 		<Box className={style.containerBox}>
 			<Box className={style.centerBox}>
-				<img alt="404" src={`404${randomInt(4)}.svg`} />
+				<Image width={550} height={440} alt="404" src={`/404${randomInt(4)}.svg`} />
 				<h1>Algo inesperado aconteceu, não achamos a página desejada!</h1>
 				<Button
 					size="large"

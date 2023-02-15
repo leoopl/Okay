@@ -2,8 +2,10 @@ import { Box, Button, ButtonGroup, Typography } from '@mui/material';
 import style from './information.module.css';
 import informations from '../api/information.json';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function InformationPage() {
+	const side: boolean = true;
 	return (
 		<Box className={style.containerBox}>
 			<Box className={style.initialBox}>
@@ -22,14 +24,17 @@ export default function InformationPage() {
 					</ButtonGroup>
 				</Box>
 				<Box className={style.imageBox}>
-					<img alt="Girl with social phobia" src="Girl with social phobia.svg" />
+					<Image
+						width={440}
+						height={350}
+						alt="Girl with social phobia"
+						src="/Girl with social phobia.svg"
+					/>
 				</Box>
 			</Box>
 			{informations.map((item, index) => (
 				<Box className={style.informationSection} key={index} id={item.id}>
-					<Box className={style.imageBox}>
-						<img alt="Worries" src="Worries.svg" />
-					</Box>
+					<Image width={440} height={350} alt="Worries" src="/Worries.svg" />
 					<Box className={style.informationBox}>
 						<Typography variant="h1"> {item.illness} </Typography>
 						<Typography variant="subtitle1"> {item.text} </Typography>

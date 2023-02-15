@@ -16,6 +16,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import React from 'react';
 import style from './navBar.module.css';
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 
 export default function Navbar() {
 	const user = true;
@@ -55,10 +56,16 @@ export default function Navbar() {
 	};
 
 	return (
-		<AppBar position="static" sx={{ bgcolor: '#FBE5A8', color: '#F4B400' }}>
+		<AppBar className={style.navBar}>
 			<Container maxWidth="xl">
 				<Toolbar disableGutters>
-					<img src="SmileLogo.png" alt="Logo" className={style.xsLogoImage} />
+					<Image
+						width={32}
+						height={56}
+						src="/SmileLogo.png"
+						alt="Logo"
+						className={style.xsLogoImage}
+					/>
 					<Typography
 						variant="h3"
 						noWrap
@@ -111,7 +118,13 @@ export default function Navbar() {
 							))}
 						</Menu>
 					</Box>
-					<img src="SmileLogo.png" alt="Logo" className={style.mdLogoImage} />
+					<Image
+						width={32}
+						height={56}
+						src="/SmileLogo.png"
+						alt="Logo"
+						className={style.mdLogoImage}
+					/>
 					<Typography
 						variant="h5"
 						noWrap

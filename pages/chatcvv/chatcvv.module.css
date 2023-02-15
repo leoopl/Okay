@@ -6,6 +6,11 @@
     justify-content: center;
 }
 
+/* .boxImg{
+    width: 11vw;
+    height: 11vh;
+} */
+
 .centerBox{
     display: flex;
     flex-direction: column;
