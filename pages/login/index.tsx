@@ -1,6 +1,7 @@
 // import { LoadingButton } from '@mui/lab';
 import { Alert, Button, Grid, Stack, TextField } from '@mui/material';
 import Image from 'next/image';
+import Link from 'next/link';
 import React from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { FormContainer, TextFieldElement } from 'react-hook-form-mui';
@@ -38,7 +39,7 @@ export default function Login() {
 						Entrar
 					</Button>
 					<p className={styled.p}>
-						Ainda não tem conta? <a href="/signup">Cadastre-se aqui</a>
+						Ainda não tem conta? <Link href="/signup">Cadastre-se aqui</Link>
 					</p>
 				</Grid>
 			</FormContainer>

@@ -26,12 +26,13 @@ export default function ProfessionalHelp() {
 							variant="outlined"
 							className={style.card}
 							row
-							onClick={() =>
-								router.push({
-									pathname: `/professionalhelp/${item.id}`,
-									query: { data: JSON.stringify(item) },
-								})
-							}
+							onClick={() => router.push(`/professionalhelp/${item.id}`)}
+							// onClick={() =>
+							// 	router.push({
+							// 		pathname: `/professionalhelp/${item.id}`,
+							// 		query: { id: item.id },
+							// 	})
+							// }
 						>
 							<CardOverflow>
 								<AspectRatio ratio="1" className={style.ratio}>

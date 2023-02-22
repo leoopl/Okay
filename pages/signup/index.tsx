@@ -12,6 +12,7 @@ import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import style from './signup.module.css';
 import Image from 'next/image';
+import Link from 'next/link';
 
 type InputForm = {
 	name: string;
@@ -75,7 +76,7 @@ export default function Signup() {
 							Cadastra-se
 						</Button>
 						<p className={style.p}>
-							Já tem uma conta? <a href="/login">Entrar</a>
+							Já tem uma conta? <Link href="/login">Entrar</Link>
 						</p>
 					</Grid>
 				</FormContainer>

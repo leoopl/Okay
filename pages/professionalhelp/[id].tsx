@@ -1,26 +1,70 @@
+import { GetStaticPaths, GetStaticProps } from 'next';
 import { Button } from '@mui/joy';
 import { Container, Typography, Box } from '@mui/material';
-import { useRouter } from 'next/router';
 import style from './professionalhelp.module.css';
 import Image from 'next/image';
 
-//TODO: ocutar as informações que estão sendo mostradas no link
-export default function ProfessonalsProfile() {
-	const router = useRouter();
-	const userData = JSON.parse(router.query.data as string);
-	console.log(userData.photo);
+type Professionals = {
+	id: number;
+	name: string;
+	profession: string;
+	resume: string;
+	email: string;
+	photo: string;
+	number: string;
+	address: {
+		latitude: string;
+		longitude: string;
+		number: string;
+		city: string;
+		state: string;
+		country: string;
+		neighborhood: string;
+		street: string;
+		zipcode: string;
+	};
+};
+
+export default function ProfessonalsProfile({ professional }: { professional: Professionals }) {
 	return (
 		<Container className={style.profileContainer}>
 			<Box className={style.centerBox}>
-				<Image width={220} height={220} src={`/${userData.photo}`} alt="profile picture" />
-				<Typography variant="h2">{userData.name}</Typography>
-				<Typography variant="h6">{userData.profession}</Typography>
-				<Typography variant="body2">{userData.resume}</Typography>
-				<Typography variant="body2">{userData.email}</Typography>
-				<Typography variant="body2">{userData.number}</Typography>
+				<Image width={220} height={220} src={`/${professional.photo}`} alt="profile picture" />
+				<Typography variant="h2">{professional.name}</Typography>
+				<Typography variant="h6">{professional.profession}</Typography>
+				<Typography variant="body2">{professional.resume}</Typography>
+				<Typography variant="body2">{professional.email}</Typography>
+				<Typography variant="body2">{professional.number}</Typography>
 				<Typography variant="body2">Adress</Typography>
 				<Button>Marcar consulta</Button>
 			</Box>
 		</Container>
 	);
 }
+
+export const getStaticPaths: GetStaticPaths = async () => {
+	const professionals: Professionals[] = require('../api/professionals.json');
+	const paths = professionals.map(professional => ({
+		params: { id: professional.id.toString() },
+	}));
+
+	return {
+		paths,
+		fallback: false,
+	};
+};
+
+export const getStaticProps: GetStaticProps<{
+	professional: Professionals;
+}> = async context => {
+	const professionals: Professionals[] = require('../api/professionals.json');
+	const professional = professionals.filter(
+		professional => professional.id.toString() === context.params?.id
+	)[0];
+
+	return {
+		props: {
+			professional,
+		},
+	};
+};

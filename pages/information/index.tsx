@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 export default function InformationPage() {
-	const side: boolean = true;
 	return (
 		<Box className={style.containerBox}>
 			<Box className={style.initialBox}>
@@ -16,9 +15,9 @@ export default function InformationPage() {
 						aria-label="vertical contained button group"
 						variant="text"
 					>
-						{informations.map((item, index) => (
-							<Link href={`/#${item.id}`} scroll={false}>
-								<Button key={index}>{item.illness}</Button>
+						{informations.map(item => (
+							<Link key={item.id} href={`/#${item.redirection}`} scroll={false}>
+								<Button>{item.illness}</Button>
 							</Link>
 						))}
 					</ButtonGroup>
@@ -32,8 +31,8 @@ export default function InformationPage() {
 					/>
 				</Box>
 			</Box>
-			{informations.map((item, index) => (
-				<Box className={style.informationSection} key={index} id={item.id}>
+			{informations.map(item => (
+				<Box className={style.informationSection} key={item.id} id={item.redirection}>
 					<Image width={440} height={350} alt="Worries" src="/Worries.svg" />
 					<Box className={style.informationBox}>
 						<Typography variant="h1"> {item.illness} </Typography>
@@ -44,3 +43,15 @@ export default function InformationPage() {
 		</Box>
 	);
 }
+
+// export const getStaticProps: GetStaticProps<{
+// 	informations: Informations[];
+// }> = async context => {
+// 	const informations: Informations[] = require('../api/information.json');
+// 	console.log(informations);
+// 	return {
+// 		props: {
+// 			informations,
+// 		},
+// 	};
+// };

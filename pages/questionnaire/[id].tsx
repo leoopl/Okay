@@ -1,52 +1,52 @@
 import { Radio, RadioGroup, Sheet, Box, Button, FormLabel } from '@mui/joy';
+import { GetStaticPaths, GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import questions from '../api/Beck.json';
 import style from './questionnaire.module.css';
 
-interface QuestionnaireProps {
-	allQuestions: { question: string; options: string[] }[];
-	questionNumber: { id: number };
-}
+type BeckQuestions = {
+	id: number;
+	options: string[];
+	note: null | string;
+};
 
-export async function getServerSideProps(context: any) {
-	const questionNumber = context.query;
-	const allQuestions = questions;
-	return {
-		props: { allQuestions, questionNumber },
-	};
-}
+type Props = {
+	id: number;
+	options: string[];
+	totalQuestion: number;
+};
 
-export default function questionnaire({ allQuestions, questionNumber }: QuestionnaireProps) {
+export default function questionnaire({ currentInfo }: { currentInfo: Props }) {
+	const { id, options, totalQuestion } = currentInfo;
+	//console.log(id, options, totalQuestion);
 	const [selectAnswer, setSelectAnswer] = useState<number>(0);
 	const [points, setPoints] = useState<number>(0);
 	const [checked, setChecked] = useState<boolean>(true);
 	const router = useRouter();
-	const currentQuestion = Number(questionNumber.id);
-	const { options } = allQuestions[currentQuestion];
 
-	const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>, options: string[]) => {
 		e.preventDefault();
 		setChecked(false);
 		const awnswerIndex = options.indexOf(e.target.value);
-		setSelectAnswer(awnswerIndex);
+		if (awnswerIndex !== -1) {
+			setSelectAnswer(awnswerIndex);
+		}
 	}, []);
 
+	//#TODO: Contagem de pontos errada.
 	const handleNext = () => {
-		if (currentQuestion < allQuestions.length - 1) {
+		if (id < totalQuestion - 1) {
 			console.log(points, selectAnswer);
 			setPoints(points => points + selectAnswer);
 			console.log(points, selectAnswer);
-			router.push({
-				pathname: '/questionnaire/[pid]',
-				query: { pid: currentQuestion + 1 },
-			});
+			router.push(`/questionnaire/${id + 1}`);
 		} else {
-			setPoints(points + selectAnswer);
+			setPoints(points => points + selectAnswer);
 			setChecked(true);
 			router.push(
 				{
-					pathname: '/result',
+					pathname: '/resultpage',
 					query: { data: points },
 				},
 				'/result'
@@ -57,7 +57,7 @@ export default function questionnaire({ allQuestions, questionNumber }: Question
 	return (
 		<Box className={style.containerSupport}>
 			<RadioGroup className={style.radioGroup} aria-labelledby="questionLabel">
-				{options.map((value: string, index: number) => (
+				{options?.map((value: string, index: number) => (
 					<Sheet
 						key={index}
 						sx={{
@@ -71,7 +71,7 @@ export default function questionnaire({ allQuestions, questionNumber }: Question
 							label={`${value}`}
 							overlay
 							disableIcon
-							onChange={handleChange}
+							onChange={e => handleChange(e, options)}
 							value={value}
 							slotProps={{
 								label: ({ checked }) => ({
@@ -103,3 +103,27 @@ export default function questionnaire({ allQuestions, questionNumber }: Question
 		</Box>
 	);
 }
+
+export const getStaticPaths: GetStaticPaths = async () => {
+	const data: BeckQuestions[] = questions;
+	const paths = data.map(question => ({
+		params: { id: question.id.toString() },
+	}));
+
+	return {
+		paths,
+		fallback: false,
+	};
+};
+
+export const getStaticProps: GetStaticProps<{ currentInfo: Props }> = async context => {
+	const data: BeckQuestions[] = questions;
+	const totalQuestion = data.length;
+	const selectQuestion = data.filter(question => question.id.toString() === context.params?.id)[0];
+
+	const currentInfo = { id: selectQuestion.id, options: selectQuestion.options, totalQuestion };
+
+	return {
+		props: { currentInfo },
+	};
+};

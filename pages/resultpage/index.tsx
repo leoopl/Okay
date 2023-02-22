@@ -2,10 +2,10 @@ import { useRouter } from 'next/router';
 import ResultPage from '../../components/resultPage';
 
 export default function ResultedPage() {
-	// const router = useRouter();
-	// const finalPoints = router.query.data;
-	// console.log(finalPoints);
-	const finalPoints = 0;
+	const router = useRouter();
+	const finalPoints = Number(router.query.data);
+	console.log(finalPoints);
+	// const finalPoints = 0;
 
 	if (finalPoints <= 10) {
 		return <ResultPage finalAnswer={'Esses altos e baixos são normal'} image={'happy'} />;

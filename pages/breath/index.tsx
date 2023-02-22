@@ -165,7 +165,12 @@ export default function Breathing() {
 							<Sheet className={style.sheetBox} color="neutral" variant="soft">
 								<ModalClose variant="solid" className={style.closeButton} />
 								<Box className={style.imageBox}>
-									<img alt="random-image" src={`./breath${modalData?.id}.svg`} />
+									<Image
+										width={150}
+										height={250}
+										alt="random-image"
+										src={`/breath${modalData?.id}.svg`}
+									/>
 								</Box>
 								<Typography variant="h3" id="modal-title" className={style.modalTitle}>
 									{modalData?.name}

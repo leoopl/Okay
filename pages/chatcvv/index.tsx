@@ -25,6 +25,7 @@ export default function ChatCvv() {
 					Sábados das 14h às 01h
 				</h5>
 				<a
+					rel="noopener noreferrer"
 					className={style.link}
 					target="_blank"
 					href="http://cvvweb.mysuite1.com.br/client/chatan.php?h=&inf=&lfa="

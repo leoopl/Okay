@@ -1,6 +1,6 @@
 [
 	{
-		"id": 1,
+		"id": 0,
 		"options": [
 			"Não me sinto triste",
 			"Eu me sinto triste",
@@ -10,7 +10,7 @@
 		"note": null
 	},
 	{
-		"id": 2,
+		"id": 1,
 		"options": [
 			"Não estou especialmente desanimado quanto ao futuro",
 			"Eu me sinto desanimado quanto ao futuro",
@@ -20,7 +20,7 @@
 		"note": null
 	},
 	{
-		"id": 3,
+		"id": 2,
 		"options": [
 			"Não me sinto um fracasso",
 			"Acho que fracassei mais do que uma pessoa comum",
@@ -30,7 +30,7 @@
 		"note": null
 	},
 	{
-		"id": 4,
+		"id": 3,
 		"options": [
 			"Tenho tanto prazer em tudo como antes",
 			"Não sinto mais prazer nas coisas como antes",
@@ -40,7 +40,7 @@
 		"note": null
 	},
 	{
-		"id": 5,
+		"id": 4,
 		"options": [
 			"Não me sinto especialmente culpado",
 			"Eu me sinto culpado grande parte do tempo",
@@ -50,7 +50,7 @@
 		"note": null
 	},
 	{
-		"id": 6,
+		"id": 5,
 		"options": [
 			"Não acho que esteja sendo punido",
 			"Acho que posso ser punido",
@@ -60,7 +60,7 @@
 		"note": null
 	},
 	{
-		"id": 7,
+		"id": 6,
 		"options": [
 			"Não me sinto decepcionado comigo mesmo",
 			"Estou decepcionado comigo mesmo",
@@ -70,7 +70,7 @@
 		"note": null
 	},
 	{
-		"id": 8,
+		"id": 7,
 		"options": [
 			"Não me sinto de qualquer modo pior que os outros",
 			"Sou crítico em relação a mim por minhas fraquezas ou erros",
@@ -80,7 +80,7 @@
 		"note": null
 	},
 	{
-		"id": 9,
+		"id": 8,
 		"options": [
 			"Não tenho quaisquer idéias de me matar",
 			"Tenho idéias de me matar, mas não as executaria",
@@ -90,7 +90,7 @@
 		"note": null
 	},
 	{
-		"id": 10,
+		"id": 9,
 		"options": [
 			"Não choro mais que o habitual",
 			"Choro mais agora do que costumava",
@@ -100,7 +100,7 @@
 		"note": null
 	},
 	{
-		"id": 11,
+		"id": 10,
 		"options": [
 			"Não sou mais irritado agora do que já fui",
 			"Fico aborrecido ou irritado mais facilmente do que costumava",
@@ -110,7 +110,7 @@
 		"note": null
 	},
 	{
-		"id": 12,
+		"id": 11,
 		"options": [
 			"Não perdi o interesse pelas outras pessoas",
 			"Estou menos interessado pelas outras pessoas do que costumava estar",
@@ -120,7 +120,7 @@
 		"note": null
 	},
 	{
-		"id": 13,
+		"id": 12,
 		"options": [
 			"Tomo decisões tão bem quanto antes",
 			"Adio as tomadas de decisões mais do que costumava",
@@ -130,7 +130,7 @@
 		"note": null
 	},
 	{
-		"id": 14,
+		"id": 13,
 		"options": [
 			"Não acho que de qualquer modo pareço pior do que antes",
 			"Estou preocupado em estar parecendo velho ou sem atrativo",
@@ -140,7 +140,7 @@
 		"note": null
 	},
 	{
-		"id": 15,
+		"id": 14,
 		"options": [
 			"Posso trabalhar tão bem quanto antes",
 			"É preciso algum esforço extra para fazer alguma coisa",
@@ -150,7 +150,7 @@
 		"note": null
 	},
 	{
-		"id": 16,
+		"id": 15,
 		"options": [
 			"Consigo dormir tão bem como o habitual",
 			"Não durmo tão bem como costumava",
@@ -160,7 +160,7 @@
 		"note": null
 	},
 	{
-		"id": 17,
+		"id": 16,
 		"options": [
 			"Não fico mais cansado do que o habitual",
 			"Fico cansado mais facilmente do que costumava",
@@ -170,7 +170,7 @@
 		"note": null
 	},
 	{
-		"id": 18,
+		"id": 17,
 		"options": [
 			"O meu apetite não está pior do que o habitua",
 			"Meu apetite não é tão bom como costumava ser",
@@ -180,7 +180,7 @@
 		"note": null
 	},
 	{
-		"id": 19,
+		"id": 18,
 		"options": [
 			"Não tenho perdido muito peso se é que perdi algum recentemente",
 			"Perdi mais do que 2 quilos e meio",
@@ -190,7 +190,7 @@
 		"note": "Estou tentando perder peso de propósito, comendo menos:"
 	},
 	{
-		"id": 20,
+		"id": 19,
 		"options": [
 			"Não estou mais preocupado com a minha saúde do que o habitual",
 			"Estou preocupado com problemas físicos, tais como dores, indisposição do estômago ou constipação",
@@ -200,7 +200,7 @@
 		"note": null
 	},
 	{
-		"id": 21,
+		"id": 20,
 		"options": [
 			"Não notei qualquer mudança recente no meu interesse por sexo",
 			"Estou menos interessado por sexo do que costumava",
