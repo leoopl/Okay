@@ -26,10 +26,10 @@ type InputForm = {
 
 export default function Signup() {
 	const options = [
-		{ id: 1, label: 'Mulher cisgênera' },
+		{ id: 1, label: 'Mulher cisgênero' },
 		{ id: 2, label: 'Homem cisgênero' },
-		{ id: 3, label: 'Mulher transexual/transgênera' },
-		{ id: 4, label: 'Homem transexual/transgênero' },
+		{ id: 3, label: 'Mulher trans' },
+		{ id: 4, label: 'Homem trans' },
 		{ id: 5, label: 'Não binário' },
 	];
 

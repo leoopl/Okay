@@ -1,0 +1,28 @@
+{
+  "kind": "collectionType",
+  "collectionName": "breaths",
+  "info": {
+    "singularName": "breath",
+    "pluralName": "breaths",
+    "displayName": "breath",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "desc": {
+      "type": "text"
+    },
+    "bgcolor": {
+      "type": "string"
+    },
+    "secs": {
+      "type": "json"
+    }
+  }
+}
