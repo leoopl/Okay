@@ -4,7 +4,7 @@ Desenvolvendo um sonho e aprendendo com ele.
 
 ## Screenshots
 
-![Home Page]([https://cdn.discordapp.com/attachments/1073581059498844193/1073714323282731099/image.png](https://cdn.discordapp.com/attachments/526413766536069131/1133016933944537209/photo_2023-07-24_09-44-24.jpg))
+![Home Page](https://media.discordapp.net/attachments/526413766536069131/1133016933944537209/photo_2023-07-24_09-44-24.jpg?width=1180&height=671)
 ## Run Locally
 
 Clone o projeto
