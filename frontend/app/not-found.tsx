@@ -7,13 +7,13 @@ function randomInt(max: number) {
 
 export default function NotFound() {
   return (
-    <main className="grid min-h-full place-items-center bg-white px-6 py-24 sm:py-32 lg:px-8">
+    <main className="grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">
       <div className="text-center">
         <Image
           width={550}
           height={440}
           alt="404"
-          src={`/404${randomInt(4)}.svg`}
+          src={`/404_error_${randomInt(4)}.svg`}
         />
         <p className="mt-6 text-base font-bold leading-7 text-gray-900">
           Algo inesperado aconteceu, não achamos a página desejada!

@@ -127,7 +127,7 @@ export default function Register() {
           <p className="mt-2 text-center text-sm text-gray-900 small-caps">
             Já tem conta?{" "}
             <Link
-              href="/singin"
+              href="/signin"
               className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500"
             >
               Entrar
