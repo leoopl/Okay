@@ -1,0 +1,27 @@
+{
+  "theme_color": "#fbe5a8",
+  "background_color": "#b6cfb8",
+  "icons": [
+    {
+      "purpose": "ios",
+      "sizes": "512x512",
+      "src": "public/ios-512.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "android",
+      "sizes": "512x512",
+      "src": "public/android-512.png",
+      "type": "image/png"
+    }
+  ],
+  "orientation": "any",
+  "display": "standalone",
+  "dir": "auto",
+  "lang": "pt-BR",
+  "name": "Okay",
+  "short_name": "Okay",
+  "description": "Your mental health it's Okay?",
+  "start_url": "/",
+  "scope": "/"
+}

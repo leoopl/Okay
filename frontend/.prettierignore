@@ -1,0 +1,7 @@
+node_modules
+.next
+.prettierignore
+.eslintignore
+docs
+README.MD
+CHANGELOG.md

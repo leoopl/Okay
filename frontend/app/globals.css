@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom global styles */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background: #b6cfb8;
+  }
+}
+
+/* Custom component styles */
+@layer components {
+}
+
+@layer base {
+  /* Set the text color for date inputs across browsers */
+  input[type='date'] {
+    @apply text-gray-900;
+  }
+
+  /* WebKit browsers (Chrome, Safari) */
+  input[type='date']::-webkit-datetime-edit,
+  input[type='date']::-webkit-datetime-edit-text,
+  input[type='date']::-webkit-datetime-edit-month-field,
+  input[type='date']::-webkit-datetime-edit-day-field,
+  input[type='date']::-webkit-datetime-edit-year-field {
+    @apply text-gray-900;
+  }
+
+  /* Firefox */
+  input[type='date']::-moz-placeholder {
+    color: transparent;
+  }
+
+  /* Internet Explorer */
+  input[type='date']::-ms-input-placeholder {
+    color: transparent;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .small-caps {
+    font-variant: small-caps;
+  }
+}

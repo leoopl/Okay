@@ -1,0 +1,44 @@
+[
+	{
+		"id": 1,
+		"name": "Respiração de Caixa",
+		"desc": "Esta técnica (também conhecida como Respiração Quadrada) tem um método de respiração muito simples que segue uma estrutura \"quadrada\", muito usada por atletas em situações de estresse. Inspire por 4 segundos, segure a respiração por 4 segundos, depois expire por 4 segundos, então segure a respiração por 4 segundos.",
+		"secs": [4, 4, 4, 4],
+		"bgcolor": "#f97f51"
+	},
+	{
+		"id": 2,
+		"name": "Respiração 4-7-8",
+		"desc": "Essa técnica é uma forma de respiração profunda que ajuda a aliviar o estresse e a adormecer mais rapidamente. Inspire por 4 segundos, segure a respiração por 7 segundos e expire por 8 segundos.",
+		"secs": [4, 7, 8, 0],
+		"bgcolor": "#9c88ff"
+	},
+	{
+		"id": 3,
+		"name": "Respiração Profunda",
+		"desc": "Usada para reduzir a ansiedade, essa técnica envolve inspirar e segurar por alguns segundos e expirar por um período mais longo. Inspire por 4 segundos, segure a respiração por 4 segundos e expire por 6 segundos.",
+		"secs": [4, 4, 6, 0],
+		"bgcolor": "#55efc4"
+	},
+	{
+		"id": 4,
+		"name": "Respiração Sama Vritti Pranayama",
+		"desc": "Essa técnica Hindu, muito utilizada por estudantes para ajudar a manter a atenção, no qual envolve inspirar pela mesma quantidade de tempo que expira. Inspire por 4 segundos e expire por 4 segundos.",
+		"secs": [4, 0, 4, 0],
+		"bgcolor": "#fdcb6e"
+	},
+	{
+		"id": 5,
+		"name": "Breath Counting",
+		"desc": "This technique is exactly what it sounds like and it helps become more mindful. Breathe as you would normally do and count each inhale and each exhale.",
+		"secs": [2, 0, 2, 0],
+		"bgcolor": "#badc58"
+	},
+	{
+		"id": 6,
+		"name": "Respiração Rítmica",
+		"desc": "Como o próprio nome sugere, esta técnica segue um ritmo. Inspire por 6 segundos, segure a respiração por 3 segundos, expire por 6 segundos e segure a respiração por 3 segundos.",
+		"secs": [6, 3, 6, 3],
+		"bgcolor": "#95afc0"
+	}
+]

@@ -1,0 +1,217 @@
+{
+  "id": 1,
+  "title": "Inventário de Depressão de Beck (BDI-II)",
+  "desc": "Este questionário é uma ferramenta de triagem de depressão de 21 itens, auto-relatada. Depois de ler cuidadosamente cada opção. Selecione a opção que descreve melhor a maneira que você tem se sentido na última semana, incluindo hoje. Tome cuidado de ler todas as afirmações, em cada grupo, antes de fazer sua escolha..",
+  "questions": [
+    {
+      "id": 0,
+      "options": [
+        "Não me sinto triste",
+        "Eu me sinto triste",
+        "Estou sempre triste e não consigo sair disto",
+        "Estou tão triste ou infeliz que não consigo suportar"
+      ],
+      "note": null
+    },
+    {
+      "id": 1,
+      "options": [
+        "Não estou especialmente desanimado quanto ao futuro",
+        "Eu me sinto desanimado quanto ao futuro",
+        "Acho que nada tenho a esperar",
+        "Acho o futuro sem esperanças e tenho a impressão de que as coisas não podem melhorar"
+      ],
+      "note": null
+    },
+    {
+      "id": 2,
+      "options": [
+        "Não me sinto um fracasso",
+        "Acho que fracassei mais do que uma pessoa comum",
+        "Quando olho pra trás, na minha vida, tudo o que posso ver é um monte de fracassos",
+        "Acho que, como pessoa, sou um completo fracasso"
+      ],
+      "note": null
+    },
+    {
+      "id": 3,
+      "options": [
+        "Tenho tanto prazer em tudo como antes",
+        "Não sinto mais prazer nas coisas como antes",
+        "Não encontro um prazer real em mais nada",
+        "Estou insatisfeito ou aborrecido com tudo"
+      ],
+      "note": null
+    },
+    {
+      "id": 4,
+      "options": [
+        "Não me sinto especialmente culpado",
+        "Eu me sinto culpado grande parte do tempo",
+        "Eu me sinto culpado na maior parte do tempo",
+        "Eu me sinto sempre culpado"
+      ],
+      "note": null
+    },
+    {
+      "id": 5,
+      "options": [
+        "Não acho que esteja sendo punido",
+        "Acho que posso ser punido",
+        "Creio que vou ser punido",
+        "Acho que estou sendo punido"
+      ],
+      "note": null
+    },
+    {
+      "id": 6,
+      "options": [
+        "Não me sinto decepcionado comigo mesmo",
+        "Estou decepcionado comigo mesmo",
+        "Estou enojado de mim",
+        "Eu me odeio"
+      ],
+      "note": null
+    },
+    {
+      "id": 7,
+      "options": [
+        "Não me sinto de qualquer modo pior que os outros",
+        "Sou crítico em relação a mim por minhas fraquezas ou erros",
+        "Eu me culpo sempre por minhas falhas",
+        "Eu me culpo por tudo de mal que acontece"
+      ],
+      "note": null
+    },
+    {
+      "id": 8,
+      "options": [
+        "Não tenho quaisquer idéias de me matar",
+        "Tenho idéias de me matar, mas não as executaria",
+        "Gostaria de me matar",
+        "Eu me mataria se tivesse oportunidade"
+      ],
+      "note": null
+    },
+    {
+      "id": 9,
+      "options": [
+        "Não choro mais que o habitual",
+        "Choro mais agora do que costumava",
+        "Agora, choro o tempo todo",
+        "Costumava ser capaz de chorar, mas agora não consigo, mesmo que o queria"
+      ],
+      "note": null
+    },
+    {
+      "id": 10,
+      "options": [
+        "Não sou mais irritado agora do que já fui",
+        "Fico aborrecido ou irritado mais facilmente do que costumava",
+        "Agora, eu me sinto irritado o tempo todo",
+        "Não me irrito mais com coisas que costumavam me irritar"
+      ],
+      "note": null
+    },
+    {
+      "id": 11,
+      "options": [
+        "Não perdi o interesse pelas outras pessoas",
+        "Estou menos interessado pelas outras pessoas do que costumava estar",
+        "Perdi a maior parte do meu interesse pelas outras pessoas",
+        "Perdi todo o interesse pelas outras pessoas"
+      ],
+      "note": null
+    },
+    {
+      "id": 12,
+      "options": [
+        "Tomo decisões tão bem quanto antes",
+        "Adio as tomadas de decisões mais do que costumava",
+        "Tenho mais dificuldades de tomar decisões do que antes",
+        "Absolutamente não consigo mais tomar decisões"
+      ],
+      "note": null
+    },
+    {
+      "id": 13,
+      "options": [
+        "Não acho que de qualquer modo pareço pior do que antes",
+        "Estou preocupado em estar parecendo velho ou sem atrativo",
+        "Acho que há mudanças permanentes na minha aparência, que me fazem parecer sem atrativo",
+        "Acredito que pareço feio"
+      ],
+      "note": null
+    },
+    {
+      "id": 14,
+      "options": [
+        "Posso trabalhar tão bem quanto antes",
+        "É preciso algum esforço extra para fazer alguma coisa",
+        "Tenho que me esforçar muito para fazer alguma coisa",
+        "Não consigo mais fazer qualquer trabalho"
+      ],
+      "note": null
+    },
+    {
+      "id": 15,
+      "options": [
+        "Consigo dormir tão bem como o habitual",
+        "Não durmo tão bem como costumava",
+        "Acordo 1 a 2 horas mais cedo do que habitualmente eacho difícil voltar a dormir",
+        "Acordo várias horas mais cedo do que costumava e não consigo voltar a dormir"
+      ],
+      "note": null
+    },
+    {
+      "id": 16,
+      "options": [
+        "Não fico mais cansado do que o habitual",
+        "Fico cansado mais facilmente do que costumava",
+        "Fico cansado em fazer qualquer coisa",
+        "Estou cansado demais para fazer qualquer coisa"
+      ],
+      "note": null
+    },
+    {
+      "id": 17,
+      "options": [
+        "O meu apetite não está pior do que o habitua",
+        "Meu apetite não é tão bom como costumava ser",
+        "Meu apetite é muito pior agora",
+        "Absolutamente não tenho mais apetite"
+      ],
+      "note": null
+    },
+    {
+      "id": 18,
+      "options": [
+        "Não tenho perdido muito peso se é que perdi algum recentemente",
+        "Perdi mais do que 2 quilos e meio",
+        "Perdi mais do que 5 quilos",
+        "Perdi mais do que 7 quilos"
+      ],
+      "note": "Estou tentando perder peso de propósito, comendo menos:"
+    },
+    {
+      "id": 19,
+      "options": [
+        "Não estou mais preocupado com a minha saúde do que o habitual",
+        "Estou preocupado com problemas físicos, tais como dores, indisposição do estômago ou constipação",
+        "Estou muito preocupado com problemas físicos e é difícil pensar em outra coisa",
+        "Estou tão preocupado com meus problemas físicos que não consigo pensar em qualquer outra coisa"
+      ],
+      "note": null
+    },
+    {
+      "id": 20,
+      "options": [
+        "Não notei qualquer mudança recente no meu interesse por sexo",
+        "Estou menos interessado por sexo do que costumava",
+        "Estou muito menos interessado por sexo agora",
+        "Perdi completamente o interesse por sexo"
+      ],
+      "note": null
+    }
+  ]
+}

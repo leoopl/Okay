@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "redirection": "dp",
+    "illness": "Depressão",
+    "image": "./info5.svg",
+    "description": "Depressão (CID 10 - F33) é uma doença psiquiátrica crônica e recorrente que produz uma alteração do humor caracterizada por uma tristeza profunda, sem fim, associada a sentimentos de dor, amargura, desencanto, desesperança, baixa autoestima e culpa, assim como a distúrbios do sono e do apetite. \n É importante distinguir a tristeza patológica daquela transitória provocada por acontecimentos difíceis e desagradáveis, mas que são inerentes à vida de todas as pessoas, como a morte de um ente querido, a perda de emprego, os desencontros amorosos, os desentendimentos familiares, as dificuldades econômicas etc. \n Diante das adversidades, as pessoas sem a doença sofrem, ficam tristes, mas encontram uma forma de superá-las. Nos quadros de depressão, a tristeza não dá tréguas, mesmo que não haja uma causa aparente. O humor permanece deprimido praticamente o tempo todo, por dias e dias seguidos. Desaparece o interesse pelas atividades que antes davam satisfação e prazer e a pessoa não tem perspectiva de que algo possa ser feito para que seu quadro melhore."
+  },
+  {
+    "id": 2,
+    "redirection": "ans",
+    "illness": "Ansiedade",
+    "image": "./info4.svg",
+    "description": "O termo tem várias definições nos dicionários não técnicos: aflição, angústia, perturbação do espírito causada pela incerteza, relação com qualquer condescripo de perigo, etc. \n Levando-se em conta o aspecto técnico, devemos entender ansiedade como um fenômeno que ora nos beneficia ora nos prejudica, dependendo das circunstâncias ou intensidade, podendo tornar-se patológica, isto é, prejudicial ao nosso funcionamento psíquico (mental) e somático (corporal). \n A ansiedade estimula o indivíduo a entrar em ação, porém, em excesso, faz exatamente o contrário, impedindo reações. \n Os transtornos de ansiedade são doenças relacionadas ao funcionamento do corpo e às experiências de vida. Pode-se sentir ansioso a maior parte do tempo sem nenhuma razão aparente; pode-se ter ansiedade às vezes, mas tão intensamente que a pessoa se sentirá imobilizada. A sensação de ansiedade pode ser tão desconfortável que, para evitá-la, as pessoas deixam de fazer coisas simples (como usar o elevador) por causa do desconforto que sentem."
+  },
+  {
+    "id": 3,
+    "redirection": "bp",
+    "illness": "Bipolaridade",
+    "image": "./info3.svg",
+    "description": "O transtorno bipolar é marcado pela alternância entre episódios de depressão e de euforia; as crises pode variar em intensidade, frequência e duração. \n Transtorno afetivo bipolar é um distúrbio psiquiátrico complexo. Sua característica mais marcante é a alternância, às vezes súbita, de episódios de depressão com os de euforia (mania e hipomania) e de períodos assintomáticos entre eles. As crises podem variar de intensidade (leve, moderada e grave), frequência e duração. \n As flutuações de humor têm reflexos negativos sobre o comportamento e atitudes dos pacientes, e a reação que provocam é sempre desproporcional aos fatos que serviram de gatilho ou, até mesmo, independem deles. \n Em geral, essa perturbação do humor se manifesta tanto nos homens quanto nas mulheres, entre os 15 e os 25 anos, mas pode afetar também as crianças e pessoas mais velhas."
+  },
+  {
+    "id": 4,
+    "redirection": "tdah",
+    "illness": "TDAH",
+    "image": "./info2.svg",
+    "description": "O Transtorno do Déficit de Atenção com Hiperatividade (TDAH) é um transtorno neurobiológico, de causas genéticas, que aparece na infância e freqüentemente acompanha o indivíduo por toda a sua vida. Ele se caracteriza por sintomas de desatenção, inquietude e impulsividade. Ele é chamado às vezes de DDA (Distúrbio do Déficit de Atenção). Em inglês, também é chamado de ADD, ADHD ou de AD/HD."
+  },
+  {
+    "id": 5,
+    "redirection": "burnout",
+    "illness": "Síndrome de Burnout",
+    "image": "./info1.svg",
+    "description": "Síndrome de Burnout ou Síndrome do Esgotamento Profissional é um disturbio emocional com sintomas de exaustão extrema, estresse e esgotamento físico resultante de situações de trabalho desgastante, que demandam muita competitividade ou responsabilidade. \n A principal causa da doença é justamente o excesso de trabalho. Esta síndrome é comum em profissionais que atuam diariamente sob pressão e com responsabilidades constantes, como médicos, enfermeiros, professores, policiais, jornalistas, dentre outros. \n Traduzindo do inglês, 'burn' quer dizer queima e 'out' exterior. \n A Síndrome de Burnout também pode acontecer quando o profissional planeja ou é pautado para objetivos de trabalho muito difíceis, situações em que a pessoa possa achar, por algum motivo, não ter capacidades suficientes para os cumprir. \n Essa síndrome pode resultar em estado de depressão profunda e por isso é essencial procurar apoio profissional no surgimento dos primeiros sintomas."
+  }
+]
