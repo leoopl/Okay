@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsAlphanumeric,
   IsDateString,
@@ -13,6 +14,7 @@ import {
 const passwordRegEx = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
 export class CreateUserDto {
+  @ApiProperty()
   @IsString()
   @MinLength(2, { message: 'Name must have atleast 2 characters.' })
   @MaxLength(30)
@@ -22,6 +24,7 @@ export class CreateUserDto {
   })
   readonly name: string;
 
+  @ApiProperty()
   @IsString()
   @IsOptional()
   @MaxLength(30)
@@ -37,18 +40,22 @@ export class CreateUserDto {
   // })
   // username: string;
 
+  @ApiProperty()
   @IsNotEmpty()
   @IsEmail(null, { message: 'Please provide valid Email.' })
   readonly email: string;
 
+  @ApiProperty()
   @IsDateString()
   @IsNotEmpty()
   readonly birthdate?: Date;
 
+  @ApiProperty()
   @IsString()
   @IsOptional()
   readonly gender?: string;
 
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   @Matches(passwordRegEx, {

@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
-import { BreathController } from './breathing-technique.controller';
-import { BreathService } from './breathing-technique.service';
+import { BreathingTechniqueController } from './breathing-technique.controller';
+import { BreathingTechniqueService } from './breathing-technique.service';
+import { BreathingTechnique } from './entities/breathing-technique.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-  controllers: [BreathController],
-  providers: [BreathService],
+  controllers: [BreathingTechniqueController],
+  providers: [BreathingTechniqueService, BreathingTechnique],
+  imports: [TypeOrmModule.forFeature([BreathingTechnique])],
 })
 export class BreathModule {}
