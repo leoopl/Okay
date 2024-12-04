@@ -1,12 +1,12 @@
 version: '3.8'
 
 services:
-    postgres:
-        image: postgres:latest
-        container_name: okay-api-db
-        environment:
-            POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: postgres
-            POSTGRES_DB: okay-api
-        ports:
-            - "5432:5432"
+  postgres:
+    image: postgres:latest
+    container_name: okay-api-db
+    environment:
+      POSTGRES_NAME: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: okay-api
+    ports:
+      - '5432:5432'

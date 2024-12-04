@@ -1,16 +1,15 @@
 import Image from 'next/image';
-import tree from '../public/tree.png';
-import type { NextPage } from 'next';
+import tree from '../../public/tree.png';
 
-const Home: NextPage = () => {
-  return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-8">
-      <div className="grid gap-8 md:grid-cols-2 md:items-center">
+const Lol: React.FC = () => (
+  <div className="w-full p-20 lg:py-40">
+    <div className="container mx-auto">
+      <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2">
         <div className="flex flex-col gap-4">
-          <h1 className="max-w-lg text-left font-varela text-5xl tracking-tighter text-yellowDark md:text-7xl">
+          <h1 className="max-w-lg text-left font-varela text-5xl tracking-tighter md:text-7xl">
             Okay!
           </h1>
-          <p className="max-w-xl font-varela text-lg text-gray-800">
+          <p className="max-w-md text-left text-xl leading-relaxed tracking-tight text-muted-foreground">
             Bem-vindo ao Okay?, um lugar onde você pode encontrar o apoio e a orientação de que
             precisa para administrar seus problemas. Entendemos que lidar com essas condições pode
             ser desafiador, mas você não precisa passar por isso sozinho. Nosso site oferece uma
@@ -33,7 +32,6 @@ const Home: NextPage = () => {
         </div>
       </div>
     </div>
-  );
-};
-
-export default Home;
+  </div>
+);
+export default Lol;

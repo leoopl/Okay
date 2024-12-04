@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Dialog, DialogPanel } from '@headlessui/react';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Sheet, SheetContent, SheetClose, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
+import { Menu } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import logo from '../public/logo.png';
@@ -42,8 +41,6 @@ const pages: Page[] = [
 ];
 
 const Header: React.FC = () => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <header className="bg-white shadow">
       <nav
@@ -59,14 +56,49 @@ const Header: React.FC = () => {
           </Link>
         </div>
         <div className="flex lg:hidden">
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen(true)}
-            className="inline-flex items-center justify-center rounded-md p-2 text-gray-700 focus:bg-yellowDark/40 focus:outline-none focus:ring-2 focus:ring-inset"
-            aria-label="Open main menu"
-          >
-            <Bars3Icon className="size-6" aria-hidden="true" />
-          </button>
+          {/* Mobile Menu Button */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <button
+                type="button"
+                className="inline-flex items-center justify-center rounded-md p-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-inset"
+                aria-label="Open main menu"
+              >
+                <Menu className="size-6" aria-hidden="true" />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="right" className="bg-yellowLight p-4">
+              <SheetTitle>
+                <Link href="/" className="flex items-center">
+                  <Image src={logo} alt="Okay" width={15} height={15} />
+                  <span className="ml-4 font-varela text-2xl font-bold text-gray-900">Okay!</span>
+                </Link>
+              </SheetTitle>
+              <div className="flex items-center justify-between">
+                <SheetClose
+                  asChild
+                  className="rounded-md p-2 text-black focus:bg-yellowDark/40 focus:outline-none focus:ring-2 focus:ring-inset"
+                />
+              </div>
+              <div className="mt-6 space-y-2">
+                {pages.map((page) => (
+                  <Link
+                    key={page.name}
+                    href={page.href}
+                    className="block rounded-md px-3 py-2 text-base font-medium text-gray-900 hover:bg-yellowDark/40"
+                  >
+                    {page.name}
+                  </Link>
+                ))}
+                <Link
+                  href="/login"
+                  className="block rounded-md px-3 py-2 text-base font-medium text-gray-900 hover:bg-yellowDark/40"
+                >
+                  Log in
+                </Link>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
 
         {/* Desktop Menu */}
@@ -90,48 +122,6 @@ const Header: React.FC = () => {
           </Link>
         </div>
       </nav>
-
-      {/* Mobile Menu */}
-      <Dialog as="div" className="lg:hidden" open={mobileMenuOpen} onClose={setMobileMenuOpen}>
-        <div className="fixed inset-0 z-40 bg-black opacity-25" />
-        <div className="fixed inset-0 z-50 flex items-start justify-end">
-          <DialogPanel className="w-full max-w-xs bg-yellowLight p-4">
-            <div className="flex items-center justify-between">
-              <Link href="/" className="flex items-center">
-                <Image src={logo} alt="Okay" width={15} height={15} />
-                <span className="ml-4 font-varela text-2xl font-bold text-gray-900">Okay!</span>
-              </Link>
-              <button
-                type="button"
-                onClick={() => setMobileMenuOpen(false)}
-                className="rounded-md p-2 text-gray-700 focus:bg-yellowDark/40 focus:outline-none focus:ring-2 focus:ring-inset"
-                aria-label="Close menu"
-              >
-                <XMarkIcon className="size-6" aria-hidden="true" />
-              </button>
-            </div>
-            <div className="mt-6 space-y-2">
-              {pages.map((page) => (
-                <Link
-                  key={page.name}
-                  href={page.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block rounded-md px-3 py-2 text-base font-medium text-gray-900 hover:bg-yellowDark/40"
-                >
-                  {page.name}
-                </Link>
-              ))}
-              <Link
-                href="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block rounded-md px-3 py-2 text-base font-medium text-gray-900 hover:bg-yellowDark/40"
-              >
-                Log in
-              </Link>
-            </div>
-          </DialogPanel>
-        </div>
-      </Dialog>
     </header>
   );
 };

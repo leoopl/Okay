@@ -4,7 +4,8 @@ import githubicon from '../public/github.svg';
 
 const Footer: React.FC = () => {
   return (
-    <footer>
+    <footer id="footer">
+      <hr className="mx-auto w-11/12" />
       <div className="container mx-auto px-4 py-2">
         <div className="flex flex-col items-center justify-center gap-x-5 gap-y-1 sm:flex-row">
           <div className="text-sm text-black">

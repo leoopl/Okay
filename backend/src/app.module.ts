@@ -1,20 +1,19 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { getDatabaseConfig } from './config/db.config';
+import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
+import { DbModule } from './db/db.module';
+import { BreathingTechniquesModule } from './breathing-technique/breathing-technique.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: getDatabaseConfig,
-      inject: [ConfigService],
-    }),
     UserModule,
+    AuthModule,
+    DbModule,
+    BreathingTechniquesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

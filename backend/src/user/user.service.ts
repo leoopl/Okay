@@ -13,10 +13,10 @@ export class UserService {
     private readonly usersRepository: Repository<User>,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<Omit<IUser, 'password'>> {
+  async create(createUserDto: CreateUserDto): Promise<IUser> {
     const user = this.usersRepository.create(createUserDto);
     await this.usersRepository.save(user);
-    return this.sanitizeUser(user);
+    return user;
   }
 
   async findAll(): Promise<Omit<IUser, 'password'>[]> {
@@ -30,6 +30,10 @@ export class UserService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
     return this.sanitizeUser(user);
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    return await this.usersRepository.findOne({ where: { email } });
   }
 
   async update(

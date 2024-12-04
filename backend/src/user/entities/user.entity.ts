@@ -2,8 +2,10 @@ import {
   BeforeInsert,
   BeforeUpdate,
   Column,
+  CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
@@ -29,6 +31,12 @@ export class User {
 
   @Column({ type: 'date' })
   birthdate: Date;
+
+  @CreateDateColumn({ type: 'timestamp with time zone' })
+  created_at: Date;
+
+  @UpdateDateColumn({ type: 'timestamp with time zone' })
+  updated_at: Date;
 
   @BeforeInsert()
   @BeforeUpdate()

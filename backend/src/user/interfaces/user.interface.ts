@@ -4,6 +4,6 @@ export interface IUser {
   surname?: string;
   email: string;
   password: string;
-  birthdate: Date;
+  birthdate?: Date;
   gender?: string;
 }

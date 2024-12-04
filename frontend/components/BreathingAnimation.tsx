@@ -1,5 +1,5 @@
-import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useBreathingAnimation } from '../hooks/useBreathingAnimation';
+import { X } from 'lucide-react';
 
 interface BreathingAnimationProps {
   onClose: () => void;
@@ -20,7 +20,7 @@ const BreathingAnimation: React.FC<BreathingAnimationProps> = ({ onClose, breath
           onClick={onClose}
           aria-label="Fechar"
         >
-          <XMarkIcon className="size-6" aria-hidden="true" />
+          <X className="size-6" aria-hidden="true" />
         </button>
         <h2 className="mb-6 text-2xl font-bold text-white" aria-live="assertive" aria-atomic="true">
           {guideMessage}

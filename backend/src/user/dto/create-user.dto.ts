@@ -1,4 +1,5 @@
 import {
+  IsAlphanumeric,
   IsDateString,
   IsEmail,
   IsNotEmpty,
@@ -16,19 +17,25 @@ export class CreateUserDto {
   @MinLength(2, { message: 'Name must have atleast 2 characters.' })
   @MaxLength(30)
   @IsNotEmpty()
+  @IsAlphanumeric(null, {
+    message: 'Username does not allow other than alpha numeric chars.',
+  })
   readonly name: string;
 
   @IsString()
   @IsOptional()
   @MaxLength(30)
+  @IsAlphanumeric(null, {
+    message: 'Username does not allow other than alpha numeric chars.',
+  })
   readonly surname?: string;
 
-  //   @IsNotEmpty()
-  //   @MinLength(3, { message: 'Username must have atleast 3 characters.' })
-  //   @IsAlphanumeric(null, {
-  //     message: 'Username does not allow other than alpha numeric chars.',
-  //   })
-  //   username: string;
+  // @IsNotEmpty()
+  // @MinLength(3, { message: 'Username must have atleast 3 characters.' })
+  // @IsAlphanumeric(null, {
+  //   message: 'Username does not allow other than alpha numeric chars.',
+  // })
+  // username: string;
 
   @IsNotEmpty()
   @IsEmail(null, { message: 'Please provide valid Email.' })
@@ -36,7 +43,7 @@ export class CreateUserDto {
 
   @IsDateString()
   @IsNotEmpty()
-  readonly birthdate: Date;
+  readonly birthdate?: Date;
 
   @IsString()
   @IsOptional()

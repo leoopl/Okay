@@ -14,9 +14,15 @@
         "@ducanh2912/next-pwa": "^10.2.9",
         "@headlessui/react": "^2.2.0",
         "@heroicons/react": "^2.2.0",
+        "@radix-ui/react-dialog": "^1.1.2",
+        "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
+        "lucide-react": "^0.462.0",
         "next": "15.0.3",
         "react": "19.0.0-rc-66855b96-20241106",
-        "react-dom": "19.0.0-rc-66855b96-20241106"
+        "react-dom": "19.0.0-rc-66855b96-20241106",
+        "tailwind-merge": "^2.5.5",
+        "tailwindcss-animate": "^1.0.7"
     },
     "devDependencies": {
         "@tailwindcss/forms": "^0.5.9",
