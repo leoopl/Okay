@@ -5,7 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { DbModule } from './db/db.module';
-import { BreathingTechniquesModule } from './breathing-technique/breathing-technique.module';
+import { BreathModule } from './breathing-technique/breathing-technique.module';
 
 @Module({
   imports: [
@@ -13,7 +13,7 @@ import { BreathingTechniquesModule } from './breathing-technique/breathing-techn
     UserModule,
     AuthModule,
     DbModule,
-    BreathingTechniquesModule,
+    BreathModule,
   ],
   controllers: [AppController],
   providers: [AppService],
