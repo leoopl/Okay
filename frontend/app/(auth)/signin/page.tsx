@@ -1,9 +1,15 @@
+'use client';
+
+import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
 // import { useRouter } from 'next/router';
 // import { FormEvent } from 'react';
 
 const SigninPage: React.FC = () => {
+  const [password, setPassword] = useState('');
   // const router = useRouter();
 
   // async function handleLogin( event: FormEvent<HTMLFormElement>) {
@@ -35,7 +41,7 @@ const SigninPage: React.FC = () => {
           </h2>
           <form className="space-y-4" action="#" method="POST">
             <div>
-              <input
+              <Input
                 id="email"
                 name="email"
                 type="email"
@@ -47,11 +53,11 @@ const SigninPage: React.FC = () => {
             </div>
 
             <div>
-              <input
+              <PasswordInput
                 id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
                 required
                 placeholder="Senha"
                 className="block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md focus:border-greenDark focus:ring-greenDark sm:text-sm"

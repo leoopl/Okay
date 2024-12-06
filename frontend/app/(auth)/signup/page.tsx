@@ -1,18 +1,32 @@
 'use client';
 
-import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react';
-import { CheckIcon, ChevronDownIcon } from '@heroicons/react/20/solid';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
-import { FormEvent } from 'react';
+import { signup } from '@/app/actions/auth';
+import { useFormState } from 'react-dom';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const genders = ['Masculino', 'Feminino', 'Outro', 'Prefiro não dizer'];
 
 const SignupPage: React.FC = () => {
-  const [selectedGender, setSelectedGender] = useState<string | null>(null);
+  // const [selectedGender, setSelectedGender] = useState<string | null>(null);
+  const [state, action] = useFormState(signup, undefined);
+  // const { pending } = useFormStatus();
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     // server side
@@ -20,12 +34,12 @@ const SignupPage: React.FC = () => {
 
     // client side
     const data = {
-      firstName: formData.get('first-name') as string,
-      lastName: formData.get('surname') as string,
+      name: formData.get('name') as string,
+      surname: formData.get('surname') as string,
       email: formData.get('email') as string,
       password: formData.get('password') as string,
       confirmPassword: formData.get('confirm-password') as string,
-      birthday: formData.get('birthday') as string,
+      birthdate: formData.get('birthdate') as string,
       gender: formData.get('gender') as string,
     };
 
@@ -40,21 +54,31 @@ const SignupPage: React.FC = () => {
             Faça a sua conta!
           </h2>
           <div className="mx-auto w-full max-w-md">
-            <form className="space-y-4" onSubmit={handleSubmit}>
+            <form action={action} className="space-y-4" onSubmit={handleSubmit}>
               <div>
-                <input
+                <Input
                   type="text"
-                  name="first-name"
-                  id="first-name"
+                  name="name"
+                  id="name"
                   autoComplete="given-name"
                   required
                   placeholder="Nome"
                   className="block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md focus:border-greenDark focus:ring-greenDark sm:text-sm"
                 />
+                {state?.errors?.name && <p>{state.errors.name}</p>}
+                {/* <input
+                  type="text"
+                  name="name"
+                  id="name"
+                  autoComplete="given-name"
+                  required
+                  placeholder="Nome"
+                  className="block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md focus:border-greenDark focus:ring-greenDark sm:text-sm"
+                /> */}
               </div>
 
               <div>
-                <input
+                <Input
                   type="text"
                   name="surname"
                   id="surname"
@@ -66,7 +90,7 @@ const SignupPage: React.FC = () => {
               </div>
 
               <div>
-                <input
+                <Input
                   id="email"
                   name="email"
                   type="email"
@@ -78,11 +102,11 @@ const SignupPage: React.FC = () => {
               </div>
 
               <div>
-                <input
+                <Input
                   id="password"
                   name="password"
                   type="password"
-                  autoComplete="new-password"
+                  autoComplete="password"
                   required
                   placeholder="Senha"
                   className="block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md focus:border-greenDark focus:ring-greenDark sm:text-sm"
@@ -90,11 +114,11 @@ const SignupPage: React.FC = () => {
               </div>
 
               <div>
-                <input
+                <Input
                   id="confirm-password"
                   name="confirm-password"
                   type="password"
-                  autoComplete="new-password"
+                  autoComplete="confirm-password"
                   required
                   placeholder="Repita a senha"
                   className="block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md focus:border-greenDark focus:ring-greenDark sm:text-sm"
@@ -102,45 +126,22 @@ const SignupPage: React.FC = () => {
               </div>
 
               <div>
-                <input
-                  id="birthday"
-                  name="birthday"
-                  type="date"
-                  required
-                  className="block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-500 shadow-md focus:border-greenDark focus:ring-greenDark sm:text-sm"
-                />
+                <DatePicker name="birthdate" />
               </div>
 
               <div>
-                <Listbox name="gender" value={selectedGender} onChange={setSelectedGender}>
-                  <div className="relative mt-1">
-                    <ListboxButton
-                      className={`relative w-full cursor-default rounded-md border border-gray-500 bg-transparent py-2 pl-3 pr-10 text-left ${selectedGender ? 'text-gray-900' : 'text-gray-500'} shadow-md focus:border-greenDark focus:outline-none focus:ring-1 focus:ring-greenDark sm:text-sm`}
-                    >
-                      <span className="block truncate">{selectedGender || 'Gênero'}</span>
-                      <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                        <ChevronDownIcon className="size-5 text-gray-500" aria-hidden="true" />
-                      </span>
-                    </ListboxButton>
-                    <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white/90 py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm">
-                      {genders.map((gender) => (
-                        <ListboxOption
-                          key={gender}
-                          className="group flex cursor-default select-none py-2 pl-3 pr-4 text-gray-900 data-[focus]:bg-greenDark data-[focus]:text-white"
-                          value={gender}
-                        >
-                          <CheckIcon
-                            className="invisible mr-2 size-5 flex-none text-greenDark group-data-[selected]:visible group-data-[focus]:text-white"
-                            aria-hidden="true"
-                          />
-                          <span className="flex-1 truncate font-normal group-data-[selected]:font-medium">
-                            {gender}
-                          </span>
-                        </ListboxOption>
-                      ))}
-                    </ListboxOptions>
-                  </div>
-                </Listbox>
+                <Select name="gender">
+                  <SelectTrigger className="flex w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-black shadow-md hover:bg-greenLight hover:text-gray-900/50 focus:border-greenDark focus:ring-greenDark sm:text-sm">
+                    <SelectValue placeholder="Gênero" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {genders.map((gender) => (
+                      <SelectItem key={gender} value={gender} className="bg-white/90 shadow-md">
+                        {gender}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
@@ -179,5 +180,39 @@ const SignupPage: React.FC = () => {
     </div>
   );
 };
+
+function DatePicker({ name }: { name: string }) {
+  const [birthdate, setBirthdate] = useState<Date | undefined>(undefined);
+  return (
+    <>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant={'outline'}
+            className={cn(
+              'w-full justify-start rounded-md border-gray-500 px-3 py-2 text-left font-normal text-gray-900 shadow-md hover:bg-greenLight hover:text-gray-900/50',
+              !birthdate && 'text-muted-foreground',
+            )}
+          >
+            <CalendarIcon className="mr-2 size-4" />
+            {birthdate ? birthdate.toLocaleDateString('pt-br') : <span>Pick a birthdate</span>}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0">
+          <Calendar
+            mode="single"
+            captionLayout="dropdown-buttons"
+            selected={birthdate}
+            onSelect={setBirthdate}
+            fromYear={1960}
+            toDate={new Date()}
+            className="rounded-md bg-white/90 shadow-md"
+          />
+        </PopoverContent>
+      </Popover>
+      <input type="hidden" name={name} value={birthdate?.toISOString()} />
+    </>
+  );
+}
 
 export default SignupPage;
