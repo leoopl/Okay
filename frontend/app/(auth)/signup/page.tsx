@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { signup } from '@/app/actions/auth';
-import { useFormState } from 'react-dom';
+import { useFormState, useFormStatus } from 'react-dom';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
@@ -22,29 +22,26 @@ import {
 const genders = ['Masculino', 'Feminino', 'Outro', 'Prefiro não dizer'];
 
 const SignupPage: React.FC = () => {
-  // const [selectedGender, setSelectedGender] = useState<string | null>(null);
   const [state, action] = useFormState(signup, undefined);
-  // const { pending } = useFormStatus();
+  // async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  //   event.preventDefault();
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  //   // server side
+  //   const formData = new FormData(event.currentTarget);
 
-    // server side
-    const formData = new FormData(event.currentTarget);
+  //   // client side
+  //   const data = {
+  //     name: formData.get('name') as string,
+  //     surname: formData.get('surname') as string,
+  //     email: formData.get('email') as string,
+  //     password: formData.get('password') as string,
+  //     confirmPassword: formData.get('confirm') as string,
+  //     birthdate: formData.get('birthdate') as string,
+  //     gender: formData.get('gender') as string,
+  //   };
 
-    // client side
-    const data = {
-      name: formData.get('name') as string,
-      surname: formData.get('surname') as string,
-      email: formData.get('email') as string,
-      password: formData.get('password') as string,
-      confirmPassword: formData.get('confirm-password') as string,
-      birthdate: formData.get('birthdate') as string,
-      gender: formData.get('gender') as string,
-    };
-
-    console.log(data);
-  }
+  //   console.log(data);
+  // }
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
@@ -54,7 +51,7 @@ const SignupPage: React.FC = () => {
             Faça a sua conta!
           </h2>
           <div className="mx-auto w-full max-w-md">
-            <form action={action} className="space-y-4" onSubmit={handleSubmit}>
+            <form action={action} className="space-y-4">
               <div>
                 <Input
                   type="text"
@@ -66,15 +63,6 @@ const SignupPage: React.FC = () => {
                   className="block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md focus:border-greenDark focus:ring-greenDark sm:text-sm"
                 />
                 {state?.errors?.name && <p>{state.errors.name}</p>}
-                {/* <input
-                  type="text"
-                  name="name"
-                  id="name"
-                  autoComplete="given-name"
-                  required
-                  placeholder="Nome"
-                  className="block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md focus:border-greenDark focus:ring-greenDark sm:text-sm"
-                /> */}
               </div>
 
               <div>
@@ -87,6 +75,7 @@ const SignupPage: React.FC = () => {
                   placeholder="Sobrenome"
                   className="block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md focus:border-greenDark focus:ring-greenDark sm:text-sm"
                 />
+                {state?.errors?.surname && <p>{state.errors.surname}</p>}
               </div>
 
               <div>
@@ -99,6 +88,7 @@ const SignupPage: React.FC = () => {
                   placeholder="E-mail"
                   className="block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md focus:border-greenDark focus:ring-greenDark sm:text-sm"
                 />
+                {state?.errors?.email && <p>{state.errors.email}</p>}
               </div>
 
               <div>
@@ -111,22 +101,34 @@ const SignupPage: React.FC = () => {
                   placeholder="Senha"
                   className="block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md focus:border-greenDark focus:ring-greenDark sm:text-sm"
                 />
+                {state?.errors?.password && (
+                  <div>
+                    <p>Password must:</p>
+                    <ul>
+                      {state.errors.password.map((error) => (
+                        <li key={error}>- {error}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
 
               <div>
                 <Input
-                  id="confirm-password"
-                  name="confirm-password"
+                  id="confirm"
+                  name="confirm"
                   type="password"
-                  autoComplete="confirm-password"
+                  autoComplete="confirm"
                   required
                   placeholder="Repita a senha"
                   className="block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md focus:border-greenDark focus:ring-greenDark sm:text-sm"
                 />
+                {state?.errors?.confirm && <p>{state.errors.confirm}</p>}
               </div>
 
               <div>
                 <DatePicker name="birthdate" />
+                {state?.errors?.birthdate && <p>{state.errors.birthdate}</p>}
               </div>
 
               <div>
@@ -142,15 +144,11 @@ const SignupPage: React.FC = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                {state?.errors?.gender && <p>{state.errors.gender}</p>}
               </div>
 
               <div>
-                <button
-                  type="submit"
-                  className="small-caps flex w-full justify-center rounded-md bg-greenDark px-4 py-2 text-sm font-semibold text-black shadow-sm hover:bg-greenMedium focus:outline-none focus:ring-2 focus:ring-greenDark focus:ring-offset-2"
-                >
-                  Cadastre-se
-                </button>
+                <SubmitButton />
               </div>
             </form>
 
@@ -195,7 +193,7 @@ function DatePicker({ name }: { name: string }) {
             )}
           >
             <CalendarIcon className="mr-2 size-4" />
-            {birthdate ? birthdate.toLocaleDateString('pt-br') : <span>Pick a birthdate</span>}
+            {birthdate ? birthdate.toLocaleDateString('pt-br') : <span>Data de Nascimento</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0">
@@ -212,6 +210,20 @@ function DatePicker({ name }: { name: string }) {
       </Popover>
       <input type="hidden" name={name} value={birthdate?.toISOString()} />
     </>
+  );
+}
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <button
+      disabled={pending}
+      type="submit"
+      className="small-caps flex w-full justify-center rounded-md bg-greenDark px-4 py-2 text-sm font-semibold text-black shadow-sm hover:bg-greenMedium focus:outline-none focus:ring-2 focus:ring-greenDark focus:ring-offset-2"
+    >
+      Cadastre-se
+    </button>
   );
 }
 

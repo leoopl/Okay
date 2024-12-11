@@ -2,10 +2,11 @@
 
 import { Fragment, useState } from 'react';
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 import data from '../../data/breath.json';
 import Image from 'next/image';
-import { XMarkIcon } from '@heroicons/react/24/outline';
 import BreathingAnimation from '../../components/BreathingAnimation';
+// import { DialogContent, Dialog, DialogTitle } from '@/components/ui/dialog';
 
 interface Technique {
   id: number;
@@ -54,6 +55,46 @@ const Breathing: React.FC = () => {
             ))}
           </div>
         </div>
+
+        {/* <Dialog open={isModalOpen} onOpenChange={(open) => !open && closeModal()}>
+          <DialogContent className="bg-white">
+            <div className="mt-2 text-center">
+              <Image
+                src={`/breath${selectedTechnique?.id}.svg`}
+                alt={selectedTechnique?.name || 'Technique Image'}
+                width={150}
+                height={150}
+                className="mx-auto"
+              />
+              <DialogTitle className="mt-8 font-varela text-3xl font-medium leading-6 text-gray-900">
+                {selectedTechnique?.name}
+              </DialogTitle>
+            </div>
+            <div className="mt-2 text-center">
+              <p className="max-w-md text-base font-semibold text-gray-600">
+                {selectedTechnique?.desc}
+              </p>
+            </div>
+
+            <div className="mt-6 text-center">
+              <p className="mb-4 text-sm text-gray-700">Fique confortável e comece a respirar.</p>
+              <button
+                className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                onClick={() => setIsAnimating(true)}
+              >
+                Iniciar
+              </button>
+            </div> */}
+
+        {/* Animation Overlay*/}
+        {/* {isAnimating && selectedTechnique && (
+              <BreathingAnimation
+                onClose={() => setIsAnimating(false)}
+                breathingTime={selectedTechnique.secs}
+              />
+            )}
+          </DialogContent>
+        </Dialog> */}
 
         {/* Modal */}
         <Transition appear show={isModalOpen} as={Fragment}>

@@ -13,8 +13,11 @@ RUN yarn
 # Copia o restante do código
 COPY . .
 
+# Builda a aplicação
+RUN yarn build
+
 # Expõe a porta do NestJS
-EXPOSE 3000
+EXPOSE 3001
 
 # Comando padrão para iniciar a aplicação
-CMD ["npm", "run", "start:dev"]
+CMD ["yarn", "start:dev"]

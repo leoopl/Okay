@@ -9,15 +9,16 @@ services:
     image: postgres:latest
     container_name: okay-api-db
     environment:
-      POSTGRES_NAME: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: okay-api
+      POSTGRES_NAME: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nest_user -d nest_db"]
+      test:
+        ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME} -d ${DB_NAME} -h localhost']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -26,13 +27,13 @@ services:
     networks:
       - okay_network
     image: node:20.18-slim
-    container_name: globologger_api
+    container_name: okay_api
     working_dir: /usr/src/app
     environment:
-      DB_HOST: mysql
+      DB_HOST: postgres
+      DB_PORT: ${DB_PORT}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
-      DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
@@ -40,10 +41,10 @@ services:
       - .env
     volumes:
       - ./:/usr/src/app
-      - ./node_modules:/usr/src/app/node_modules
-    command: ["npm", "run", "start:dev"]
+      - /usr/src/app/node_modules
+    command: ['yarn', 'start:dev']
     ports:
-      - "3000:3000"
+      - '3001:3001'
     depends_on:
       postgres:
         condition: service_healthy

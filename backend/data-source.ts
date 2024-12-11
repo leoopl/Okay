@@ -15,5 +15,3 @@ export const AppDataSource = new DataSource({
   synchronize: true,
   logging: true,
 });
-
-//yarn migration:run src/db/migrations/UserTable

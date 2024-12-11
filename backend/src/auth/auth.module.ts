@@ -2,22 +2,21 @@ import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UserModule } from 'src/user/user.module';
-// import { jwtConstants } from './constants';
+import jwtConstants from './constants';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
-import { JWT_EXPIRES_IN, JWT_SECRET } from './constants';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
-//secret doesnt work
 @Module({
   imports: [
     UserModule,
+    ConfigModule.forFeature(jwtConstants),
     JwtModule.registerAsync({
       global: true,
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>(JWT_SECRET),
+        secret: configService.get<string>('jwtConstants.secret'),
         signOptions: {
-          expiresIn: configService.get<string>(JWT_EXPIRES_IN),
+          expiresIn: configService.get<string>('jwtConstants.expiresIn'),
         },
       }),
     }),

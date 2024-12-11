@@ -8,11 +8,13 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { BreathingTechniqueService } from './breathing-technique.service';
 import { CreateBreathingTechniqueDto } from './dto/create-breathing-technique.dto';
 import { UpdateBreathingTechniqueDto } from './dto/update-breathing-technique.dto';
 import { IBreathingTechnique } from './interfaces/breathing-technique.interface';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-guard';
 
 @Controller('breathing-techniques')
 export class BreathingTechniqueController {
@@ -30,7 +32,7 @@ export class BreathingTechniqueController {
     return await this.breathingTechniquesService.findOne(id);
   }
 
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post()
   async create(
     @Body() createBreathingTechniqueDto: CreateBreathingTechniqueDto,
@@ -40,7 +42,7 @@ export class BreathingTechniqueController {
     );
   }
 
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Put(':id')
   async update(
     @Param('id') id: string,
@@ -52,7 +54,7 @@ export class BreathingTechniqueController {
     );
   }
 
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string): Promise<void> {

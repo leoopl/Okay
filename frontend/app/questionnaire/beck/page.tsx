@@ -2,8 +2,8 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
-import { Label, Radio, RadioGroup } from '@headlessui/react';
-import { CheckCircleIcon } from '@heroicons/react/24/outline';
+import { RadioGroupItem, RadioGroup } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import data from '../../../data/beck.json';
 
 interface IQuestion {
@@ -62,26 +62,21 @@ const BeckPage: React.FC = () => {
           <p className="text-center text-sm text-gray-600">
             Question {currentQuestionIndex + 1} of {questionnaire.questions.length}
           </p>
-          {currentQuestion.note && <p className="text-sm text-gray-600">{currentQuestion.note}</p>}
+          {currentQuestion.note && <p className="text-sm text-gray-900">{currentQuestion.note}</p>}
+
           <RadioGroup
-            className="mt-4 space-y-4"
-            value={selectOption}
-            onChange={handleOptionChange}
+            value={String(selectOption)}
+            // Radix uses onValueChange instead of onChange for radio groups
+            onValueChange={(val) => handleOptionChange(Number(val))}
             aria-label="Beck question"
           >
             {currentQuestion.options.map((option, index) => (
-              <Radio
-                key={index}
-                value={index}
-                className="group relative flex cursor-pointer rounded-lg bg-beigeDark px-5 py-4 text-black shadow-md transition focus:outline-none data-[checked]:bg-beigeMedium data-[focus]:outline-1 data-[focus]:outline-white"
-              >
-                <div className="flex w-full items-center justify-between">
-                  <Label>{option}</Label>
-                  <CheckCircleIcon className="size-6 opacity-0 transition group-data-[checked]:opacity-100" />
-                </div>
-              </Radio>
+              <RadioGroupItem key={index} value={String(index)} className="w-full">
+                <Label>{option}</Label>
+              </RadioGroupItem>
             ))}
           </RadioGroup>
+
           <div className="text-center">
             <button
               onClick={handleNextQuestion}
