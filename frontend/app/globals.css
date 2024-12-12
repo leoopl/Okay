@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+.rdp-vhidden {
+  @apply hidden;
+}
 /* Custom global styles */
 @layer base {
   html {
