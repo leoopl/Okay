@@ -26,7 +26,7 @@ services:
     networks:
       - okay_network
     image: node:20.18-slim
-    container_name: globologger_api
+    container_name: okay_api
     working_dir: /usr/src/app
     environment:
       DB_HOST: mysql
