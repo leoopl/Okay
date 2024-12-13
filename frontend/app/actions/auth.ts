@@ -1,6 +1,6 @@
 'use server';
 
-import { SignupFormSchema, FormState } from '@/app/lib/definitions';
+import { SignupFormSchema, FormState } from '@/lib/definitions';
 import { redirect } from 'next/navigation';
 
 export async function signup(state: FormState, formData: FormData) {

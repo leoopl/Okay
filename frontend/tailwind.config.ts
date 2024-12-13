@@ -80,5 +80,5 @@ module.exports = {
       checked: 'ui~="checked"',
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography')],
 };

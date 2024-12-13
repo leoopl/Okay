@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import * as bcrypt from 'bcrypt';
+import * as argon2 from 'argon2';
 
 @Entity({ name: 'users' })
 export class User {
@@ -42,8 +42,9 @@ export class User {
   @BeforeUpdate()
   async hashPassword() {
     if (this.password) {
-      const salt = await bcrypt.genSalt();
-      this.password = await bcrypt.hash(this.password, salt);
+      this.password = await argon2.hash(this.password, {
+        type: argon2.argon2id,
+      });
     }
   }
 }

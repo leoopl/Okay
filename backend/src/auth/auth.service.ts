@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
+import * as argon2 from 'argon2';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { IUser } from 'src/user/interfaces/user.interface';
 import { UserService } from 'src/user/user.service';
@@ -17,31 +17,35 @@ export class AuthService {
   ) {}
 
   async register(
-    createUSerDto: CreateUserDto,
+    createUserDto: CreateUserDto,
   ): Promise<{ access_token: string }> {
-    const existingUSer = await this.userService.findByEmail(
-      createUSerDto.email,
+    const existingUser = await this.userService.findByEmail(
+      createUserDto.email,
     );
-    if (existingUSer) {
+    if (existingUser) {
       throw new ConflictException('Email already exists');
     }
-    const user = await this.userService.create(createUSerDto);
+    const user = await this.userService.create(createUserDto);
     return this.signIn(user);
   }
 
   async validateUser(email: string, password: string): Promise<IUser | null> {
     const user = await this.userService.findByEmail(email);
 
-    bcrypt.compare(password, user.password, function (err, result) {
-      if (!result) {
-        throw new UnauthorizedException('Invalid credentials');
-      }
-    });
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const isPasswordValid = await argon2.verify(user.password, password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
     return user;
   }
 
-  async signIn(user: IUser) {
-    const playload = { sub: user.id, email: user.email };
-    return { access_token: await this.jwtService.sign(playload) };
+  async signIn(user: IUser): Promise<{ access_token: string }> {
+    const payload = { sub: user.id, email: user.email };
+    return { access_token: await this.jwtService.sign(payload) };
   }
 }

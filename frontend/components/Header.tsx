@@ -5,6 +5,7 @@ import { Menu } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import logo from '../public/logo.png';
+import UserButton from './UserButton';
 
 interface Page {
   name: string;
@@ -55,6 +56,28 @@ const Header: React.FC = () => {
             </a>
           </Link>
         </div>
+
+        {/* Desktop Menu */}
+        <div className="hidden lg:flex lg:space-x-8 lg:text-center">
+          {pages.map((page) => (
+            <Link
+              key={page.name}
+              href={page.href}
+              className="text-lg font-semibold text-gray-900 hover:text-yellowDark"
+            >
+              {page.name}
+            </Link>
+          ))}
+        </div>
+        <div className="hidden lg:flex lg:items-center">
+          <Link
+            href="/signin"
+            className="text-lg font-semibold text-gray-900 hover:text-yellowDark"
+          >
+            Login <span aria-hidden="true">&rarr;</span>
+          </Link>
+        </div>
+        {/* <div className="flex items-center"> */}
         <div className="flex lg:hidden">
           {/* Mobile Menu Button */}
           <Sheet>
@@ -67,7 +90,7 @@ const Header: React.FC = () => {
                 <Menu className="size-6" aria-hidden="true" />
               </button>
             </SheetTrigger>
-            <SheetContent side="right" className="bg-yellowLight p-4">
+            <SheetContent side="right" className="bg-yellowLight/90 p-4">
               <SheetTitle>
                 <Link href="/" className="flex items-center">
                   <Image src={logo} alt="Okay" width={15} height={15} />
@@ -100,27 +123,8 @@ const Header: React.FC = () => {
             </SheetContent>
           </Sheet>
         </div>
-
-        {/* Desktop Menu */}
-        <div className="hidden lg:flex lg:space-x-8 lg:text-center">
-          {pages.map((page) => (
-            <Link
-              key={page.name}
-              href={page.href}
-              className="text-lg font-semibold text-gray-900 hover:text-yellowDark"
-            >
-              {page.name}
-            </Link>
-          ))}
-        </div>
-        <div className="hidden lg:flex lg:items-center">
-          <Link
-            href="/signin"
-            className="text-lg font-semibold text-gray-900 hover:text-yellowDark"
-          >
-            Login <span aria-hidden="true">&rarr;</span>
-          </Link>
-        </div>
+        {/* <UserButton />
+        </div> */}
       </nav>
     </header>
   );

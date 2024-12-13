@@ -1,7 +1,7 @@
 // import { MoveRight } from 'lucide-react';
 // import { Button } from '@/components/ui/button';
 
-export const Blog1 = () => (
+const Blog1 = () => (
   <div className="w-full py-20 lg:py-40">
     <div className="container mx-auto flex flex-col gap-14">
       <div className="flex w-full flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
@@ -45,3 +45,5 @@ export const Blog1 = () => (
     </div>
   </div>
 );
+
+export default Blog1;

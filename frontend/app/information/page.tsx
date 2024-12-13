@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import data from '../../data/information.json';
 import IllnessCard from '../../components/IllnessCard';
+import { GetStaticPaths } from 'next';
 
 interface IIllnessData {
   id: number;
@@ -11,6 +12,13 @@ interface IIllnessData {
   image: string;
   description: string;
 }
+type Post = {
+  id: string;
+  title: string;
+  content: string;
+  references: string[];
+  createdAt: string;
+};
 
 const InformationPage: React.FC = () => {
   const illnessData: IIllnessData[] = data;
@@ -57,6 +65,21 @@ const InformationPage: React.FC = () => {
       </div>
     </div>
   );
+};
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  // Fetch all post IDs from your API
+  const res = await fetch('https://your-api.com/posts');
+  const posts: Post[] = await res.json();
+
+  const paths = posts.map((post) => ({
+    params: { id: post.id },
+  }));
+
+  return {
+    paths,
+    fallback: 'blocking', // or false if you want a 404 for not found pages
+  };
 };
 
 export default InformationPage;
