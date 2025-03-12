@@ -43,11 +43,11 @@ export default async function BlogPostPage() {
   });
   return (
     // section bg-white/20
-    <section className="container mx-auto max-w-4xl bg-beigeLight/80 px-4 py-8 shadow-2xl">
+    <section className="bg-beige-light/80 container mx-auto max-w-4xl px-4 py-8 shadow-2xl">
       <ButtonScrollTop />
-      <article className="mx-auto max-w-3xl divide-y divide-grayMedium">
+      <article className="divide-gray-medium mx-auto max-w-3xl divide-y">
         <header className="mb-8">
-          <h1 className="mb-1 font-varela text-5xl font-bold text-greenDark">
+          <h1 className="font-varela text-green-dark mb-1 text-5xl font-bold">
             {frontmatter.title}
           </h1>
           <time className="mb-2 block text-sm text-gray-500">
@@ -64,12 +64,12 @@ export default async function BlogPostPage() {
         <div className="mt-8">
           {frontmatter.tags && frontmatter.tags.length > 0 && (
             <footer className="pt-5">
-              <h2 className="mb-4 font-varela text-xl font-semibold text-black">Tags</h2>
+              <h2 className="font-varela mb-4 text-xl font-semibold text-black">Tags</h2>
               <div className="flex flex-wrap gap-2">
                 {frontmatter.tags.map((tag, idx) => (
                   <p
                     key={idx}
-                    className="rounded-sm px-4 py-2 text-sm font-medium text-greenDark hover:bg-greenMedium hover:text-white"
+                    className="text-green-dark hover:bg-green-medium rounded-sm px-4 py-2 text-sm font-medium hover:text-white"
                   >
                     {tag}
                   </p>

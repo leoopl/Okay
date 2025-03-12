@@ -24,9 +24,9 @@ const RadioGroupItem = React.forwardRef<
       ref={ref}
       className={cn(
         // Base styles
-        'group relative flex cursor-pointer rounded-lg bg-beigeDark px-5 py-4 text-black shadow-md transition focus:outline-none',
+        'group bg-beige-dark relative flex cursor-pointer rounded-lg px-5 py-4 text-black shadow-md transition focus:outline-none',
         // On checked state, change background
-        'data-[state=checked]:bg-beigeMedium',
+        'data-[state=checked]:bg-beige-medium',
         // Focus state styling
         'focus-visible:outline-1 focus-visible:outline-white',
         className,

@@ -47,7 +47,7 @@ const SignupPage: React.FC = () => {
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
       <div className="grid w-full max-w-4xl gap-8 md:grid-cols-2 md:items-center">
         <div className="px-4">
-          <h2 className="small-caps mb-8 text-center font-varela text-4xl font-bold leading-9 tracking-tight text-gray-900">
+          <h2 className="small-caps font-varela mb-8 text-center text-4xl leading-9 font-bold tracking-tight text-gray-900">
             Faça a sua conta!
           </h2>
           <div className="mx-auto w-full max-w-md">
@@ -60,7 +60,7 @@ const SignupPage: React.FC = () => {
                   autoComplete="given-name"
                   required
                   placeholder="Nome"
-                  className="block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md focus:border-greenDark focus:ring-greenDark sm:text-sm"
+                  className="focus:border-green-dark focus:ring-green-dark block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md sm:text-sm"
                 />
                 {state?.errors?.name && <p>{state.errors.name}</p>}
               </div>
@@ -73,7 +73,7 @@ const SignupPage: React.FC = () => {
                   autoComplete="family-name"
                   required
                   placeholder="Sobrenome"
-                  className="block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md focus:border-greenDark focus:ring-greenDark sm:text-sm"
+                  className="focus:border-green-dark focus:ring-green-dark block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md sm:text-sm"
                 />
                 {state?.errors?.surname && <p>{state.errors.surname}</p>}
               </div>
@@ -86,7 +86,7 @@ const SignupPage: React.FC = () => {
                   autoComplete="email"
                   required
                   placeholder="E-mail"
-                  className="block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md focus:border-greenDark focus:ring-greenDark sm:text-sm"
+                  className="focus:border-green-dark focus:ring-green-dark block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md sm:text-sm"
                 />
                 {state?.errors?.email && <p>{state.errors.email}</p>}
               </div>
@@ -99,7 +99,7 @@ const SignupPage: React.FC = () => {
                   autoComplete="password"
                   required
                   placeholder="Senha"
-                  className="block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md focus:border-greenDark focus:ring-greenDark sm:text-sm"
+                  className="focus:border-green-dark focus:ring-green-dark block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md sm:text-sm"
                 />
                 {state?.errors?.password && (
                   <div>
@@ -121,7 +121,7 @@ const SignupPage: React.FC = () => {
                   autoComplete="confirm"
                   required
                   placeholder="Repita a senha"
-                  className="block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md focus:border-greenDark focus:ring-greenDark sm:text-sm"
+                  className="focus:border-green-dark focus:ring-green-dark block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md sm:text-sm"
                 />
                 {state?.errors?.confirm && <p>{state.errors.confirm}</p>}
               </div>
@@ -133,7 +133,7 @@ const SignupPage: React.FC = () => {
 
               <div>
                 <Select name="gender">
-                  <SelectTrigger className="flex w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-black shadow-md hover:bg-greenLight hover:text-gray-900/50 focus:border-greenDark focus:ring-greenDark sm:text-sm">
+                  <SelectTrigger className="hover:bg-green-light focus:border-green-dark focus:ring-green-dark flex w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-black shadow-md hover:text-gray-900/50 sm:text-sm">
                     <SelectValue placeholder="Gênero" />
                   </SelectTrigger>
                   <SelectContent>
@@ -156,7 +156,7 @@ const SignupPage: React.FC = () => {
               Já tem conta?{' '}
               <Link
                 href="/signin"
-                className="font-semibold leading-6 text-black hover:text-beigeDark"
+                className="hover:text-beige-dark leading-6 font-semibold text-black"
               >
                 Entrar
               </Link>
@@ -188,7 +188,7 @@ function DatePicker({ name }: { name: string }) {
           <Button
             variant={'outline'}
             className={cn(
-              'w-full justify-start rounded-md border-gray-500 px-3 py-2 text-left font-normal text-gray-900 shadow-md hover:bg-greenLight hover:text-gray-900/50',
+              'hover:bg-green-light w-full justify-start rounded-md border-gray-500 px-3 py-2 text-left font-normal text-gray-900 shadow-md hover:text-gray-900/50',
               !birthdate && 'text-muted-foreground',
             )}
           >
@@ -220,7 +220,7 @@ function SubmitButton() {
     <button
       disabled={pending}
       type="submit"
-      className="small-caps flex w-full justify-center rounded-md bg-greenDark px-4 py-2 text-sm font-semibold text-black shadow-sm hover:bg-greenMedium focus:outline-none focus:ring-2 focus:ring-greenDark focus:ring-offset-2"
+      className="small-caps bg-green-dark hover:bg-green-medium focus:ring-green-dark flex w-full justify-center rounded-md px-4 py-2 text-sm font-semibold text-black shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
     >
       Cadastre-se
     </button>

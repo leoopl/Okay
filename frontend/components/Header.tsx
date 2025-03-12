@@ -46,13 +46,13 @@ const Header: React.FC = () => {
     <header className="bg-white shadow">
       <nav
         aria-label="Global"
-        className="mx-auto flex max-w-full items-center justify-between bg-yellowLight/40 p-4 sm:px-6 lg:px-8"
+        className="bg-yellow-light/40 mx-auto flex max-w-full items-center justify-between p-4 sm:px-6 lg:px-8"
       >
         <div className="flex items-center">
           <Link href="/" passHref legacyBehavior>
             <a className="flex items-center">
               <Image src={logo} alt="Okay" width={20} height={20} />
-              <span className="ml-3 font-varela text-2xl font-bold text-yellowDark">Okay!</span>
+              <span className="font-varela text-yellow-dark ml-3 text-2xl font-bold">Okay!</span>
             </a>
           </Link>
         </div>
@@ -63,7 +63,7 @@ const Header: React.FC = () => {
             <Link
               key={page.name}
               href={page.href}
-              className="text-lg font-semibold text-gray-900 hover:text-yellowDark"
+              className="hover:text-yellow-dark text-lg font-semibold text-gray-900"
             >
               {page.name}
             </Link>
@@ -72,7 +72,7 @@ const Header: React.FC = () => {
         <div className="hidden lg:flex lg:items-center">
           <Link
             href="/signin"
-            className="text-lg font-semibold text-gray-900 hover:text-yellowDark"
+            className="hover:text-yellow-dark text-lg font-semibold text-gray-900"
           >
             Login <span aria-hidden="true">&rarr;</span>
           </Link>
@@ -84,23 +84,23 @@ const Header: React.FC = () => {
             <SheetTrigger asChild>
               <button
                 type="button"
-                className="inline-flex items-center justify-center rounded-md p-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-inset"
+                className="inline-flex items-center justify-center rounded-md p-2 text-gray-700 focus:ring-2 focus:outline-none focus:ring-inset"
                 aria-label="Open main menu"
               >
                 <Menu className="size-6" aria-hidden="true" />
               </button>
             </SheetTrigger>
-            <SheetContent side="right" className="bg-yellowLight/90 p-4">
+            <SheetContent side="right" className="bg-yellow-light/90 p-4">
               <SheetTitle>
                 <Link href="/" className="flex items-center">
                   <Image src={logo} alt="Okay" width={15} height={15} />
-                  <span className="ml-4 font-varela text-2xl font-bold text-gray-900">Okay!</span>
+                  <span className="font-varela ml-4 text-2xl font-bold text-gray-900">Okay!</span>
                 </Link>
               </SheetTitle>
               <div className="flex items-center justify-between">
                 <SheetClose
                   asChild
-                  className="rounded-md p-2 text-black focus:bg-yellowDark/40 focus:outline-none focus:ring-2 focus:ring-inset"
+                  className="focus:bg-yellow-dark/40 rounded-md p-2 text-black focus:ring-2 focus:outline-none focus:ring-inset"
                 />
               </div>
               <div className="mt-6 space-y-2">
@@ -108,14 +108,14 @@ const Header: React.FC = () => {
                   <Link
                     key={page.name}
                     href={page.href}
-                    className="block rounded-md px-3 py-2 text-base font-medium text-gray-900 hover:bg-yellowDark/40"
+                    className="hover:bg-yellow-dark/40 block rounded-md px-3 py-2 text-base font-medium text-gray-900"
                   >
                     {page.name}
                   </Link>
                 ))}
                 <Link
                   href="/login"
-                  className="block rounded-md px-3 py-2 text-base font-medium text-gray-900 hover:bg-yellowDark/40"
+                  className="hover:bg-yellow-dark/40 block rounded-md px-3 py-2 text-base font-medium text-gray-900"
                 >
                   Log in
                 </Link>

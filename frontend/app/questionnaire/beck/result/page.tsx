@@ -26,7 +26,7 @@ const ResultPage: React.FC = () => {
         <p className="text-lg text-gray-600">{getResultInterpretation(Number(score))}</p>
         <button
           onClick={() => router.push('/')}
-          className="small-caps inline-flex justify-center rounded-md bg-greenDark px-4 py-2 text-sm font-semibold text-black shadow-sm hover:bg-greenMedium focus:outline-none focus:ring-2 focus:ring-greenDark focus:ring-offset-2"
+          className="small-caps bg-green-dark hover:bg-green-medium focus:ring-green-dark inline-flex justify-center rounded-md px-4 py-2 text-sm font-semibold text-black shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
         >
           Go Back Home
         </button>

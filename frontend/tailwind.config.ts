@@ -1,11 +1,12 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-/** @type {import('tailwindcss').Config} */
-module.exports = {
-  darkMode: ['class'],
+import { type Config } from 'tailwindcss';
+
+const config: Config = {
+  darkMode: 'class',
   content: [
-    './pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './pages/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './app/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
   ],
   theme: {
     extend: {
@@ -18,61 +19,70 @@ module.exports = {
         varela: ['var(--font-varela-round)'],
       },
       colors: {
-        yellowLight: 'hsl(var(--yellow-light))',
-        yellowMedium: 'hsl(var(--yellow-medium))',
-        yellowDark: 'hsl(var(--yellow-dark))',
-        blueLight: 'hsl(var(--blue-light))',
-        blueMedium: 'hsl(var(--blue-medium))',
-        blueDark: 'hsl(var(--blue-dark))',
-        beigeLight: 'hsl(var(--beige-light))',
-        beigeMedium: 'hsl(var(--beige-medium))',
-        beigeDark: 'hsl(var(--beige-dark))',
-        greenLight: 'hsl(var(--green-light))',
-        greenMedium: 'hsl(var(--green-medium))',
-        greenDark: 'hsl(var(--green-dark))',
-        grayLight: 'hsl(var(--gray-light))',
-        grayMedium: 'hsl(var(--gray-medium))',
-        grayDark: 'hsl(var(--gray-dark))',
+        yellow: {
+          light: '#f8e3a3',
+          medium: '#f9d56e',
+          dark: '#f9c22e',
+        },
+        blue: {
+          light: '#a8dff1',
+          medium: '#65c3e8',
+          dark: '#0d9ddb',
+        },
+        beige: {
+          light: '#f2e4d0',
+          medium: '#c7bba9',
+          dark: '#96897b',
+        },
+        green: {
+          light: '#c4e0c8',
+          medium: '#9abf9f',
+          dark: '#69996f',
+        },
+        gray: {
+          light: '#d1d3de',
+          medium: '#9fa3b8',
+          dark: '#797e8e',
+        },
 
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
-        },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
-        },
+        // UI Theme colors
+        background: '#b6cfb8',
+        foreground: '#797e8e',
+
+        // Objects with foreground variants
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
+          DEFAULT: '#69996f',
+          foreground: '#ffffff',
         },
         secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
-        },
-        muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
+          DEFAULT: '#f8e3a3',
+          foreground: '#000000',
         },
         accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
+          DEFAULT: '#0d9ddb',
+          foreground: '#ffffff',
+        },
+        muted: {
+          DEFAULT: '#9fa3b8',
+          foreground: '#797e8e',
         },
         destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
+          DEFAULT: '#ef4444',
+          foreground: '#ffffff',
         },
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
+
+        // Other UI colors
+        border: '#9fa3b8',
+        input: '#9fa3b8',
+        ring: '#69996f',
+
+        // Chart colors
         chart: {
-          1: 'hsl(var(--chart-1))',
-          2: 'hsl(var(--chart-2))',
-          3: 'hsl(var(--chart-3))',
-          4: 'hsl(var(--chart-4))',
-          5: 'hsl(var(--chart-5))',
+          1: '#4583cc',
+          2: '#35b396',
+          3: '#f9c22e',
+          4: '#b866d8',
+          5: '#e84c88',
         },
       },
     },
@@ -82,3 +92,5 @@ module.exports = {
   },
   plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography')],
 };
+
+export default config;

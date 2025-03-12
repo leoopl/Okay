@@ -8,7 +8,7 @@ const Home: NextPage = () => {
       <div className="container mx-auto">
         <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2">
           <div className="flex flex-col gap-10">
-            <h1 className="max-w-lg text-left font-varela text-5xl tracking-tighter text-yellowDark md:text-7xl">
+            <h1 className="font-varela text-yellow-dark max-w-lg text-left text-5xl tracking-tighter md:text-7xl">
               Okay!
             </h1>
             <p className="font-varela text-lg text-gray-800">

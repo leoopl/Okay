@@ -36,7 +36,7 @@ const InformationPage: React.FC = () => {
               {illnessData.map((item) => (
                 <Link
                   key={item.id}
-                  className="rounded-full bg-greenLight px-4 py-2 text-sm font-medium text-greenDark hover:bg-greenMedium hover:text-white"
+                  className="bg-green-light text-green-dark hover:bg-green-medium rounded-full px-4 py-2 text-sm font-medium hover:text-white"
                   href={`#${item.redirection}`}
                 >
                   {item.illness}

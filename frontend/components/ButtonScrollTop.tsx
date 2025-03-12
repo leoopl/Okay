@@ -20,11 +20,11 @@ const ButtonScrollTop = () => {
   };
 
   return (
-    <div className={`fixed bottom-8 right-8 hidden ${show ? 'md:flex' : 'md:hidden'}`}>
+    <div className={`fixed right-8 bottom-8 hidden ${show ? 'md:flex' : 'md:hidden'}`}>
       <button
         onClick={handleScrollTop}
         aria-label="Scroll to top"
-        className="rounded-full bg-yellowMedium p-2 text-beigeDark transition-all hover:bg-yellowLight"
+        className="bg-yellow-medium text-beige-dark hover:bg-yellow-light rounded-full p-2 transition-all"
       >
         <ArrowUpIcon size={24} />
       </button>

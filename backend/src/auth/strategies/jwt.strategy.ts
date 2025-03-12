@@ -7,7 +7,9 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private configService: ConfigService) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken([
+        (req) => req?.cookies?.access_token,
+      ]),
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('jwtConstants.secret'),
       //   audience: 'YOUR_AUTH0_API_IDENTIFIER',
@@ -17,6 +19,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    return { userId: payload.sub, username: payload.email };
+    return { userId: payload.sub, email: payload.email };
   }
 }

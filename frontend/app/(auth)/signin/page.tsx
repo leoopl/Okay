@@ -36,7 +36,7 @@ const SigninPage: React.FC = () => {
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
       <div className="grid w-full max-w-4xl gap-8 md:grid-cols-2 md:items-center">
         <div className="px-4">
-          <h2 className="small-caps mb-8 text-center font-varela text-4xl font-bold leading-9 tracking-tight text-gray-900">
+          <h2 className="small-caps font-varela mb-8 text-center text-4xl leading-9 font-bold tracking-tight text-gray-900">
             Espero que esteja tendo um bom dia!
           </h2>
           <form className="space-y-4" action="#" method="POST">
@@ -48,7 +48,7 @@ const SigninPage: React.FC = () => {
                 autoComplete="email"
                 required
                 placeholder="E-mail"
-                className="block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md focus:border-greenDark focus:ring-greenDark sm:text-sm"
+                className="focus:border-green-dark focus:ring-green-dark block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md sm:text-sm"
               />
             </div>
 
@@ -60,11 +60,11 @@ const SigninPage: React.FC = () => {
                 autoComplete="new-password"
                 required
                 placeholder="Senha"
-                className="block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md focus:border-greenDark focus:ring-greenDark sm:text-sm"
+                className="focus:border-green-dark focus:ring-green-dark block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md sm:text-sm"
               />
               <div className="flex items-center justify-end">
                 <div className="text-sm">
-                  <a href="#" className="small-caps font-semibold text-black hover:text-beigeDark">
+                  <a href="#" className="small-caps hover:text-beige-dark font-semibold text-black">
                     Esqueceu sua senha?
                   </a>
                 </div>
@@ -74,7 +74,7 @@ const SigninPage: React.FC = () => {
             <div>
               <button
                 type="submit"
-                className="small-caps flex w-full justify-center rounded-md bg-greenDark px-4 py-2 text-sm font-semibold text-black shadow-sm hover:bg-greenMedium focus:outline-none focus:ring-2 focus:ring-greenDark focus:ring-offset-2"
+                className="small-caps bg-green-dark hover:bg-green-medium focus:ring-green-dark flex w-full justify-center rounded-md px-4 py-2 text-sm font-semibold text-black shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
               >
                 Entrar
               </button>
@@ -85,7 +85,7 @@ const SigninPage: React.FC = () => {
             Ainda não tem conta?{' '}
             <Link
               href="/signup"
-              className="font-semibold leading-6 text-black hover:text-beigeDark"
+              className="hover:text-beige-dark leading-6 font-semibold text-black"
             >
               Cadastre-se aqui
             </Link>

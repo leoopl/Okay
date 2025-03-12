@@ -35,8 +35,8 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
           buttonVariants({ variant: 'outline' }),
           'size-7 bg-transparent p-0 text-black',
         ),
-        nav_button_previous: 'absolute left-1 hover:bg-greenLight hover:text-black',
-        nav_button_next: 'absolute right-1 hover:bg-greenLight hover:text-black',
+        nav_button_previous: 'absolute left-1 hover:bg-green-light hover:text-black',
+        nav_button_next: 'absolute right-1 hover:bg-green-light hover:text-black',
         table: 'w-full border-collapse space-y-1',
         head_row: 'flex',
         head_cell: 'text-black rounded-md w-9 font-normal text-[0.8rem]',
@@ -44,11 +44,11 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         cell: 'text-center text-sm p-0 relative [&:has([aria-selected])]:bg-black first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20 rounded-md',
         day: cn(
           buttonVariants({ variant: 'ghost' }),
-          'h-9 w-9 p-0 font-normal aria-selected:opacity-100 text-black hover:text-primary focus:bg-primary hover:bg-greenLight text-black',
+          'h-9 w-9 p-0 font-normal aria-selected:opacity-100 text-black hover:text-primary focus:bg-primary hover:bg-green-light text-black',
         ),
         day_selected:
-          'bg-primary text-black hover:bg-greenLight hover:text-primary focus:bg-primary focus:text-black',
-        day_today: 'bg-beigeDark/30 text-black hover:bg-greenLight hover:text-primary',
+          'bg-primary text-black hover:bg-green-light hover:text-primary focus:bg-primary focus:text-black',
+        day_today: 'bg-beige-dark/30 text-black hover:bg-green-light hover:text-primary',
         day_outside: 'text-muted-foreground opacity-50',
         day_disabled: 'text-muted-foreground opacity-50',
         day_range_middle: 'aria-selected:bg-accent aria-selected:text-accent-foreground',
@@ -74,7 +74,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
                 handleChange(value);
               }}
             >
-              <SelectTrigger className="bg-white pr-1.5 text-black hover:bg-beigeDark/30 focus:ring-0">
+              <SelectTrigger className="hover:bg-beige-dark/30 bg-white pr-1.5 text-black focus:ring-0">
                 <SelectValue>{selected?.props?.children}</SelectValue>
               </SelectTrigger>
               <SelectContent position="popper">
