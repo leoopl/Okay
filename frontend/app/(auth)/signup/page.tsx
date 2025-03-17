@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useActionState, useState } from 'react';
 import { signup } from '@/app/actions/auth';
 import { useFormState, useFormStatus } from 'react-dom';
 import { Input } from '@/components/ui/input';
@@ -22,7 +22,7 @@ import {
 const genders = ['Masculino', 'Feminino', 'Outro', 'Prefiro não dizer'];
 
 const SignupPage: React.FC = () => {
-  const [state, action] = useFormState(signup, undefined);
+  const [state, action] = useActionState(signup, undefined);
   // async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
   //   event.preventDefault();
 
@@ -196,15 +196,19 @@ function DatePicker({ name }: { name: string }) {
             {birthdate ? birthdate.toLocaleDateString('pt-br') : <span>Data de Nascimento</span>}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0">
+        <PopoverContent className="w-auto p-0" align="center">
           <Calendar
             mode="single"
-            captionLayout="dropdown-buttons"
             selected={birthdate}
             onSelect={setBirthdate}
-            fromYear={1960}
-            toDate={new Date()}
+            autoFocus
+            defaultMonth={birthdate}
+            showOutsideDays={false}
+            captionLayout="dropdown"
+            disabled={[{ after: new Date() }]}
             className="rounded-md bg-white/90 shadow-md"
+            buttonNextClassName="cursor-pointer hover:bg-green-light hover:text-black"
+            buttonPreviousClassName="cursor-pointer hover:bg-green-light hover:text-black"
           />
         </PopoverContent>
       </Popover>

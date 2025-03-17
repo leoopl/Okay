@@ -45,11 +45,9 @@ const config: Config = {
           dark: '#797e8e',
         },
 
-        // UI Theme colors
         background: '#b6cfb8',
         foreground: '#797e8e',
 
-        // Objects with foreground variants
         primary: {
           DEFAULT: '#69996f',
           foreground: '#ffffff',
@@ -59,8 +57,8 @@ const config: Config = {
           foreground: '#000000',
         },
         accent: {
-          DEFAULT: '#0d9ddb',
-          foreground: '#ffffff',
+          DEFAULT: '#c4e0c8',
+          foreground: '#000000',
         },
         muted: {
           DEFAULT: '#9fa3b8',
@@ -70,13 +68,19 @@ const config: Config = {
           DEFAULT: '#ef4444',
           foreground: '#ffffff',
         },
+        card: {
+          DEFAULT: '#f2e4d0',
+          foreground: '#797e8e',
+        },
+        popover: {
+          DEFAULT: '#ffffff',
+          foreground: '#797e8e',
+        },
 
-        // Other UI colors
         border: '#9fa3b8',
         input: '#9fa3b8',
         ring: '#69996f',
 
-        // Chart colors
         chart: {
           1: '#4583cc',
           2: '#35b396',

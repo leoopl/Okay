@@ -5,32 +5,12 @@ import { PasswordInput } from '@/components/ui/password-input';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
-// import { useRouter } from 'next/router';
-// import { FormEvent } from 'react';
+import { signin } from '@/app/actions/auth';
+import { useFormState, useFormStatus } from 'react-dom';
 
 const SigninPage: React.FC = () => {
+  const [state, action] = useFormState(signin, undefined);
   const [password, setPassword] = useState('');
-  // const router = useRouter();
-
-  // async function handleLogin( event: FormEvent<HTMLFormElement>) {
-  //   event.preventDefault();
-
-  //   const formData = new FormData(event.currentTarget);
-  //   const email = formData.get('email') as string;
-  //   const password = formData.get('password') as string;
-
-  //   const response = await fetch('/api/auth/login', {
-  //     method: 'POST',
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //     },
-  //     body: JSON.stringify({ email, password }),
-  //   })
-
-  //   if (response.ok) {
-  //     router.push('/dashboard');
-  //   }
-  // }
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
@@ -39,7 +19,7 @@ const SigninPage: React.FC = () => {
           <h2 className="small-caps font-varela mb-8 text-center text-4xl leading-9 font-bold tracking-tight text-gray-900">
             Espero que esteja tendo um bom dia!
           </h2>
-          <form className="space-y-4" action="#" method="POST">
+          <form className="space-y-4" action={action}>
             <div>
               <Input
                 id="email"
@@ -50,18 +30,25 @@ const SigninPage: React.FC = () => {
                 placeholder="E-mail"
                 className="focus:border-green-dark focus:ring-green-dark block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md sm:text-sm"
               />
+              {state?.errors?.email && (
+                <p className="mt-1 text-sm text-red-500">{state.errors.email[0]}</p>
+              )}
             </div>
 
             <div>
               <PasswordInput
                 id="password"
+                name="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                autoComplete="new-password"
+                autoComplete="current-password"
                 required
                 placeholder="Senha"
                 className="focus:border-green-dark focus:ring-green-dark block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md sm:text-sm"
               />
+              {state?.errors?.password && (
+                <p className="mt-1 text-sm text-red-500">{state.errors.password[0]}</p>
+              )}
               <div className="flex items-center justify-end">
                 <div className="text-sm">
                   <a href="#" className="small-caps hover:text-beige-dark font-semibold text-black">
@@ -71,13 +58,15 @@ const SigninPage: React.FC = () => {
               </div>
             </div>
 
+            {/* Display general error message */}
+            {state?.message && (
+              <div className="relative rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
+                <span className="block sm:inline">{state.message}</span>
+              </div>
+            )}
+
             <div>
-              <button
-                type="submit"
-                className="small-caps bg-green-dark hover:bg-green-medium focus:ring-green-dark flex w-full justify-center rounded-md px-4 py-2 text-sm font-semibold text-black shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
-              >
-                Entrar
-              </button>
+              <SubmitButton />
             </div>
           </form>
 
@@ -105,5 +94,20 @@ const SigninPage: React.FC = () => {
     </div>
   );
 };
+
+// Button component that shows loading state
+function SubmitButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="small-caps bg-green-dark hover:bg-green-medium focus:ring-green-dark flex w-full justify-center rounded-md px-4 py-2 text-sm font-semibold text-black shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
+    >
+      {pending ? 'Entrando...' : 'Entrar'}
+    </button>
+  );
+}
 
 export default SigninPage;

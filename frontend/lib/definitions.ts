@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+// Signup form schema with validation rules
 export const SignupFormSchema = z
   .object({
     name: z.string().min(3, { message: 'Name must be at least 2 characters long.' }).trim(),
@@ -15,11 +16,11 @@ export const SignupFormSchema = z
       })
       .trim(),
     confirm: z.string().trim(),
-    gender: z.string().trim(),
+    gender: z.string().trim().optional(),
     birthdate: z
       .date({
-        required_error: 'Please select a date and time',
-        invalid_type_error: "That's not a date!",
+        required_error: 'Please select a date of birth',
+        invalid_type_error: "That's not a valid date!",
       })
       .max(new Date(), { message: 'Too young!' }),
   })
@@ -28,6 +29,13 @@ export const SignupFormSchema = z
     path: ['confirm'],
   });
 
+// Signin form schema with validation rules
+export const SigninFormSchema = z.object({
+  email: z.string().email({ message: 'Please enter a valid email.' }).trim(),
+  password: z.string().min(1, { message: 'Password is required.' }).trim(),
+});
+
+// Form state type for handling errors and messages
 export type FormState =
   | {
       errors?: {
