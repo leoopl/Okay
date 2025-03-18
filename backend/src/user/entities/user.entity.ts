@@ -23,14 +23,17 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column()
-  password: string;
+  @Column({ nullable: true })
+  password: string; // nullable since Auth0 will handle many auth scenarios
 
   @Column({ nullable: true })
   gender?: string;
 
   @Column({ type: 'date' })
   birthdate: Date;
+
+  @Column({ nullable: true, unique: true })
+  auth0Id: string; // field to link with Auth0 users
 
   @CreateDateColumn({ type: 'timestamp with time zone' })
   created_at: Date;

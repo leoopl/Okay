@@ -6,4 +6,7 @@ export interface IUser {
   password: string;
   birthdate?: Date;
   gender?: string;
+  auth0Id: string;
+  created_at: Date;
+  updated_at: Date;
 }

@@ -1,25 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import {
-  Body,
-  Controller,
-  Post,
-  Req,
-  Res,
-  UseGuards,
-  HttpException,
-  HttpStatus,
-  ConflictException,
-  UnauthorizedException,
-  Get,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
-import { LocalAuthGuard } from './guards/local-auth.guard';
-import { Request, Response } from 'express';
-import { JwtAuthGuard } from './guards/jwt-guard';
+import { Request } from 'express';
+import { Auth0Guard } from './guards/auth0.guard';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { AuthGuard } from '@nestjs/passport';
-import { CookieOptions } from 'express';
+import { Auth0Service } from './services/auth0.service';
+import { AuditService } from '../audit/audit.service';
+import { ConfigService } from '@nestjs/config';
+import { AuditAction } from 'src/audit/entities/audit-log.entity';
 
 interface AuthenticatedRequest extends Request {
   user?: any;
@@ -28,180 +15,68 @@ interface AuthenticatedRequest extends Request {
 @ApiTags('authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly auth0Service: Auth0Service,
+    private readonly auditService: AuditService,
+    private readonly configService: ConfigService,
+  ) {}
 
-  @ApiOperation({ summary: 'Register a new user' })
-  @ApiResponse({ status: 201, description: 'Registration successful' })
-  @ApiResponse({ status: 400, description: 'Registration failed' })
-  @ApiResponse({ status: 409, description: 'Email already exists' })
-  @Post('register')
-  async register(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
-    try {
-      const result = await this.authService.register(createUserDto);
-
-      // Set authentication cookies
-      this.setAuthCookies(res, result.access_token, result.refresh_token);
-
-      // Return user data without sensitive information
-      return res.status(HttpStatus.CREATED).json({
-        message: 'Registration successful',
-        user: {
-          id: result.user.id,
-          name: result.user.name,
-          email: result.user.email,
-        },
-      });
-    } catch (error) {
-      if (error instanceof ConflictException) {
-        throw error;
-      }
-      throw new HttpException(
-        'Registration failed',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  @ApiOperation({ summary: 'Sign in a user' })
-  @ApiResponse({ status: 200, description: 'Login successful' })
-  @ApiResponse({ status: 401, description: 'Login failed' })
-  @UseGuards(LocalAuthGuard)
-  @Post('signin')
-  async signin(@Req() req: AuthenticatedRequest, @Res() res: Response) {
-    try {
-      const result = await this.authService.signIn(req.user);
-
-      // Set authentication cookies
-      this.setAuthCookies(res, result.access_token, result.refresh_token);
-
-      // Return success with user data
-      return res.status(HttpStatus.OK).json({
-        message: 'Logged in successfully',
-        user: {
-          id: result.user.id,
-          email: result.user.email,
-          name: result.user.name,
-        },
-      });
-    } catch (error) {
-      throw new HttpException('Login failed', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  @ApiOperation({ summary: 'Refresh access token' })
-  @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
-  @ApiResponse({ status: 401, description: 'Invalid refresh token' })
-  @Post('refresh')
-  async refresh(@Req() req: Request, @Res() res: Response) {
-    try {
-      const refresh_token = req.cookies['refresh_token'];
-
-      if (!refresh_token) {
-        throw new UnauthorizedException('Refresh token not found');
-      }
-
-      const result = await this.authService.refresh(refresh_token);
-
-      // Set new authentication cookies
-      this.setAuthCookies(res, result.access_token, result.refresh_token);
-
-      // Return success
-      return res.status(HttpStatus.OK).json({
-        message: 'Token refreshed successfully',
-        user: {
-          id: result.user.id,
-          email: result.user.email,
-          name: result.user.name,
-        },
-      });
-    } catch (error) {
-      res.clearCookie('access_token');
-      res.clearCookie('refresh_token');
-      throw new UnauthorizedException('Invalid refresh token');
-    }
-  }
-
-  @ApiOperation({ summary: 'Logout user' })
-  @ApiResponse({ status: 200, description: 'Logged out successfully' })
-  @UseGuards(JwtAuthGuard)
-  @Post('logout')
-  async logout(@Res() res: Response) {
-    // Clear authentication cookies
-    res.clearCookie('access_token', this.getCookieOptions());
-    res.clearCookie('refresh_token', this.getCookieOptions());
-
-    // Return success
-    return res.status(HttpStatus.OK).json({
-      message: 'Logged out successfully',
-    });
+  @ApiOperation({ summary: 'Get Auth0 configuration for frontend' })
+  @ApiResponse({ status: 200, description: 'Auth0 configuration' })
+  @Get('config')
+  getConfig() {
+    return {
+      domain: this.configService.get<string>('auth0.domain'),
+      clientId: this.configService.get<string>('auth0.clientId'),
+      audience: this.configService.get<string>('auth0.audience'),
+      redirectUri: `${this.configService.get<string>('FRONTEND_URL')}/callback`,
+    };
   }
 
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, description: 'Returns the current user profile' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(Auth0Guard)
   @Get('profile')
   async getProfile(@Req() req: AuthenticatedRequest) {
+    // Log the access for audit trail
+    await this.auditService.logAction({
+      userId: req.user.userId,
+      action: AuditAction.PROFILE_ACCESS,
+      resource: 'user',
+      resourceId: req.user.userId,
+      details: { message: 'User accessed their profile' },
+    });
+
+    // Enhanced profile with user data from Auth0
+    const auth0Profile = await this.auth0Service.getUserProfile(
+      req.user.auth0Id,
+    );
+
     return {
-      user: req.user,
+      user: {
+        ...req.user,
+        picture: auth0Profile.picture,
+        // Include any other relevant fields but exclude sensitive information
+      },
     };
   }
 
-  @Get('google')
-  @UseGuards(AuthGuard('google'))
-  googleAuth() {
-    // This route initiates the Google OAuth flow
-    // The guard redirects to Google
-  }
-
-  @Get('google/callback')
-  @UseGuards(AuthGuard('google'))
-  async googleAuthCallback(
-    @Req() req: AuthenticatedRequest,
-    @Res() res: Response,
-  ) {
-    try {
-      // The user has been authenticated and is available in req.user
-      const { access_token, refresh_token } = req.user;
-
-      // Set cookies
-      this.setAuthCookies(res, access_token, refresh_token);
-
-      // Redirect to frontend app
-      return res.redirect(process.env.FRONTEND_URL);
-    } catch (error) {
-      return res.redirect(`${process.env.FRONTEND_URL}/auth/error`);
-    }
-  }
-
-  // Helper method to set authentication cookies
-  private setAuthCookies(
-    res: Response,
-    accessToken: string,
-    refreshToken: string,
-  ): void {
-    const cookieOptions = this.getCookieOptions();
-
-    // Set access token cookie (short-lived)
-    res.cookie('access_token', accessToken, {
-      ...cookieOptions,
-      maxAge: 15 * 60 * 1000, // 15 minutes
+  @ApiOperation({ summary: 'Log user action for audit' })
+  @ApiResponse({ status: 200, description: 'Action logged successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @UseGuards(Auth0Guard)
+  @Post('log-action')
+  async logAction(@Req() req: AuthenticatedRequest, @Body() actionData: any) {
+    await this.auditService.logAction({
+      userId: req.user.userId,
+      action: actionData.action,
+      resource: actionData.resource,
+      resourceId: actionData.resourceId,
+      details: actionData.details,
     });
 
-    // Set refresh token cookie (long-lived)
-    res.cookie('refresh_token', refreshToken, {
-      ...cookieOptions,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
-  }
-
-  // Common cookie options
-  private getCookieOptions(): CookieOptions {
-    return {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'development',
-      sameSite: 'strict', // Adjust based on your frontend setup
-      path: '/',
-    };
+    return { success: true };
   }
 }
