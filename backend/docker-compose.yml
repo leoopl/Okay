@@ -30,18 +30,38 @@ services:
     container_name: okay_api
     working_dir: /usr/src/app
     environment:
+      # Application settings
+      NODE_ENV: ${NODE_ENV}
+      PORT: ${PORT}
+      FRONTEND_URL: ${FRONTEND_URL}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+
+      # Database settings
       DB_HOST: postgres
       DB_PORT: ${DB_PORT}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      DB_LOGGING: ${DB_LOGGING}
+
+      # Security settings
+      COOKIE_SECRET: ${COOKIE_SECRET}
+      SECURE_COOKIES: ${SECURE_COOKIES}
+      THROTTLE_TTL: ${THROTTLE_TTL}
+      THROTTLE_LIMIT: ${THROTTLE_LIMIT}
+
+      # Auth0 configuration
+      AUTH0_DOMAIN: ${AUTH0_DOMAIN}
+      AUTH0_CLIENT_ID: ${AUTH0_CLIENT_ID}
+      AUTH0_CLIENT_SECRET: ${AUTH0_CLIENT_SECRET}
+      AUTH0_AUDIENCE: ${AUTH0_AUDIENCE}
+      AUTH0_ISSUER_BASE_URL: ${AUTH0_ISSUER_BASE_URL}
     env_file:
       - .env
     volumes:
       - ./:/usr/src/app
       - /app/node_modules
+      # - /usr/src/app/node_modules
     command: ['yarn', 'start:dev']
     ports:
       - '3001:3001'

@@ -1,8 +1,8 @@
 {
-  "name": "backend",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "name": "okay-mental-health-api",
+  "version": "1.0.0",
+  "description": "API for Okay Mental Health PWA",
+  "author": "Leonardo Pedrosa Leite",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
@@ -22,7 +22,8 @@
     "migration:generate": "yarn typeorm migration:generate -d ./data-source.ts",
     "migration:run": "yarn run typeorm migration:run -d ./data-source.ts",
     "migration:create": "yarn run typeorm migration:create ./src/db/migrations/$npm_package_config_name",
-    "migration:revert": "yarn run typeorm -- migration:revert -- -d ./src/db/typeOrm.migration-config.ts"
+    "migration:revert": "yarn run typeorm -- migration:revert -- -d ./src/db/typeOrm.migration-config.ts",
+    "seed:roles": "ts-node ./src/database/seeders/roles.seeder.ts"
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.0",
@@ -54,7 +55,8 @@
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
-    "typeorm": "^0.3.20"
+    "typeorm": "^0.3.20",
+    "typeorm-naming-strategies": "^4.1.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

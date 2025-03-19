@@ -2,17 +2,33 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { UserModule } from './user/user.module';
-import { AuthModule } from './auth/auth.module';
-import { DbModule } from './db/db.module';
-import { BreathingTechniquesModule } from './breathing-technique/breathing-technique.module';
-import { AuditModule } from './audit/audit.module';
+import { UserModule } from './modules/user/user.module';
+import { AuthModule } from './core/auth/auth.module';
+import { BreathingTechniquesModule } from './modules/breathing-technique/breathing-technique.module';
+import { AuditModule } from './core/audit/audit.module';
 import { EncryptionModule } from './common/encryption/encryption.module';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { JournalModule } from './modules/journal/journal.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import databaseConfig from './config/database.config';
+import { RolesGuard } from './core/auth/guards/roles.guard';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    // Global configuration
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [databaseConfig],
+    }),
+
+    // Database setup
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) =>
+        configService.get('database'),
+    }),
 
     // Rate limiting protection against brute force attacks
     ThrottlerModule.forRootAsync({
@@ -32,13 +48,19 @@ import { ThrottlerModule } from '@nestjs/throttler';
     AuditModule,
     EncryptionModule,
 
-    // Database module
-    DbModule,
-
     // Feature modules
+    JournalModule,
+    InventoryModule,
     BreathingTechniquesModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    // Global RBAC guard
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+  ],
 })
 export class AppModule {}

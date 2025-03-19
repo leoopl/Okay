@@ -45,8 +45,8 @@ async function bootstrap() {
 
   // Swagger documentation
   const config = new DocumentBuilder()
-    .setTitle('API Okay')
-    .setDescription('Routes to API Okay')
+    .setTitle('Okay Mental Health API')
+    .setDescription('API documentation for the Okay Mental Health PWA')
     .setVersion('1.0')
     .addTag('API Okay')
     .addBearerAuth(
@@ -71,5 +71,6 @@ async function bootstrap() {
   const port = configService.get<number>('PORT', 3001);
   await app.listen(port);
   console.log(`Application is running on: ${await app.getUrl()}`);
+  console.log(`API Documentation: ${await app.getUrl()}/api/docs`);
 }
 bootstrap();

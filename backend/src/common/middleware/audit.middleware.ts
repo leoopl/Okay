@@ -1,6 +1,6 @@
 import { Injectable, NestMiddleware, Logger, Scope } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import { AuditService } from '../../audit/audit.service';
+import { AuditService } from '../../core/audit/audit.service';
 
 @Injectable({ scope: Scope.REQUEST })
 export class AuditMiddleware implements NestMiddleware {

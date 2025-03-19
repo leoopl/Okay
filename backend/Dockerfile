@@ -1,23 +1,37 @@
-# Usa uma imagem Node.js
-FROM node:20.18-slim
+# Build stage
+FROM node:20.18-slim AS build
 
-# Define o diretório de trabalho
+# Create app directory
 WORKDIR /usr/src/app
 
-# Copia os arquivos de configuração
+# Install app dependencies
 COPY package*.json ./
+COPY yarn.lock ./
+RUN yarn install --frozen-lockfile
 
-# Instala as dependências
-RUN yarn 
-
-# Copia o restante do código
+# Copy app source code
 COPY . .
 
-# Builda a aplicação
+# Build the application
 RUN yarn build
 
-# Expõe a porta do NestJS
+# Production stage
+FROM node:20.18-slim
+
+# Create app directory
+WORKDIR /usr/src/app
+
+# Install production dependencies only
+COPY package*.json ./
+COPY yarn.lock ./
+RUN yarn install --production --frozen-lockfile
+
+# Copy built application
+COPY --from=build /usr/src/app/dist ./dist
+COPY --from=build /usr/src/app/node_modules ./node_modules
+
+# Expose the application port
 EXPOSE 3001
 
-# Comando padrão para iniciar a aplicação
-CMD ["yarn", "start:dev"]
+# Start the application
+CMD ["node", "dist/main"]
