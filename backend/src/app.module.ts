@@ -12,8 +12,9 @@ import { JournalModule } from './modules/journal/journal.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import databaseConfig from './config/database.config';
-import { RolesGuard } from './core/auth/guards/roles.guard';
 import { APP_GUARD } from '@nestjs/core';
+import { CaslModule } from './core/casl/casl.module';
+import { Auth0Guard } from './core/auth/guards/auth0.guard';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { APP_GUARD } from '@nestjs/core';
     AuthModule,
     AuditModule,
     EncryptionModule,
+    CaslModule,
 
     // Feature modules
     JournalModule,
@@ -56,10 +58,10 @@ import { APP_GUARD } from '@nestjs/core';
   controllers: [AppController],
   providers: [
     AppService,
-    // Global RBAC guard
+    // Global authentication guard
     {
       provide: APP_GUARD,
-      useClass: RolesGuard,
+      useClass: Auth0Guard,
     },
   ],
 })

@@ -26,6 +26,7 @@
     "seed:roles": "ts-node ./src/database/seeders/roles.seeder.ts"
   },
   "dependencies": {
+    "@casl/ability": "^6.7.3",
     "@nestjs/axios": "^4.0.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.3.0",
@@ -50,7 +51,6 @@
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
-    "passport-local": "^1.0.0",
     "passport-oauth2": "^1.8.0",
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.0",
@@ -78,7 +78,6 @@
     "ts-jest": "^29.1.0",
     "ts-loader": "^9.4.3",
     "ts-node": "^10.9.1",
-    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.1.3"
   },
   "jest": {
