@@ -10,6 +10,8 @@ import {
   Req,
   HttpCode,
   HttpStatus,
+  NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -20,10 +22,12 @@ import {
 import { JournalService } from './journal.service';
 import { CreateJournalDto } from './dto/create-journal.dto';
 import { UpdateJournalDto } from './dto/update-journal.dto';
-import { Auth0Guard } from '../auth/guards/auth0.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Auth0Guard } from '../../core/auth/guards/auth0.guard';
 import { IAuthenticatedRequest } from '../../common/interfaces/auth-request.interface';
+import { RequirePermissions } from '../../core/casl/decorators/check-policies.decorator';
+import { Action } from '../../core/casl/types/ability.type';
+import { JournalEntry } from './entities/journal.entity';
+import { UseResource } from '../../core/casl/decorators/resource.decorator';
 
 @ApiTags('journal')
 @Controller('journal')
@@ -37,6 +41,7 @@ export class JournalController {
     status: 201,
     description: 'Journal entry created successfully',
   })
+  @RequirePermissions((ability) => ability.can(Action.Create, JournalEntry))
   @Post()
   async create(
     @Body() createJournalDto: CreateJournalDto,
@@ -47,22 +52,32 @@ export class JournalController {
 
   @ApiOperation({ summary: 'Get all journal entries' })
   @ApiResponse({ status: 200, description: 'List of journal entries' })
+  @RequirePermissions((ability) => ability.can(Action.Read, JournalEntry))
   @Get()
   async findAll(@Req() req: IAuthenticatedRequest) {
     const isAdmin = req.user.roles?.includes('admin');
-    return this.journalService.findAll(req.user.userId, isAdmin);
+
+    if (isAdmin) {
+      // Admins can see all journal entries
+      return this.journalService.findAll(req.user.userId, true);
+    } else {
+      // Regular users can only see their own entries
+      return this.journalService.findAll(req.user.userId, false);
+    }
   }
 
   @ApiOperation({
-    summary: 'Get journal entries for a specific user (Admin only)',
+    summary: 'Get journal entries for a specific user',
   })
   @ApiResponse({
     status: 200,
     description: 'List of journal entries for the user',
   })
-  @ApiResponse({ status: 403, description: 'Forbidden - requires admin role' })
-  @UseGuards(RolesGuard)
-  @Roles('admin')
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions',
+  })
+  @RequirePermissions((ability) => ability.can(Action.Manage, 'all'))
   @Get('user/:userId')
   async findByUserId(@Param('userId') userId: string) {
     return this.journalService.findByUserId(userId);
@@ -71,10 +86,38 @@ export class JournalController {
   @ApiOperation({ summary: 'Get a specific journal entry' })
   @ApiResponse({ status: 200, description: 'Journal entry details' })
   @ApiResponse({ status: 404, description: 'Journal entry not found' })
+  @UseResource(async (request) => {
+    // Load the journal entry resource to check permissions against
+    const journalEntry = await request.journalService?.findOne(
+      request.params.id,
+      request.user.userId,
+      request.user.roles?.includes('admin'),
+    );
+
+    if (!journalEntry) {
+      throw new NotFoundException(
+        `Journal entry with ID ${request.params.id} not found`,
+      );
+    }
+
+    return journalEntry;
+  })
+  @RequirePermissions((ability) => ability.can(Action.Read, JournalEntry))
   @Get(':id')
   async findOne(@Param('id') id: string, @Req() req: IAuthenticatedRequest) {
     const isAdmin = req.user.roles?.includes('admin');
-    return this.journalService.findOne(id, req.user.userId, isAdmin);
+
+    const journalEntry = await this.journalService.findOne(
+      id,
+      req.user.userId,
+      isAdmin,
+    );
+
+    if (!journalEntry) {
+      throw new NotFoundException(`Journal entry with ID ${id} not found`);
+    }
+
+    return journalEntry;
   }
 
   @ApiOperation({ summary: 'Update a journal entry' })
@@ -87,12 +130,49 @@ export class JournalController {
     description: 'Forbidden - insufficient permissions',
   })
   @ApiResponse({ status: 404, description: 'Journal entry not found' })
+  @UseResource(async (request) => {
+    // Load the journal entry resource to check permissions against
+    const journalEntry = await request.journalService?.findOne(
+      request.params.id,
+      request.user.userId,
+      request.user.roles?.includes('admin'),
+    );
+
+    if (!journalEntry) {
+      throw new NotFoundException(
+        `Journal entry with ID ${request.params.id} not found`,
+      );
+    }
+
+    return journalEntry;
+  })
+  @RequirePermissions((ability) => ability.can(Action.Update, JournalEntry))
   @Patch(':id')
   async update(
     @Param('id') id: string,
     @Body() updateJournalDto: UpdateJournalDto,
     @Req() req: IAuthenticatedRequest,
   ) {
+    const journalEntry = await this.journalService.findOne(
+      id,
+      req.user.userId,
+      req.user.roles?.includes('admin'),
+    );
+
+    if (!journalEntry) {
+      throw new NotFoundException(`Journal entry with ID ${id} not found`);
+    }
+
+    // Only allow users to update their own journal entries (unless admin)
+    if (
+      journalEntry.userId !== req.user.userId &&
+      !req.user.roles?.includes('admin')
+    ) {
+      throw new ForbiddenException(
+        'You can only update your own journal entries',
+      );
+    }
+
     const isAdmin = req.user.roles?.includes('admin');
     return this.journalService.update(
       id,
@@ -112,9 +192,46 @@ export class JournalController {
     description: 'Forbidden - insufficient permissions',
   })
   @ApiResponse({ status: 404, description: 'Journal entry not found' })
+  @UseResource(async (request) => {
+    // Load the journal entry resource to check permissions against
+    const journalEntry = await request.journalService?.findOne(
+      request.params.id,
+      request.user.userId,
+      request.user.roles?.includes('admin'),
+    );
+
+    if (!journalEntry) {
+      throw new NotFoundException(
+        `Journal entry with ID ${request.params.id} not found`,
+      );
+    }
+
+    return journalEntry;
+  })
+  @RequirePermissions((ability) => ability.can(Action.Delete, JournalEntry))
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string, @Req() req: IAuthenticatedRequest) {
+    const journalEntry = await this.journalService.findOne(
+      id,
+      req.user.userId,
+      req.user.roles?.includes('admin'),
+    );
+
+    if (!journalEntry) {
+      throw new NotFoundException(`Journal entry with ID ${id} not found`);
+    }
+
+    // Only allow users to delete their own journal entries (unless admin)
+    if (
+      journalEntry.userId !== req.user.userId &&
+      !req.user.roles?.includes('admin')
+    ) {
+      throw new ForbiddenException(
+        'You can only delete your own journal entries',
+      );
+    }
+
     const isAdmin = req.user.roles?.includes('admin');
     await this.journalService.remove(id, req.user.userId, isAdmin);
   }

@@ -9,21 +9,22 @@ import * as cookieParser from 'cookie-parser';
 import { AuditMiddleware } from './common/middleware/audit.middleware';
 
 async function bootstrap() {
+  // Create NestJS app
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn', 'log', 'debug'],
   });
   const configService = app.get(ConfigService);
 
-  // Security headers
+  // Apply security headers
   app.use(helmet());
 
-  // Compression for improved performance
+  // Apply compression for better performance
   app.use(compression());
 
-  // Cookie parser middleware
+  // Parse cookies for Auth0 integration
   app.use(cookieParser(configService.get<string>('COOKIE_SECRET')));
 
-  // Global validation pipe
+  // Apply global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -32,7 +33,7 @@ async function bootstrap() {
     }),
   );
 
-  // CORS configuration - critical for security in healthcare apps
+  // Set up CORS for frontend integration
   app.enableCors({
     origin: configService.get<string>('CORS_ORIGIN'),
     credentials: true,
@@ -40,15 +41,18 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
-  // Set global prefix
+  // Set global API prefix
   app.setGlobalPrefix('api');
 
-  // Swagger documentation
+  // Set up Swagger API documentation
   const config = new DocumentBuilder()
     .setTitle('Okay Mental Health API')
     .setDescription('API documentation for the Okay Mental Health PWA')
     .setVersion('1.0')
-    .addTag('API Okay')
+    .addTag('health')
+    .addTag('users')
+    .addTag('journal')
+    .addTag('inventories')
     .addBearerAuth(
       {
         type: 'http',
@@ -60,10 +64,10 @@ async function bootstrap() {
     )
     .build();
 
-  const documentFactory = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, documentFactory);
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
 
-  // Use audit middleware globally
+  // Apply audit middleware globally
   const auditMiddleware = app.get(AuditMiddleware);
   app.use(auditMiddleware.use.bind(auditMiddleware));
 

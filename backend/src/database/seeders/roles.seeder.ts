@@ -1,4 +1,3 @@
-// src/database/seeders/roles.seeder.ts
 import { NestFactory } from '@nestjs/core';
 import { Logger } from '@nestjs/common';
 import { AppModule } from '../../app.module';
@@ -6,6 +5,11 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Role } from '../../modules/user/entities/role.entity';
 import { Permission } from '../../modules/user/entities/permission.entity';
+import {
+  Permissions,
+  RolePermissions,
+  parsePermission,
+} from '../../core/casl/constants/permission.constants';
 
 /**
  * Seed script to create default roles and permissions
@@ -25,159 +29,78 @@ async function bootstrap() {
       getRepositoryToken(Permission),
     );
 
-    // Define permissions
-    const permissions = [
-      // User permissions
-      {
-        name: 'user:read',
-        description: 'Read user data',
-        resource: 'user',
-        action: 'read',
-      },
-      {
-        name: 'user:create',
-        description: 'Create users',
-        resource: 'user',
-        action: 'create',
-      },
-      {
-        name: 'user:update',
-        description: 'Update user data',
-        resource: 'user',
-        action: 'update',
-      },
-      {
-        name: 'user:delete',
-        description: 'Delete users',
-        resource: 'user',
-        action: 'delete',
-      },
-
-      // Journal permissions
-      {
-        name: 'journal:read',
-        description: 'Read journal entries',
-        resource: 'journal',
-        action: 'read',
-      },
-      {
-        name: 'journal:create',
-        description: 'Create journal entries',
-        resource: 'journal',
-        action: 'create',
-      },
-      {
-        name: 'journal:update',
-        description: 'Update journal entries',
-        resource: 'journal',
-        action: 'update',
-      },
-      {
-        name: 'journal:delete',
-        description: 'Delete journal entries',
-        resource: 'journal',
-        action: 'delete',
-      },
-
-      // Inventory permissions
-      {
-        name: 'inventory:read',
-        description: 'Read inventories',
-        resource: 'inventory',
-        action: 'read',
-      },
-      {
-        name: 'inventory:create',
-        description: 'Create inventories',
-        resource: 'inventory',
-        action: 'create',
-      },
-      {
-        name: 'inventory:update',
-        description: 'Update inventories',
-        resource: 'inventory',
-        action: 'update',
-      },
-      {
-        name: 'inventory:delete',
-        description: 'Delete inventories',
-        resource: 'inventory',
-        action: 'delete',
-      },
-
-      // Inventory response permissions
-      {
-        name: 'inventory-response:read',
-        description: 'Read inventory responses',
-        resource: 'inventory-response',
-        action: 'read',
-      },
-      {
-        name: 'inventory-response:create',
-        description: 'Submit inventory responses',
-        resource: 'inventory-response',
-        action: 'create',
-      },
-    ];
-
-    // Create permissions
+    // Create all permissions from our constants
     logger.log('Creating permissions...');
-    for (const permission of permissions) {
-      const existingPermission = await permissionRepository.findOne({
-        where: { name: permission.name },
+    const permissionMap = new Map<string, Permission>();
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for (const [key, value] of Object.entries(Permissions)) {
+      const { resource, action } = parsePermission(value);
+
+      let permission = await permissionRepository.findOne({
+        where: { name: value as string },
       });
 
-      if (!existingPermission) {
-        await permissionRepository.save(permission);
-        logger.log(`Created permission: ${permission.name}`);
-      } else {
-        logger.log(`Permission already exists: ${permission.name}`);
-      }
-    }
+      if (!permission) {
+        permission = permissionRepository.create({
+          name: value as string,
+          description: `${action} ${resource}`,
+          resource,
+          action,
+        });
 
-    // Get all permissions from database
-    const allPermissions = await permissionRepository.find();
+        await permissionRepository.save(permission);
+        logger.log(`Created permission: ${value}`);
+      } else {
+        logger.log(`Permission already exists: ${value}`);
+      }
+
+      permissionMap.set(value as string, permission);
+    }
 
     // Define roles with their permissions
     const roles = [
       {
         name: 'admin',
         description: 'Administrator with full access',
-        permissions: allPermissions, // All permissions
+        isDefault: false,
+        isSystem: true,
+        permissions: RolePermissions.ADMIN.map((p) => permissionMap.get(p)),
       },
       {
         name: 'patient',
-        description: 'Regular user role',
-        permissions: allPermissions.filter(
-          (p) =>
-            p.name === 'user:read' ||
-            p.name === 'user:update' ||
-            p.name.startsWith('journal:') ||
-            p.name === 'inventory:read' ||
-            p.name === 'inventory-response:create' ||
-            p.name === 'inventory-response:read',
-        ),
+        description: 'Regular patient role with limited access',
+        isDefault: true, // Default role for new users
+        isSystem: true,
+        permissions: RolePermissions.PATIENT.map((p) => permissionMap.get(p)),
       },
     ];
 
     // Create roles with permissions
     logger.log('Creating roles...');
     for (const roleData of roles) {
-      const existingRole = await roleRepository.findOne({
+      let existingRole = await roleRepository.findOne({
         where: { name: roleData.name },
       });
 
       if (!existingRole) {
-        await roleRepository.save(roleData);
-        logger.log(
-          `Created role: ${roleData.name} with ${roleData.permissions.length} permissions`,
-        );
-      } else {
-        // Update permissions for existing role
-        existingRole.permissions = roleData.permissions;
+        existingRole = roleRepository.create({
+          name: roleData.name,
+          description: roleData.description,
+          isDefault: roleData.isDefault,
+          isSystem: roleData.isSystem,
+        });
+
         await roleRepository.save(existingRole);
-        logger.log(`Updated permissions for role: ${roleData.name}`);
+        logger.log(`Created role: ${roleData.name}`);
       }
+
+      // Update permissions for role
+      existingRole.permissions = roleData.permissions.filter(Boolean); // Filter out any undefined permissions
+      await roleRepository.save(existingRole);
+      logger.log(
+        `Updated permissions for role: ${roleData.name} with ${existingRole.permissions.length} permissions`,
+      );
     }
 
     logger.log('Roles and permissions seeding completed successfully');

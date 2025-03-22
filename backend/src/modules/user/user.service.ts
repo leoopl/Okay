@@ -12,6 +12,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { AuditService } from '../../core/audit/audit.service';
 import { AuditAction } from '../../core/audit/entities/audit-log.entity';
 import { Role } from './entities/role.entity';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UserService {
@@ -23,6 +24,7 @@ export class UserService {
     @InjectRepository(Role)
     private readonly rolesRepository: Repository<Role>,
     private readonly auditService: AuditService,
+    private readonly configService: ConfigService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -39,17 +41,21 @@ export class UserService {
         status: UserStatus.ACTIVE, // Set as active for direct registrations
       });
 
-      // Find the patient role and assign it
-      const patientRole = await this.rolesRepository.findOne({
-        where: { name: 'patient' },
+      // Assign default role (patient by default)
+      const defaultRoleName = this.configService.get<string>(
+        'DEFAULT_ROLE',
+        'patient',
+      );
+      const defaultRole = await this.rolesRepository.findOne({
+        where: { name: defaultRoleName },
       });
 
-      if (!patientRole) {
-        this.logger.error('Patient role not found');
+      if (!defaultRole) {
+        this.logger.error(`Default role '${defaultRoleName}' not found`);
         throw new Error('Required roles not configured');
       }
 
-      user.roles = [patientRole];
+      user.roles = [defaultRole];
 
       // Set consent values explicitly
       user.updateConsent({
@@ -258,13 +264,17 @@ export class UserService {
 
       // If no user found, create a new one
       if (!user) {
-        // Find the patient role
-        const patientRole = await this.rolesRepository.findOne({
-          where: { name: 'patient' },
+        // Find the default role (usually patient)
+        const defaultRoleName = this.configService.get<string>(
+          'DEFAULT_ROLE',
+          'patient',
+        );
+        const defaultRole = await this.rolesRepository.findOne({
+          where: { name: defaultRoleName },
         });
 
-        if (!patientRole) {
-          this.logger.error('Patient role not found');
+        if (!defaultRole) {
+          this.logger.error(`Default role '${defaultRoleName}' not found`);
           throw new Error('Required roles not configured');
         }
 
@@ -274,8 +284,12 @@ export class UserService {
           auth0Id: authData.auth0Id,
           // Set a default birthdate (can be updated later)
           birthdate: new Date('2000-01-01'),
-          roles: [patientRole],
+          roles: [defaultRole],
           status: UserStatus.ACTIVE,
+          // Set initial consent values
+          consentToDataProcessing: false,
+          consentToResearch: false,
+          consentToMarketing: false,
         });
 
         user = await this.usersRepository.save(newUser);
@@ -369,29 +383,60 @@ export class UserService {
     return this.findOne(userId);
   }
 
+  async setUserRole(
+    userId: string,
+    roleName: string,
+    actorId: string,
+  ): Promise<User> {
+    // This method replaces all existing roles with just the specified role
+    const user = await this.findOne(userId);
+    const role = await this.rolesRepository.findOne({
+      where: { name: roleName },
+    });
+
+    if (!role) {
+      throw new NotFoundException(`Role ${roleName} not found`);
+    }
+
+    // Set the role as the only role for this user
+    user.roles = [role];
+    await this.usersRepository.save(user);
+
+    // Audit role assignment
+    await this.auditService.logAction({
+      userId: actorId,
+      action: 'ROLE_ASSIGNED' as any,
+      resource: 'user',
+      resourceId: userId,
+      details: { roleName, isExclusive: true },
+    });
+
+    return this.findOne(userId);
+  }
+
+  async hasRole(userId: string, roleName: string): Promise<boolean> {
+    const user = await this.findOne(userId);
+    return user.roles.some((role) => role.name === roleName);
+  }
+
+  async hasPermission(userId: string, permission: string): Promise<boolean> {
+    const user = await this.findOne(userId);
+
+    // Check each role for the permission
+    for (const role of user.roles) {
+      for (const perm of role.permissions) {
+        if (perm.name === permission) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
   async seedRoles(): Promise<void> {
-    // Check if roles already exist
-    const patientRoleExists = await this.rolesRepository.findOne({
-      where: { name: 'patient' },
-    });
-
-    const adminRoleExists = await this.rolesRepository.findOne({
-      where: { name: 'admin' },
-    });
-
-    // Create roles if they don't exist
-    if (!patientRoleExists) {
-      await this.rolesRepository.save({
-        name: 'patient',
-        description: 'Regular user role with limited access',
-      });
-    }
-
-    if (!adminRoleExists) {
-      await this.rolesRepository.save({
-        name: 'admin',
-        description: 'Administrator role with full access',
-      });
-    }
+    // This is now handled by the roles.seeder.ts file
+    // We keep this method for compatibility, but it's a no-op
+    this.logger.log('Role seeding is now handled by the dedicated seeder');
   }
 }
