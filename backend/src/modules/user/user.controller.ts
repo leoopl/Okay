@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Controller,
   Get,
@@ -13,6 +12,7 @@ import {
   Req,
   HttpCode,
   HttpStatus,
+  ForbiddenException,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -25,21 +25,21 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserProfile } from './dto/user-profile.dto';
 import { Auth0Guard } from '../../core/auth/guards/auth0.guard';
-import { IAuthenticatedRequest } from '../../common/interfaces/auth-request.interface';
-import { PoliciesGuard } from '../../core/casl/guards/policies.guard';
-import { CheckPolicies } from '../../core/casl/decorators/check-policies.decorator';
-import {
-  ReadUserPolicyHandler,
-  UpdateUserPolicyHandler,
-} from '../../core/casl/policies/resource.policies';
-import { Action } from '../../core/casl/types/ability.type';
-import { User } from './entities/user.entity';
+import { RolesGuard } from '../../core/auth/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+
+interface AuthenticatedRequest extends Request {
+  user: {
+    userId: string;
+    email: string;
+    roles?: string[];
+  };
+}
 
 @ApiTags('users')
 @Controller('users')
 @UseInterceptors(ClassSerializerInterceptor)
 @ApiBearerAuth('Auth0')
-@UseGuards(Auth0Guard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -55,18 +55,15 @@ export class UserController {
     return new UserProfile(user);
   }
 
-  @ApiOperation({ summary: 'Get all users' })
+  @ApiOperation({ summary: 'Get all users (Admin only)' })
   @ApiResponse({
     status: 200,
     description: 'List of all users',
     type: [UserProfile],
   })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden - insufficient permissions',
-  })
-  @UseGuards(PoliciesGuard)
-  @CheckPolicies((ability) => ability.can(Action.Manage, User))
+  @ApiResponse({ status: 403, description: 'Forbidden - requires admin role' })
+  @UseGuards(Auth0Guard, RolesGuard)
+  @Roles('admin')
   @Get()
   async findAll() {
     const users = await this.userService.findAll();
@@ -80,8 +77,9 @@ export class UserController {
     type: UserProfile,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @UseGuards(Auth0Guard)
   @Get('me')
-  async getProfile(@Req() req: IAuthenticatedRequest) {
+  async getProfile(@Req() req: AuthenticatedRequest) {
     const user = await this.userService.findOne(req.user.userId);
     return new UserProfile(user);
   }
@@ -93,11 +91,13 @@ export class UserController {
     description: 'Forbidden - insufficient permissions',
   })
   @ApiResponse({ status: 404, description: 'User not found' })
-  @UseGuards(PoliciesGuard)
+  @UseGuards(Auth0Guard, RolesGuard)
   @Get(':id')
-  async findOne(@Param('id') id: string, @Req() req: IAuthenticatedRequest) {
-    // Apply policy check
-    const policyHandler = new ReadUserPolicyHandler(id);
+  async findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    // Users can only access their own profile unless they're admins
+    if (id !== req.user.userId && !req.user.roles?.includes('admin')) {
+      throw new ForbiddenException('You can only access your own user profile');
+    }
 
     const user = await this.userService.findOne(id);
     return new UserProfile(user);
@@ -114,15 +114,17 @@ export class UserController {
     description: 'Forbidden - insufficient permissions',
   })
   @ApiResponse({ status: 404, description: 'User not found' })
-  @UseGuards(PoliciesGuard)
+  @UseGuards(Auth0Guard)
   @Patch(':id')
   async update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
-    @Req() req: IAuthenticatedRequest,
+    @Req() req: AuthenticatedRequest,
   ) {
-    // Apply policy check
-    const policyHandler = new UpdateUserPolicyHandler(id);
+    // Users can only update their own profile unless they're admins
+    if (id !== req.user.userId && !req.user.roles?.includes('admin')) {
+      throw new ForbiddenException('You can only update your own user profile');
+    }
 
     const user = await this.userService.update(
       id,
@@ -142,7 +144,7 @@ export class UserController {
     status: 403,
     description: 'Forbidden - insufficient permissions',
   })
-  @UseGuards(PoliciesGuard)
+  @UseGuards(Auth0Guard)
   @Patch(':id/consent')
   async updateConsent(
     @Param('id') id: string,
@@ -152,10 +154,14 @@ export class UserController {
       research?: boolean;
       marketing?: boolean;
     },
-    @Req() req: IAuthenticatedRequest,
+    @Req() req: AuthenticatedRequest,
   ) {
-    // Apply policy check
-    const policyHandler = new UpdateUserPolicyHandler(id);
+    // Users can only update their own consent unless they're admins
+    if (id !== req.user.userId && !req.user.roles?.includes('admin')) {
+      throw new ForbiddenException(
+        'You can only update your own consent settings',
+      );
+    }
 
     const user = await this.userService.updateConsent(
       id,
@@ -170,45 +176,39 @@ export class UserController {
     return new UserProfile(user);
   }
 
-  @ApiOperation({ summary: 'Add a role to a user' })
+  @ApiOperation({ summary: 'Add a role to a user (Admin only)' })
   @ApiResponse({
     status: 200,
     description: 'Role added successfully',
     type: UserProfile,
   })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden - insufficient permissions',
-  })
-  @UseGuards(PoliciesGuard)
-  @CheckPolicies((ability) => ability.can(Action.Manage, User))
+  @ApiResponse({ status: 403, description: 'Forbidden - requires admin role' })
+  @UseGuards(Auth0Guard, RolesGuard)
+  @Roles('admin')
   @Patch(':id/roles/:roleName')
   async addRole(
     @Param('id') id: string,
     @Param('roleName') roleName: string,
-    @Req() req: IAuthenticatedRequest,
+    @Req() req: AuthenticatedRequest,
   ) {
     const user = await this.userService.addRole(id, roleName, req.user.userId);
     return new UserProfile(user);
   }
 
-  @ApiOperation({ summary: 'Remove a role from a user' })
+  @ApiOperation({ summary: 'Remove a role from a user (Admin only)' })
   @ApiResponse({
     status: 200,
     description: 'Role removed successfully',
     type: UserProfile,
   })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden - insufficient permissions',
-  })
-  @UseGuards(PoliciesGuard)
-  @CheckPolicies((ability) => ability.can(Action.Manage, User))
+  @ApiResponse({ status: 403, description: 'Forbidden - requires admin role' })
+  @UseGuards(Auth0Guard, RolesGuard)
+  @Roles('admin')
   @Delete(':id/roles/:roleName')
   async removeRole(
     @Param('id') id: string,
     @Param('roleName') roleName: string,
-    @Req() req: IAuthenticatedRequest,
+    @Req() req: AuthenticatedRequest,
   ) {
     const user = await this.userService.removeRole(
       id,
@@ -218,18 +218,15 @@ export class UserController {
     return new UserProfile(user);
   }
 
-  @ApiOperation({ summary: 'Delete a user' })
+  @ApiOperation({ summary: 'Delete a user (Admin only)' })
   @ApiResponse({ status: 204, description: 'User deleted successfully' })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden - insufficient permissions',
-  })
+  @ApiResponse({ status: 403, description: 'Forbidden - requires admin role' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  @UseGuards(PoliciesGuard)
-  @CheckPolicies((ability) => ability.can(Action.Manage, User))
+  @UseGuards(Auth0Guard, RolesGuard)
+  @Roles('admin')
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param('id') id: string, @Req() req: IAuthenticatedRequest) {
+  async remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     await this.userService.remove(id, req.user.userId);
   }
 }

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Controller,
   Get,
@@ -11,7 +10,6 @@ import {
   Req,
   HttpCode,
   HttpStatus,
-  NotFoundException,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -22,17 +20,10 @@ import {
 import { JournalService } from './journal.service';
 import { CreateJournalDto } from './dto/create-journal.dto';
 import { UpdateJournalDto } from './dto/update-journal.dto';
-import { Auth0Guard } from '../../core/auth/guards/auth0.guard';
+import { Auth0Guard } from '../auth/guards/auth0.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { IAuthenticatedRequest } from '../../common/interfaces/auth-request.interface';
-import { PoliciesGuard } from '../../core/casl/guards/policies.guard';
-import { CheckPolicies } from '../../core/casl/decorators/check-policies.decorator';
-import {
-  CreateJournalEntryPolicyHandler,
-  ReadJournalEntryPolicyHandler,
-  UpdateJournalEntryPolicyHandler,
-  DeleteJournalEntryPolicyHandler,
-} from '../../core/casl/policies/resource.policies';
-import { Action } from '../../core/casl/types/ability.type';
 
 @ApiTags('journal')
 @Controller('journal')
@@ -46,8 +37,6 @@ export class JournalController {
     status: 201,
     description: 'Journal entry created successfully',
   })
-  @UseGuards(PoliciesGuard)
-  @CheckPolicies(new CreateJournalEntryPolicyHandler())
   @Post()
   async create(
     @Body() createJournalDto: CreateJournalDto,
@@ -65,18 +54,15 @@ export class JournalController {
   }
 
   @ApiOperation({
-    summary: 'Get journal entries for a specific user',
+    summary: 'Get journal entries for a specific user (Admin only)',
   })
   @ApiResponse({
     status: 200,
     description: 'List of journal entries for the user',
   })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden - insufficient permissions',
-  })
-  @UseGuards(PoliciesGuard)
-  @CheckPolicies((ability) => ability.can(Action.Manage, 'all'))
+  @ApiResponse({ status: 403, description: 'Forbidden - requires admin role' })
+  @UseGuards(RolesGuard)
+  @Roles('admin')
   @Get('user/:userId')
   async findByUserId(@Param('userId') userId: string) {
     return this.journalService.findByUserId(userId);
@@ -85,22 +71,10 @@ export class JournalController {
   @ApiOperation({ summary: 'Get a specific journal entry' })
   @ApiResponse({ status: 200, description: 'Journal entry details' })
   @ApiResponse({ status: 404, description: 'Journal entry not found' })
-  @UseGuards(PoliciesGuard)
   @Get(':id')
   async findOne(@Param('id') id: string, @Req() req: IAuthenticatedRequest) {
-    const journalEntry = await this.journalService.findOne(
-      id,
-      req.user.userId,
-      true,
-    );
-
-    if (!journalEntry) {
-      throw new NotFoundException(`Journal entry with ID ${id} not found`);
-    }
-
-    // Apply policy check after we have the journal entry
-    const policyHandler = new ReadJournalEntryPolicyHandler(journalEntry);
-    return journalEntry;
+    const isAdmin = req.user.roles?.includes('admin');
+    return this.journalService.findOne(id, req.user.userId, isAdmin);
   }
 
   @ApiOperation({ summary: 'Update a journal entry' })
@@ -113,26 +87,12 @@ export class JournalController {
     description: 'Forbidden - insufficient permissions',
   })
   @ApiResponse({ status: 404, description: 'Journal entry not found' })
-  @UseGuards(PoliciesGuard)
   @Patch(':id')
   async update(
     @Param('id') id: string,
     @Body() updateJournalDto: UpdateJournalDto,
     @Req() req: IAuthenticatedRequest,
   ) {
-    const journalEntry = await this.journalService.findOne(
-      id,
-      req.user.userId,
-      true,
-    );
-
-    if (!journalEntry) {
-      throw new NotFoundException(`Journal entry with ID ${id} not found`);
-    }
-
-    // Apply policy check
-    const policyHandler = new UpdateJournalEntryPolicyHandler(journalEntry);
-
     const isAdmin = req.user.roles?.includes('admin');
     return this.journalService.update(
       id,
@@ -152,23 +112,9 @@ export class JournalController {
     description: 'Forbidden - insufficient permissions',
   })
   @ApiResponse({ status: 404, description: 'Journal entry not found' })
-  @UseGuards(PoliciesGuard)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string, @Req() req: IAuthenticatedRequest) {
-    const journalEntry = await this.journalService.findOne(
-      id,
-      req.user.userId,
-      true,
-    );
-
-    if (!journalEntry) {
-      throw new NotFoundException(`Journal entry with ID ${id} not found`);
-    }
-
-    // Apply policy check
-    const policyHandler = new DeleteJournalEntryPolicyHandler(journalEntry);
-
     const isAdmin = req.user.roles?.includes('admin');
     await this.journalService.remove(id, req.user.userId, isAdmin);
   }
