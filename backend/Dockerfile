@@ -6,14 +6,14 @@ WORKDIR /usr/src/app
 
 # Install app dependencies
 COPY package*.json ./
-COPY yarn.lock ./
-RUN yarn install --frozen-lockfile
+COPY package-lock.json ./
+RUN npm ci --frozen-lockfile
 
 # Copy app source code
 COPY . .
 
 # Build the application
-RUN yarn build
+RUN npm run build
 
 # Production stage
 FROM node:20.18-slim
@@ -23,8 +23,8 @@ WORKDIR /usr/src/app
 
 # Install production dependencies only
 COPY package*.json ./
-COPY yarn.lock ./
-RUN yarn install --production --frozen-lockfile
+COPY package-lock.json ./
+RUN npm ci --production --frozen-lockfile
 
 # Copy built application
 COPY --from=build /usr/src/app/dist ./dist

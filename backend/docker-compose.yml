@@ -62,7 +62,7 @@ services:
       - ./:/usr/src/app
       - /app/node_modules
       # - /usr/src/app/node_modules
-    command: ['yarn', 'start:dev']
+    command: ['npm', 'run', 'start:dev']
     ports:
       - '3001:3001'
     depends_on:
