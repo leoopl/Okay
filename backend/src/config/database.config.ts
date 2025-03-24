@@ -16,7 +16,8 @@ export default registerAs('database', (): TypeOrmModuleOptions => {
     migrations: [__dirname + '/../database/migrations/*{.ts,.js}'],
 
     // Development settings
-    synchronize: process.env.NODE_ENV === 'development',
+    // synchronize: process.env.NODE_ENV === 'development',
+    synchronize: true,
     logging: process.env.DB_LOGGING === 'true',
 
     // Naming strategy - convert camelCase to snake_case in DB

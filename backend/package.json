@@ -18,7 +18,11 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "seed:roles": "ts-node ./src/database/seeders/roles.seeder.ts"
+    "typeorm": "ts-node -r tsconfig-paths/register node_modules/typeorm/cli.js",
+    "migration:generate": "npm run typeorm -- migration:generate -d src/database/data-source.ts src/database/migrations/$npm_config_name",
+    "migration:run": "npm run typeorm -- migration:run -d src/database/data-source.ts",
+    "seed:roles": "ts-node -r tsconfig-paths/register ./src/database/seeders/roles.seeder.ts",
+    "seed:all": "npm run seed:roles"
   },
   "dependencies": {
     "@casl/ability": "^6.7.3",
