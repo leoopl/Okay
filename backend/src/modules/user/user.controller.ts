@@ -27,6 +27,7 @@ import { UserProfile } from './dto/user-profile.dto';
 import { Auth0Guard } from '../../core/auth/guards/auth0.guard';
 import { RolesGuard } from '../../core/auth/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { Public } from 'src/common/decorators/is-public.decorator';
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -43,6 +44,7 @@ interface AuthenticatedRequest extends Request {
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Public()
   @ApiOperation({ summary: 'Create a new user' })
   @ApiResponse({
     status: 201,

@@ -1,8 +1,9 @@
-import { Injectable, NestMiddleware, Logger, Scope } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { Injectable, NestMiddleware, Logger } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { AuditService } from '../../core/audit/audit.service';
 
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class AuditMiddleware implements NestMiddleware {
   private readonly logger = new Logger(AuditMiddleware.name);
 
@@ -12,28 +13,33 @@ export class AuditMiddleware implements NestMiddleware {
     // Capture initial timestamp
     const startTime = Date.now();
 
-    // Store original end function
+    // Get the original end method
     const originalEnd = res.end;
 
-    // Override end function to log after response
+    // Create a reference to auditService and logger for closure
+    const auditService = this.auditService;
+    const logger = this.logger;
+
+    // Override the end method
     res.end = function (
       chunk?: any,
-      encodingOrCb?: BufferEncoding | (() => void) | string,
+      encoding?: BufferEncoding | (() => void),
       cb?: () => void,
     ): Response {
-      // Restore original end
-      res.end = originalEnd;
-
       // Calculate response time
       const responseTime = Date.now() - startTime;
 
       // Log request info (but not for health checks or similar)
-      if (!req.path.includes('/health') && req.method !== 'OPTIONS') {
+      if (
+        !req.path.includes('/health') &&
+        req.method !== 'OPTIONS' &&
+        !req.path.includes('/info')
+      ) {
         // Get user ID if authenticated
         const userId = (req as any).user?.userId || 'anonymous';
 
-        // Log the request
-        this.auditService
+        // Log the request - using captured auditService reference
+        auditService
           .logAction({
             userId,
             action: req.method as any,
@@ -47,12 +53,13 @@ export class AuditMiddleware implements NestMiddleware {
             },
           })
           .catch((err) => {
-            this.logger.error(`Failed to log audit: ${err.message}`);
+            logger.error(`Failed to log audit: ${err.message}`);
           });
       }
 
-      // Call original end
-      return originalEnd.call(this, chunk, encodingOrCb as BufferEncoding, cb);
+      // Call the original end method with the correct 'this' context
+      // eslint-disable-next-line prefer-rest-params
+      return originalEnd.apply(res, arguments as any);
     };
 
     next();

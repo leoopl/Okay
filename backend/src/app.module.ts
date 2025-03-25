@@ -4,7 +4,7 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './core/auth/auth.module';
-import { BreathingTechniquesModule } from './modules/breathing-technique/breathing-technique.module';
+// import { BreathingTechniquesModule } from './modules/breathing-technique/breathing-technique.module';
 import { AuditModule } from './core/audit/audit.module';
 import { EncryptionModule } from './common/encryption/encryption.module';
 import { ThrottlerModule } from '@nestjs/throttler';
@@ -16,6 +16,7 @@ import databaseConfig from './config/database.config';
 import { APP_GUARD } from '@nestjs/core';
 import { CaslModule } from './core/casl/casl.module';
 import { Auth0Guard } from './core/auth/guards/auth0.guard';
+import { MiddlewareModule } from './common/middleware/middleware.module';
 
 @Module({
   imports: [
@@ -44,17 +45,18 @@ import { Auth0Guard } from './core/auth/guards/auth0.guard';
       ],
     }),
 
-    // Core modules
-    UserModule,
-    AuthModule,
+    // Core modules - reordered to resolve dependencies properly
     AuditModule,
     EncryptionModule,
+    MiddlewareModule, // Add the middleware module
     CaslModule,
+    UserModule,
+    AuthModule,
 
     // Feature modules
     JournalModule,
     InventoryModule,
-    BreathingTechniquesModule,
+    // BreathingTechniquesModule,
   ],
   controllers: [AppController],
   providers: [

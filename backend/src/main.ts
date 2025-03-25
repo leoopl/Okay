@@ -67,7 +67,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  // Apply audit middleware globally
+  // Apply audit middleware globally using the middleware consumer
   const auditMiddleware = app.get(AuditMiddleware);
   app.use(auditMiddleware.use.bind(auditMiddleware));
 

@@ -20,6 +20,7 @@ export class PoliciesGuard implements CanActivate {
 
   constructor(
     private reflector: Reflector,
+    @Inject(forwardRef(() => CaslAbilityFactory))
     private caslAbilityFactory: CaslAbilityFactory,
     private auditService: AuditService,
     @Inject(forwardRef(() => UserService))
