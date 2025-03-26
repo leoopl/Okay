@@ -3,6 +3,7 @@ import './globals.css';
 import { Varela_Round } from 'next/font/google';
 import Headers from '../components/Header';
 import Footer from '../components/Footer';
+import { Auth0Provider } from '@/providers/auth0-provider';
 
 const varelaRound = Varela_Round({
   subsets: ['latin'],
@@ -65,9 +66,11 @@ export default function RootLayout({
       <link rel="manifest" href="/manifest.json" />
       <head />
       <body>
-        <Headers />
-        {children}
-        <Footer />
+        <Auth0Provider>
+          <Headers />
+          {children}
+          <Footer />
+        </Auth0Provider>
       </body>
     </html>
   );

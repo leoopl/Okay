@@ -7,6 +7,8 @@ export const auth0 = new Auth0Client({
   clientId: process.env.AUTH0_CLIENT_ID!,
   clientSecret: process.env.AUTH0_CLIENT_SECRET!,
   secret: process.env.AUTH0_SECRET!,
+  baseURL: process.env.AUTH0_BASE_URL!,
+  issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL!,
 
   // Routes configuration
   routes: {
@@ -17,34 +19,33 @@ export const auth0 = new Auth0Client({
 
   // Authorization parameters for all login requests
   authorizationParameters: {
+    // Make sure this audience matches your backend's AUTH0_AUDIENCE
+    audience: process.env.AUTH0_AUDIENCE || 'https://your-tenant.auth0.com/api/v2/',
     scope: 'openid profile email offline_access',
-    audience: process.env.AUTH0_AUDIENCE || 'http://localhost:3001/api', // Optional: For API access
   },
 
-  // Session configuration
+  // Session configuration for secure handling of session data
   session: {
     rolling: true, // Extend session on user activity
     absoluteDuration: 60 * 60 * 24 * 7, // 7 days max session length
-    inactivityDuration: 60 * 60 * 24, // 1 day of inactivity before expiration
+    inactivityDuration: 60 * 60 * 2, // 2 hours of inactivity before expiration
+    cookie: {
+      transient: false, // Persist the cookie (not just session cookie)
+      httpOnly: true, // Cookie cannot be accessed by JavaScript - critical for security
+      secure: process.env.NODE_ENV === 'production', // Only use HTTPS in production
+      sameSite: 'lax', // CSRF protection
+    },
   },
 
   // Hooks for customizing authentication flow
-  async beforeSessionSaved(session, idToken) {
-    // Add additional user claims if needed
-    // Synchronize with backend
+  async afterCallback(req, res, session, state) {
+    // Sync user with backend
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/sync-auth0-user`, {
-        method: 'POST',
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile`, {
+        method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${session.accessToken}`,
         },
-        body: JSON.stringify({
-          auth0Id: session.user.sub,
-          email: session.user.email,
-          name: session.user.name || session.user.nickname,
-          picture: session.user.picture,
-        }),
       });
 
       if (response.ok) {
@@ -54,8 +55,8 @@ export const auth0 = new Auth0Client({
           ...session,
           user: {
             ...session.user,
-            id: userData.id, // Add database ID to user object
-            backendSynced: true,
+            userId: userData.user.userId, // Add database ID to user object
+            roles: userData.user.roles || [],
           },
         };
       }
@@ -64,25 +65,6 @@ export const auth0 = new Auth0Client({
     }
 
     return session;
-  },
-
-  // Custom callback handler
-  async onCallback(error, context, session) {
-    // Handle errors during the callback
-    if (error) {
-      console.error('Auth0 callback error:', error);
-      return NextResponse.redirect(
-        new URL(
-          `/auth/error?error=${encodeURIComponent(error.message)}`,
-          process.env.AUTH0_BASE_URL!,
-        ),
-      );
-    }
-
-    // Successful authentication, redirect to returnTo or home
-    return NextResponse.redirect(
-      new URL(context.returnTo || '/dashboard', process.env.AUTH0_BASE_URL!),
-    );
   },
 });
 

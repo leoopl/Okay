@@ -1,4 +1,4 @@
-import { useBreathingAnimation } from '../hooks/useBreathingAnimation';
+import { useBreathingAnimation } from '../hooks/use-breathing-animation';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 

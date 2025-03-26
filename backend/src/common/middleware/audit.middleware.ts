@@ -16,9 +16,9 @@ export class AuditMiddleware implements NestMiddleware {
     // Get the original end method
     const originalEnd = res.end;
 
-    // Create a reference to auditService and logger for closure
-    const auditService = this.auditService;
-    const logger = this.logger;
+    // Save a reference to 'this' for the closure
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
 
     // Override the end method
     res.end = function (
@@ -38,23 +38,25 @@ export class AuditMiddleware implements NestMiddleware {
         // Get user ID if authenticated
         const userId = (req as any).user?.userId || 'anonymous';
 
-        // Log the request - using captured auditService reference
-        auditService
-          .logAction({
-            userId,
-            action: req.method as any,
-            resource: req.path,
-            resourceId: req.params?.id,
-            details: {
-              statusCode: res.statusCode,
-              responseTime,
-              query: req.query,
-              // Don't log request body as it may contain sensitive data
-            },
-          })
-          .catch((err) => {
-            logger.error(`Failed to log audit: ${err.message}`);
-          });
+        // Log the request - using self.auditService instead of auditService
+        if (self && self.auditService) {
+          self.auditService
+            .logAction({
+              userId,
+              action: req.method as any,
+              resource: req.path,
+              resourceId: req.params?.id,
+              details: {
+                statusCode: res.statusCode,
+                responseTime,
+                query: req.query,
+                // Don't log request body as it may contain sensitive data
+              },
+            })
+            .catch((err) => {
+              self.logger.error(`Failed to log audit: ${err.message}`);
+            });
+        }
       }
 
       // Call the original end method with the correct 'this' context
