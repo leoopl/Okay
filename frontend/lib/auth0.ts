@@ -1,14 +1,14 @@
 import { Auth0Client } from '@auth0/nextjs-auth0/server';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
 // Initialize Auth0 with your configuration
 export const auth0 = new Auth0Client({
   // Core Auth0 configuration
+  secret: process.env.AUTH0_SECRET!,
+  appBaseUrl: process.env.APP_BASE_URL!,
+  domain: process.env.AUTH0_DOMAIN!,
   clientId: process.env.AUTH0_CLIENT_ID!,
   clientSecret: process.env.AUTH0_CLIENT_SECRET!,
-  secret: process.env.AUTH0_SECRET!,
-  baseURL: process.env.AUTH0_BASE_URL!,
-  issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL!,
 
   // Routes configuration
   routes: {
@@ -20,8 +20,8 @@ export const auth0 = new Auth0Client({
   // Authorization parameters for all login requests
   authorizationParameters: {
     // Make sure this audience matches your backend's AUTH0_AUDIENCE
-    audience: process.env.AUTH0_AUDIENCE || 'https://your-tenant.auth0.com/api/v2/',
-    scope: 'openid profile email offline_access',
+    audience: process.env.AUTH0_AUDIENCE,
+    redirect_uri: `${process.env.APP_BASE_URL}/api/auth/callback`,
   },
 
   // Session configuration for secure handling of session data
@@ -29,71 +29,50 @@ export const auth0 = new Auth0Client({
     rolling: true, // Extend session on user activity
     absoluteDuration: 60 * 60 * 24 * 7, // 7 days max session length
     inactivityDuration: 60 * 60 * 2, // 2 hours of inactivity before expiration
-    cookie: {
-      transient: false, // Persist the cookie (not just session cookie)
-      httpOnly: true, // Cookie cannot be accessed by JavaScript - critical for security
-      secure: process.env.NODE_ENV === 'production', // Only use HTTPS in production
-      sameSite: 'lax', // CSRF protection
-    },
   },
 
   // Hooks for customizing authentication flow
-  async afterCallback(req, res, session, state) {
-    // Sync user with backend
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
-        },
-      });
-
-      if (response.ok) {
-        const userData = await response.json();
-        // Merge backend user data with Auth0 user data
-        return {
-          ...session,
-          user: {
-            ...session.user,
-            userId: userData.user.userId, // Add database ID to user object
-            roles: userData.user.roles || [],
-          },
-        };
-      }
-    } catch (error) {
-      console.error('Error syncing user with backend:', error);
-    }
-
+  async beforeSessionSaved(session) {
+    // Enhance session with appropriate roles and permissions
     return session;
   },
+
+  async onCallback(error, context, session) {
+    if (error) {
+      // Handle errors appropriately
+      console.error('Auth error:', error);
+      const errorUrl = new URL('/auth-error', process.env.AUTH0_BASE_URL!);
+      errorUrl.searchParams.set('error', error.message);
+      return NextResponse.redirect(errorUrl);
+    }
+
+    // Sync user with backend on login
+    if (session) {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${session.accessToken}`,
+          },
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          // Enhance session with backend user data
+          session.user = {
+            ...session.user,
+            userId: userData.user.userId,
+            roles: userData.user.roles || [],
+          };
+        }
+      } catch (error) {
+        console.error('Error syncing user with backend:', error);
+      }
+    }
+
+    const redirectUrl = new URL(context.returnTo || '/', process.env.AUTH0_BASE_URL!);
+    return NextResponse.redirect(redirectUrl);
+  },
 });
-
-/**
- * Helper function to require authentication for specific routes
- * @param request The incoming Next.js request
- * @returns Response to redirect if not authenticated, null if authenticated
- */
-export async function requireAuth(req: NextRequest): Promise<NextResponse | null> {
-  const session = await auth0.getSession(req);
-
-  if (!session) {
-    // Store the original URL to redirect back after login
-    const returnTo = req.nextUrl.pathname + req.nextUrl.search;
-    const loginUrl = new URL('/api/auth/login', req.url);
-    loginUrl.searchParams.set('returnTo', returnTo);
-
-    return NextResponse.redirect(loginUrl);
-  }
-
-  return null;
-}
-
-/**
- * Helper to check if user is authenticated
- */
-export async function isAuthenticated(req: NextRequest): Promise<boolean> {
-  const session = await auth0.getSession(req);
-  return !!session;
-}
 
 export default auth0;

@@ -43,6 +43,18 @@ export class AuthService {
   }
 
   /**
+   * Log a user action for audit purposes
+   */
+  async logAction(action: string, resource: string, resourceId?: string, details?: any) {
+    return this.apiClient.post<{ success: boolean }>('/auth/log-action', {
+      action,
+      resource,
+      resourceId,
+      details,
+    });
+  }
+
+  /**
    * Check if a user has a specific role
    */
   hasRole(user: UserProfile | null, role: string): boolean {

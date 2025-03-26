@@ -9,6 +9,7 @@ const PUBLIC_PATHS = [
   '/professional',
   '/signin',
   '/signup',
+  '/auth-error',
   '/api/auth/login',
   '/api/auth/callback',
   '/api/auth/logout',
@@ -18,7 +19,7 @@ const PUBLIC_PATHS = [
 const AUTH_PATHS = ['/signin', '/signup'];
 
 export async function middleware(request: NextRequest) {
-  // Check if path is in the public paths
+  // Check if path matches public paths or static assets
   const isPublicPath = PUBLIC_PATHS.some(
     (path) =>
       request.nextUrl.pathname === path ||
@@ -27,7 +28,15 @@ export async function middleware(request: NextRequest) {
       request.nextUrl.pathname.match(/\.(ico|png|jpg|jpeg|svg|css|js)$/),
   );
 
-  // Get the user session
+  // Pass auth request to Auth0 middleware first
+  const authResponse = await auth0.middleware(request);
+
+  // Handle Auth0 routes directly
+  if (request.nextUrl.pathname.startsWith('/api/auth/')) {
+    return authResponse;
+  }
+
+  // Get the session from Auth0
   const session = await auth0.getSession(request);
   const isAuthenticated = !!session;
 
@@ -46,18 +55,22 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Pass Auth0 middleware response headers to the response
-  const res = auth0.middleware(request);
-  const response = NextResponse.next();
+  // Create a new response with request headers preserved
+  const response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
 
-  // Copy all headers from Auth0 middleware response
-  for (const [key, value] of (await res).headers.entries()) {
+  // Copy all headers from Auth0 response to preserve cookies
+  authResponse.headers.forEach((value, key) => {
     response.headers.set(key, value);
-  }
+  });
 
   return response;
 }
 
+// Define the paths that should be processed by the middleware
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.png$).*)'],
 };

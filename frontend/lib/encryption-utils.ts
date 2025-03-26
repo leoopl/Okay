@@ -1,99 +1,193 @@
 /**
- * Utility functions for client-side encryption and secure data handling
- * Note: Client-side encryption provides an additional layer of security but is not a replacement
- * for server-side encryption. Sensitive health data should always be encrypted at rest on the server.
+ * Security utilities for handling sensitive health data
+ * in compliance with HIPAA and other healthcare regulations
  */
+
+// Constants for security features
+const INACTIVITY_TIMEOUT = 15 * 60 * 1000; // 15 minutes in milliseconds
+const TOKEN_REFRESH_INTERVAL = 14 * 60 * 1000; // 14 minutes in milliseconds
 
 /**
- * Encrypt data before sending to the server using the Web Crypto API
- * This adds an extra layer of protection during transit
+ * Securely encrypt sensitive data using the Web Crypto API
  * @param data Data to encrypt
- * @param publicKey Server's public key
+ * @param key Encryption key
  */
-export async function encryptData(data: any, publicKey: string): Promise<string> {
-  // This is a simplified implementation - in production, you'd use proper asymmetric encryption
-  // Convert the string key to a proper CryptoKey
-  const encoder = new TextEncoder();
-  const encodedData = encoder.encode(JSON.stringify(data));
+export async function encryptData(
+  data: any,
+  key: CryptoKey,
+): Promise<{ ciphertext: string; iv: string }> {
+  // Convert data to string if needed
+  const dataString = typeof data === 'string' ? data : JSON.stringify(data);
 
-  // Import the public key
-  const cryptoKey = await window.crypto.subtle.importKey(
-    'spki',
-    _base64ToArrayBuffer(publicKey),
-    {
-      name: 'RSA-OAEP',
-      hash: 'SHA-256',
-    },
-    false,
-    ['encrypt'],
-  );
+  // Generate a random IV for AES-GCM
+  const iv = window.crypto.getRandomValues(new Uint8Array(12));
+
+  // Encode data to ArrayBuffer
+  const encoder = new TextEncoder();
+  const encodedData = encoder.encode(dataString);
 
   // Encrypt the data
-  const encryptedData = await window.crypto.subtle.encrypt(
+  const ciphertext = await window.crypto.subtle.encrypt(
     {
-      name: 'RSA-OAEP',
+      name: 'AES-GCM',
+      iv,
     },
-    cryptoKey,
+    key,
     encodedData,
   );
 
-  // Convert encrypted data to base64 string
-  return _arrayBufferToBase64(encryptedData);
+  // Convert to base64 strings for storage/transmission
+  return {
+    ciphertext: arrayBufferToBase64(ciphertext),
+    iv: arrayBufferToBase64(iv.buffer),
+  };
 }
 
 /**
- * Generate a temporary encryption key for the current session
- * Can be used for sensitive form data before submission
+ * Decrypt data that was encrypted with encryptData
+ * @param ciphertext Encrypted data as base64 string
+ * @param iv Initialization vector as base64 string
+ * @param key Decryption key
  */
-export async function generateSessionKey(): Promise<CryptoKey> {
+export async function decryptData(ciphertext: string, iv: string, key: CryptoKey): Promise<any> {
+  // Convert base64 strings back to ArrayBuffers
+  const ciphertextBuffer = base64ToArrayBuffer(ciphertext);
+  const ivBuffer = base64ToArrayBuffer(iv);
+
+  // Decrypt the data
+  const decrypted = await window.crypto.subtle.decrypt(
+    {
+      name: 'AES-GCM',
+      iv: ivBuffer,
+    },
+    key,
+    ciphertextBuffer,
+  );
+
+  // Decode decrypted data
+  const decoder = new TextDecoder();
+  const decodedData = decoder.decode(decrypted);
+
+  // Parse JSON if the original data was an object
+  try {
+    return JSON.parse(decodedData);
+  } catch (e) {
+    // If not valid JSON, return as string
+    return decodedData;
+  }
+}
+
+/**
+ * Generate a new encryption key for secure client-side storage
+ */
+export async function generateEncryptionKey(): Promise<CryptoKey> {
   return window.crypto.subtle.generateKey(
     {
       name: 'AES-GCM',
       length: 256,
     },
-    true,
+    true, // extractable
     ['encrypt', 'decrypt'],
   );
 }
 
 /**
- * Encrypt sensitive form data with a session key
- * @param data Data to encrypt
- * @param sessionKey Session encryption key
+ * Safely wipe sensitive data from memory
+ * @param data Object containing sensitive data
  */
-export async function encryptFormData(
-  data: any,
-  sessionKey: CryptoKey,
-): Promise<{
-  encryptedData: string;
-  iv: string;
-}> {
-  const encoder = new TextEncoder();
-  const encodedData = encoder.encode(JSON.stringify(data));
+export function secureClearData(data: any): void {
+  if (!data) return;
 
-  // Generate a random initialization vector
-  const iv = window.crypto.getRandomValues(new Uint8Array(12));
+  if (typeof data === 'string') {
+    // Overwrite strings with random data before clearing
+    const length = data.length;
+    const random = Array(length)
+      .fill(0)
+      .map(() => String.fromCharCode(Math.floor(Math.random() * 94) + 32))
+      .join('');
 
-  // Encrypt the data
-  const encryptedData = await window.crypto.subtle.encrypt(
-    {
-      name: 'AES-GCM',
-      iv: iv,
-    },
-    sessionKey,
-    encodedData,
-  );
+    // This is a hack that may or may not work depending on JavaScript engine
+    // but it's better than nothing
+    data = random;
+    data = '';
+    return;
+  }
 
-  return {
-    encryptedData: _arrayBufferToBase64(encryptedData),
-    iv: _arrayBufferToBase64(iv),
+  if (typeof data === 'object') {
+    // Handle arrays
+    if (Array.isArray(data)) {
+      for (let i = 0; i < data.length; i++) {
+        secureClearData(data[i]);
+        data[i] = null;
+      }
+    } else {
+      // Handle objects
+      Object.keys(data).forEach((key) => {
+        secureClearData(data[key]);
+        data[key] = null;
+      });
+    }
+  }
+}
+
+/**
+ * Set up automatic session timeout for security
+ * @param onTimeout Callback function to execute when timeout occurs
+ * @param timeoutMs Timeout in milliseconds (defaults to 15 minutes)
+ */
+export function setupSessionTimeout(
+  onTimeout: () => void,
+  timeoutMs = INACTIVITY_TIMEOUT,
+): () => void {
+  let timeoutId: number | null = null;
+
+  // Function to reset the timeout
+  const resetTimeout = () => {
+    if (timeoutId !== null) {
+      window.clearTimeout(timeoutId);
+    }
+    timeoutId = window.setTimeout(onTimeout, timeoutMs);
+  };
+
+  // Set up event listeners to reset timeout on user activity
+  const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+  events.forEach((event) => {
+    document.addEventListener(event, resetTimeout, false);
+  });
+
+  // Start the initial timeout
+  resetTimeout();
+
+  // Return cleanup function
+  return () => {
+    if (timeoutId !== null) {
+      window.clearTimeout(timeoutId);
+    }
+    events.forEach((event) => {
+      document.removeEventListener(event, resetTimeout);
+    });
   };
 }
 
 /**
- * Helper function to convert an ArrayBuffer to a Base64 string
+ * Set up automatic token refresh to prevent session expiration
+ * @param refreshToken Function that refreshes the auth token
+ * @param intervalMs Interval in milliseconds (defaults to 14 minutes)
  */
-function _arrayBufferToBase64(buffer: ArrayBuffer): string {
+export function setupTokenRefresh(
+  refreshToken: () => Promise<void>,
+  intervalMs = TOKEN_REFRESH_INTERVAL,
+): () => void {
+  const intervalId = window.setInterval(refreshToken, intervalMs);
+
+  // Return cleanup function
+  return () => {
+    window.clearInterval(intervalId);
+  };
+}
+
+// Helper functions for base64 conversion
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
   let binary = '';
   for (let i = 0; i < bytes.byteLength; i++) {
@@ -102,37 +196,11 @@ function _arrayBufferToBase64(buffer: ArrayBuffer): string {
   return window.btoa(binary);
 }
 
-/**
- * Helper function to convert a Base64 string to an ArrayBuffer
- */
-function _base64ToArrayBuffer(base64: string): ArrayBuffer {
+function base64ToArrayBuffer(base64: string): ArrayBuffer {
   const binaryString = window.atob(base64);
   const bytes = new Uint8Array(binaryString.length);
   for (let i = 0; i < binaryString.length; i++) {
     bytes[i] = binaryString.charCodeAt(i);
   }
   return bytes.buffer;
-}
-
-/**
- * Securely clean sensitive data from memory
- * Use for form data after submission
- * @param data Object containing sensitive data
- */
-export function secureClearData(data: any): void {
-  // Overwrite object properties
-  Object.keys(data).forEach((key) => {
-    if (typeof data[key] === 'string') {
-      // Overwrite strings with random data before setting to empty
-      const length = data[key].length;
-      let random = '';
-      for (let i = 0; i < length; i++) {
-        random += String.fromCharCode(Math.floor(Math.random() * 94) + 32);
-      }
-      data[key] = random;
-      data[key] = '';
-    } else if (typeof data[key] === 'object' && data[key] !== null) {
-      secureClearData(data[key]);
-    }
-  });
 }

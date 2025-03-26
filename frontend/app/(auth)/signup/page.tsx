@@ -4,7 +4,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useActionState, useState } from 'react';
 import { signup } from '@/app/actions/auth';
-import { useFormState, useFormStatus } from 'react-dom';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,7 @@ import {
 const genders = ['Masculino', 'Feminino', 'Outro', 'Prefiro não dizer'];
 
 const SignupPage: React.FC = () => {
-  const [state, action] = useActionState(signup, undefined);
+  const [state, action, isPending] = useActionState(signup, undefined);
   // async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
   //   event.preventDefault();
 
@@ -148,7 +147,13 @@ const SignupPage: React.FC = () => {
               </div>
 
               <div>
-                <SubmitButton />
+                <button
+                  disabled={isPending}
+                  type="submit"
+                  className="small-caps bg-green-dark hover:bg-green-medium focus:ring-green-dark flex w-full justify-center rounded-md px-4 py-2 text-sm font-semibold text-black shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
+                >
+                  Cadastre-se
+                </button>
               </div>
             </form>
 
@@ -217,18 +222,12 @@ function DatePicker({ name }: { name: string }) {
   );
 }
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
+// function SubmitButton() {
+//   const { pending } = useFormStatus();
 
-  return (
-    <button
-      disabled={pending}
-      type="submit"
-      className="small-caps bg-green-dark hover:bg-green-medium focus:ring-green-dark flex w-full justify-center rounded-md px-4 py-2 text-sm font-semibold text-black shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
-    >
-      Cadastre-se
-    </button>
-  );
-}
+//   return (
+
+//   );
+// }
 
 export default SignupPage;

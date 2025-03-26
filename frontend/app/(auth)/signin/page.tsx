@@ -4,12 +4,11 @@ import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { SetStateAction, useActionState, useState } from 'react';
 import { signin } from '@/app/actions/auth';
-import { useFormState, useFormStatus } from 'react-dom';
 
 const SigninPage: React.FC = () => {
-  const [state, action] = useFormState(signin, undefined);
+  const [state, action, isPending] = useActionState(signin, undefined);
   const [password, setPassword] = useState('');
 
   return (
@@ -40,7 +39,9 @@ const SigninPage: React.FC = () => {
                 id="password"
                 name="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e: { target: { value: SetStateAction<string> } }) =>
+                  setPassword(e.target.value)
+                }
                 autoComplete="current-password"
                 required
                 placeholder="Senha"
@@ -66,7 +67,13 @@ const SigninPage: React.FC = () => {
             )}
 
             <div>
-              <SubmitButton />
+              <button
+                type="submit"
+                disabled={isPending}
+                className="small-caps bg-green-dark hover:bg-green-medium focus:ring-green-dark flex w-full justify-center rounded-md px-4 py-2 text-sm font-semibold text-black shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
+              >
+                {isPending ? 'Entrando...' : 'Entrar'}
+              </button>
             </div>
           </form>
 
@@ -96,18 +103,12 @@ const SigninPage: React.FC = () => {
 };
 
 // Button component that shows loading state
-function SubmitButton() {
-  const { pending } = useFormStatus();
+// function SubmitButton() {
+//   const { pending } = useFormStatus();
 
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="small-caps bg-green-dark hover:bg-green-medium focus:ring-green-dark flex w-full justify-center rounded-md px-4 py-2 text-sm font-semibold text-black shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
-    >
-      {pending ? 'Entrando...' : 'Entrar'}
-    </button>
-  );
-}
+//   return (
+
+//   );
+// }
 
 export default SigninPage;

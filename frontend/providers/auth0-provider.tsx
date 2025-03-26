@@ -10,7 +10,7 @@ type AuthState = {
   isLoading: boolean;
   user: User | null;
   error: Error | null;
-  login: () => Promise<void>;
+  login: (returnTo?: string) => Promise<void>;
   logout: () => Promise<void>;
   getAccessToken: () => Promise<string | null>;
 };
@@ -71,11 +71,11 @@ export const Auth0Provider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   // Login function
-  const login = async () => {
+  const login = async (returnTo?: string) => {
     try {
-      // Store the current path for redirect after login
-      const returnTo = encodeURIComponent(window.location.pathname);
-      window.location.href = `/api/auth/login?returnTo=${returnTo}`;
+      // Store the current path for redirect after login if not provided
+      const redirectPath = returnTo || encodeURIComponent(window.location.pathname);
+      window.location.href = `/api/auth/login?returnTo=${redirectPath}`;
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Login failed'));
     }
@@ -92,14 +92,15 @@ export const Auth0Provider = ({ children }: { children: React.ReactNode }) => {
 
   // Function to get an access token for API calls
   const getAccessToken = async (): Promise<string | null> => {
+    // If we already have a valid token, return it
     if (accessToken) return accessToken;
 
     try {
       const response = await fetch('/api/auth/token');
       if (response.ok) {
-        const { accessToken } = await response.json();
-        setAccessToken(accessToken);
-        return accessToken;
+        const { accessToken: newToken } = await response.json();
+        setAccessToken(newToken);
+        return newToken;
       }
       return null;
     } catch (err) {

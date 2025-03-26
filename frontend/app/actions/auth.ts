@@ -1,23 +1,13 @@
 'use server';
 
 import { SignupFormSchema, SigninFormSchema, FormState } from '@/lib/definitions';
-import { cookies } from 'next/headers';
+import { auth0 } from '@/lib/auth0';
 import { redirect } from 'next/navigation';
 
-interface SignupDTO {
-  name: string;
-  surname: string;
-  email: string;
-  password: string;
-  gender?: string;
-  birthdate: Date;
-}
-
-interface SigninDTO {
-  email: string;
-  password: string;
-}
-
+/**
+ * Server action for handling user signup
+ * Validates input and redirects to Auth0 signup/login
+ */
 export async function signup(state: FormState, formData: FormData) {
   // Validate form fields using Zod
   const validatedFields = SignupFormSchema.safeParse({
@@ -43,42 +33,26 @@ export async function signup(state: FormState, formData: FormData) {
     // Remove confirmation password before sending to API
     const { confirm, ...signupData } = validatedFields.data;
 
-    // Make API request to register endpoint
-    const res = await fetch(`${process.env.API_URL}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(signupData as SignupDTO),
-      credentials: 'include', // Important for cookie handling
-    });
+    // Store signup data in session for use after Auth0 authentication
+    // We'll convert this to use Auth0's connection options to pre-fill the signup form
+    const loginUrl = new URL('/api/auth/login', process.env.AUTH0_BASE_URL!);
+    loginUrl.searchParams.set('signup', 'true');
+    loginUrl.searchParams.set('email', signupData.email);
 
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => null);
-      return {
-        message: errorData?.message || 'Registration failed. Please try again.',
-      };
-    }
-
-    // Parse user data from response
-    const data = await res.json();
-
-    // Store user basic info in a client-accessible cookie
-    // This is just for UI state - auth is handled by HttpOnly cookies
-    (await cookies()).set('user', JSON.stringify(data.user), {
-      httpOnly: false, // Client accessible
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 15, // 15 minutes (matching access token)
-      path: '/',
-    });
-
-    // Redirect to dashboard
-    redirect('/dashboard');
+    // Redirect to Auth0 login/signup
+    redirect(loginUrl.toString());
   } catch (error) {
+    console.error('Signup error:', error);
     return {
       message: 'An error occurred during registration. Please try again.',
     };
   }
 }
 
+/**
+ * Server action for handling user signin
+ * Validates input and redirects to Auth0 login
+ */
 export async function signin(state: FormState, formData: FormData) {
   // Validate form fields
   const validatedFields = SigninFormSchema.safeParse({
@@ -96,67 +70,32 @@ export async function signin(state: FormState, formData: FormData) {
   try {
     const signinData = validatedFields.data;
 
-    // Make API request to signin endpoint
-    const res = await fetch(`${process.env.API_URL}/auth/signin`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(signinData as SigninDTO),
-      credentials: 'include', // Important for cookie handling
-    });
+    // Redirect to Auth0 login with email prefilled
+    const loginUrl = new URL('/api/auth/login', process.env.AUTH0_BASE_URL!);
+    loginUrl.searchParams.set('email', signinData.email);
 
-    if (!res.ok) {
-      return {
-        message: 'Invalid email or password. Please try again.',
-      };
-    }
-
-    // Parse user data from response
-    const data = await res.json();
-
-    // Store user basic info in a client-accessible cookie
-    (await cookies()).set('user', JSON.stringify(data.user), {
-      httpOnly: false, // Client accessible
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 15, // 15 minutes (matching access token)
-      path: '/',
-    });
-
-    // Redirect to dashboard
-    redirect('/dashboard');
+    // Redirect to Auth0 login
+    redirect(loginUrl.toString());
   } catch (error) {
+    console.error('Signin error:', error);
     return {
       message: 'An error occurred during login. Please try again.',
     };
   }
 }
 
+/**
+ * Server action for logging out the user
+ */
 export async function logout() {
-  try {
-    await fetch(`${process.env.API_URL}/auth/logout`, {
-      method: 'POST',
-      credentials: 'include',
-    });
-
-    // Clear the user cookie
-    (await cookies()).delete('user');
-
-    // Redirect to home page
-    redirect('/');
-  } catch (error) {
-    // If API call fails, still clear cookies and redirect
-    (await cookies()).delete('user');
-    redirect('/');
-  }
+  // Redirect to Auth0 logout endpoint
+  redirect('/api/auth/logout');
 }
 
-// Helper function to get current user from cookie
+/**
+ * Helper function to get current user from Auth0 session
+ */
 export async function getCurrentUser() {
-  const userCookie = (await cookies()).get('user');
-  if (!userCookie) return null;
-
-  try {
-    return JSON.parse(userCookie.value);
-  } catch (error) {
-    return null;
-  }
+  const session = await auth0.getSession();
+  return session?.user || null;
 }
