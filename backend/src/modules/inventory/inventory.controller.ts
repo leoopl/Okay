@@ -24,16 +24,16 @@ import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { SubmitInventoryResponseDto } from './dto/submit-inventory-response.dto';
 import { Inventory } from './entities/inventory.entity';
 import { InventoryResponse } from './entities/inventory-response.entity';
-import { Auth0Guard } from '../../core/auth/guards/auth0.guard';
 import { IAuthenticatedRequest } from '../../common/interfaces/auth-request.interface';
 import { RequirePermissions } from '../../core/casl/decorators/check-policies.decorator';
 import { Action } from '../../core/casl/types/ability.type';
 import { UseResource } from '../../core/casl/decorators/resource.decorator';
+import { JwtAuthGuard } from 'src/core/auth/guards/jwt-auth.guard';
 
 @ApiTags('inventories')
 @Controller('inventories')
-@ApiBearerAuth('Auth0')
-@UseGuards(Auth0Guard)
+@ApiBearerAuth('JWT')
+@UseGuards(JwtAuthGuard)
 export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
 

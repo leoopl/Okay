@@ -53,6 +53,7 @@ async function bootstrap() {
     .addTag('users')
     .addTag('journal')
     .addTag('inventories')
+    .addTag('authentication')
     .addBearerAuth(
       {
         type: 'http',
@@ -60,7 +61,7 @@ async function bootstrap() {
         bearerFormat: 'JWT',
         in: 'header',
       },
-      'Auth0',
+      'JWT',
     )
     .build();
 

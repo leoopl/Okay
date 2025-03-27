@@ -22,17 +22,17 @@ import {
 import { JournalService } from './journal.service';
 import { CreateJournalDto } from './dto/create-journal.dto';
 import { UpdateJournalDto } from './dto/update-journal.dto';
-import { Auth0Guard } from '../../core/auth/guards/auth0.guard';
 import { IAuthenticatedRequest } from '../../common/interfaces/auth-request.interface';
 import { RequirePermissions } from '../../core/casl/decorators/check-policies.decorator';
 import { Action } from '../../core/casl/types/ability.type';
 import { JournalEntry } from './entities/journal.entity';
 import { UseResource } from '../../core/casl/decorators/resource.decorator';
+import { JwtAuthGuard } from 'src/core/auth/guards/jwt-auth.guard';
 
 @ApiTags('journal')
 @Controller('journal')
-@ApiBearerAuth('Auth0')
-@UseGuards(Auth0Guard)
+@ApiBearerAuth('JWT')
+@UseGuards(JwtAuthGuard)
 export class JournalController {
   constructor(private readonly journalService: JournalService) {}
 

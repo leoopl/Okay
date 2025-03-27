@@ -33,7 +33,7 @@ import { IAuthenticatedRequest } from '../../common/interfaces/auth-request.inte
 @ApiTags('users')
 @Controller('users')
 @UseInterceptors(ClassSerializerInterceptor)
-@ApiBearerAuth('Auth0')
+@ApiBearerAuth('JWT')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
