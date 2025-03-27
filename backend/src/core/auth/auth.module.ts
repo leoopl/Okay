@@ -1,46 +1,42 @@
 import { Module } from '@nestjs/common';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
-import { UserModule } from 'src/modules/user/user.module';
 import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
-import { PassportModule } from '@nestjs/passport';
-import oauthConstants from './constants/oauth.constants';
-import { GoogleStrategy } from './strategies/google.strategy';
-import { AuditModule } from 'src/core/audit/audit.module';
-import { Auth0Service } from './services/auth0.service';
-import { Auth0Strategy } from './strategies/auth0.strategy';
-import auth0Constants from './constants/auth0.constants';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { TokenService } from './services/token.service';
+import { OAuthService } from './services/oauth.service';
+import { RefreshToken } from './entities/refresh-token.entity';
+import { TokenBlacklist } from './entities/token-blacklist.entity';
+import { AuthorizationCode } from './entities/authorization-code.entity';
+import { UserModule } from '../../modules/user/user.module';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
   imports: [
     UserModule,
     AuditModule,
-    PassportModule.register({ defaultStrategy: 'auth0' }),
-    ConfigModule.forFeature(oauthConstants),
-    ConfigModule.forFeature(auth0Constants), // Make sure auth0Constants is imported
-    JwtModule.register({}),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    TypeOrmModule.forFeature([RefreshToken, TokenBlacklist, AuthorizationCode]),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_ACCESS_EXPIRATION', '15m'),
+          audience: configService.get<string>('JWT_AUDIENCE', 'okay-api'),
+          issuer: configService.get<string>('JWT_ISSUER', 'okay-mental-health'),
+        },
+      }),
+    }),
     HttpModule,
   ],
   controllers: [AuthController],
-  providers: [
-    AuthService,
-    Auth0Service,
-    Auth0Strategy,
-    GoogleStrategy,
-    // Provide proper Auth0 configuration
-    {
-      provide: 'AUTH0_CONFIG',
-      useFactory: (configService: ConfigService) => ({
-        domain: configService.get<string>('AUTH0_DOMAIN'),
-        clientId: configService.get<string>('AUTH0_CLIENT_ID'),
-        clientSecret: configService.get<string>('AUTH0_CLIENT_SECRET'),
-        audience: configService.get<string>('AUTH0_AUDIENCE'),
-      }),
-      inject: [ConfigService],
-    },
-  ],
-  exports: [AuthService, Auth0Service],
+  providers: [AuthService, TokenService, OAuthService, JwtStrategy],
+  exports: [AuthService, TokenService, OAuthService],
 })
 export class AuthModule {}

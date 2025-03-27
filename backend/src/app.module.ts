@@ -1,10 +1,9 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './core/auth/auth.module';
-// import { BreathingTechniquesModule } from './modules/breathing-technique/breathing-technique.module';
 import { AuditModule } from './core/audit/audit.module';
 import { EncryptionModule } from './common/encryption/encryption.module';
 import { ThrottlerModule } from '@nestjs/throttler';
@@ -12,18 +11,21 @@ import { JournalModule } from './modules/journal/journal.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import databaseConfig from './config/database.config';
+import authConfig from './config/auth.config';
 
 import { APP_GUARD } from '@nestjs/core';
 import { CaslModule } from './core/casl/casl.module';
-import { Auth0Guard } from './core/auth/guards/auth0.guard';
+import { JwtAuthGuard } from './core/auth/guards/jwt-auth.guard';
 import { MiddlewareModule } from './common/middleware/middleware.module';
+import { AuditMiddleware } from './common/middleware/audit.middleware';
+import { DataIsolationMiddleware } from './common/middleware/data-isolation.middleware';
 
 @Module({
   imports: [
     // Global configuration
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig],
+      load: [databaseConfig, authConfig],
     }),
 
     // Database setup
@@ -48,7 +50,7 @@ import { MiddlewareModule } from './common/middleware/middleware.module';
     // Core modules - reordered to resolve dependencies properly
     AuditModule,
     EncryptionModule,
-    MiddlewareModule, // Add the middleware module
+    MiddlewareModule,
     CaslModule,
     UserModule,
     AuthModule,
@@ -56,16 +58,26 @@ import { MiddlewareModule } from './common/middleware/middleware.module';
     // Feature modules
     JournalModule,
     InventoryModule,
-    // BreathingTechniquesModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
-    // Global authentication guard
+    // Global authentication guard - use our new JWT guard
     {
       provide: APP_GUARD,
-      useClass: Auth0Guard,
+      useClass: JwtAuthGuard,
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    // Apply audit middleware globally
+    consumer.apply(AuditMiddleware).forRoutes('*');
+
+    // Apply data isolation middleware for authenticated routes
+    consumer
+      .apply(DataIsolationMiddleware)
+      .exclude('auth/login', 'auth/refresh', 'auth/token', 'health', 'info')
+      .forRoutes('*');
+  }
+}

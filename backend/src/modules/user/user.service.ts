@@ -13,6 +13,7 @@ import { AuditService } from '../../core/audit/audit.service';
 import { AuditAction } from '../../core/audit/entities/audit-log.entity';
 import { Role } from './entities/role.entity';
 import { ConfigService } from '@nestjs/config';
+import * as argon2 from 'argon2';
 
 @Injectable()
 export class UserService {
@@ -432,6 +433,37 @@ export class UserService {
     }
 
     return false;
+  }
+
+  /**
+   * Validate user credentials
+   */
+  async validateCredentials(
+    email: string,
+    password: string,
+  ): Promise<User | null> {
+    try {
+      const user = await this.findByEmail(email);
+
+      if (!user || !user.password) {
+        return null;
+      }
+
+      // Verify password using argon2
+      const validPassword = await argon2.verify(user.password, password);
+
+      if (validPassword) {
+        return user;
+      }
+
+      return null;
+    } catch (error) {
+      this.logger.error(
+        `Error validating credentials: ${error.message}`,
+        error.stack,
+      );
+      return null;
+    }
   }
 
   async seedRoles(): Promise<void> {

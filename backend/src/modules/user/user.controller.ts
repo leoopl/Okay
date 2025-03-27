@@ -24,18 +24,11 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserProfile } from './dto/user-profile.dto';
-import { Auth0Guard } from '../../core/auth/guards/auth0.guard';
+import { JwtAuthGuard } from '../../core/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../core/auth/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { Public } from 'src/common/decorators/is-public.decorator';
-
-interface AuthenticatedRequest extends Request {
-  user: {
-    userId: string;
-    email: string;
-    roles?: string[];
-  };
-}
+import { Public } from '../../common/decorators/is-public.decorator';
+import { IAuthenticatedRequest } from '../../common/interfaces/auth-request.interface';
 
 @ApiTags('users')
 @Controller('users')
@@ -64,7 +57,7 @@ export class UserController {
     type: [UserProfile],
   })
   @ApiResponse({ status: 403, description: 'Forbidden - requires admin role' })
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Get()
   async findAll() {
@@ -79,9 +72,9 @@ export class UserController {
     type: UserProfile,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @UseGuards(Auth0Guard)
+  @UseGuards(JwtAuthGuard)
   @Get('me')
-  async getProfile(@Req() req: AuthenticatedRequest) {
+  async getProfile(@Req() req: IAuthenticatedRequest) {
     const user = await this.userService.findOne(req.user.userId);
     return new UserProfile(user);
   }
@@ -93,9 +86,9 @@ export class UserController {
     description: 'Forbidden - insufficient permissions',
   })
   @ApiResponse({ status: 404, description: 'User not found' })
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':id')
-  async findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+  async findOne(@Param('id') id: string, @Req() req: IAuthenticatedRequest) {
     // Users can only access their own profile unless they're admins
     if (id !== req.user.userId && !req.user.roles?.includes('admin')) {
       throw new ForbiddenException('You can only access your own user profile');
@@ -116,12 +109,12 @@ export class UserController {
     description: 'Forbidden - insufficient permissions',
   })
   @ApiResponse({ status: 404, description: 'User not found' })
-  @UseGuards(Auth0Guard)
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   async update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
-    @Req() req: AuthenticatedRequest,
+    @Req() req: IAuthenticatedRequest,
   ) {
     // Users can only update their own profile unless they're admins
     if (id !== req.user.userId && !req.user.roles?.includes('admin')) {
@@ -146,7 +139,7 @@ export class UserController {
     status: 403,
     description: 'Forbidden - insufficient permissions',
   })
-  @UseGuards(Auth0Guard)
+  @UseGuards(JwtAuthGuard)
   @Patch(':id/consent')
   async updateConsent(
     @Param('id') id: string,
@@ -156,7 +149,7 @@ export class UserController {
       research?: boolean;
       marketing?: boolean;
     },
-    @Req() req: AuthenticatedRequest,
+    @Req() req: IAuthenticatedRequest,
   ) {
     // Users can only update their own consent unless they're admins
     if (id !== req.user.userId && !req.user.roles?.includes('admin')) {
@@ -185,13 +178,13 @@ export class UserController {
     type: UserProfile,
   })
   @ApiResponse({ status: 403, description: 'Forbidden - requires admin role' })
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Patch(':id/roles/:roleName')
   async addRole(
     @Param('id') id: string,
     @Param('roleName') roleName: string,
-    @Req() req: AuthenticatedRequest,
+    @Req() req: IAuthenticatedRequest,
   ) {
     const user = await this.userService.addRole(id, roleName, req.user.userId);
     return new UserProfile(user);
@@ -204,13 +197,13 @@ export class UserController {
     type: UserProfile,
   })
   @ApiResponse({ status: 403, description: 'Forbidden - requires admin role' })
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Delete(':id/roles/:roleName')
   async removeRole(
     @Param('id') id: string,
     @Param('roleName') roleName: string,
-    @Req() req: AuthenticatedRequest,
+    @Req() req: IAuthenticatedRequest,
   ) {
     const user = await this.userService.removeRole(
       id,
@@ -224,11 +217,11 @@ export class UserController {
   @ApiResponse({ status: 204, description: 'User deleted successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden - requires admin role' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  @UseGuards(Auth0Guard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+  async remove(@Param('id') id: string, @Req() req: IAuthenticatedRequest) {
     await this.userService.remove(id, req.user.userId);
   }
 }

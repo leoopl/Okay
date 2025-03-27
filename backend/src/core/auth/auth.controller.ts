@@ -1,45 +1,282 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  UseGuards,
+  Req,
+  Res,
+  UnauthorizedException,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import { Response } from 'express';
+import { ApiOperation, ApiTags, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { Request } from 'express';
-import { Auth0Guard } from './guards/auth0.guard';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Auth0Service } from './services/auth0.service';
-import { AuditService } from '../../core/audit/audit.service';
-import { ConfigService } from '@nestjs/config';
-import { AuditAction } from 'src/core/audit/entities/audit-log.entity';
-
-interface AuthenticatedRequest extends Request {
-  user?: any;
-}
+import { OAuthService, PKCEParams } from './services/oauth.service';
+import { TokenService } from './services/token.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { AuditService } from '../audit/audit.service';
+import { AuditAction } from '../audit/entities/audit-log.entity';
+import { Public } from '../../common/decorators/is-public.decorator';
+import { IAuthenticatedRequest } from '../../common/interfaces/auth-request.interface';
 
 @ApiTags('authentication')
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly auth0Service: Auth0Service,
+    private readonly oauthService: OAuthService,
+    private readonly tokenService: TokenService,
     private readonly auditService: AuditService,
-    private readonly configService: ConfigService,
   ) {}
 
-  @ApiOperation({ summary: 'Get Auth0 configuration for frontend' })
-  @ApiResponse({ status: 200, description: 'Auth0 configuration' })
-  @Get('config')
-  getConfig() {
+  @Public()
+  @ApiOperation({ summary: 'User login' })
+  @ApiResponse({ status: 200, description: 'Login successful' })
+  @ApiResponse({ status: 401, description: 'Invalid credentials' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        email: { type: 'string' },
+        password: { type: 'string' },
+      },
+    },
+  })
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  async login(
+    @Body() loginData: { email: string; password: string },
+    @Req() req: IAuthenticatedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const ip = this.getIpAddress(req);
+    const userAgent = req.headers['user-agent'] || 'unknown';
+
+    // Validate credentials and generate tokens
+    const tokenResult =
+      await this.oauthService.validateCredentialsAndGenerateTokens(
+        loginData.email,
+        loginData.password,
+        ip,
+        userAgent,
+      );
+
+    // Set refresh token in HttpOnly cookie
+    this.tokenService.setRefreshTokenCookie(res, tokenResult.refreshToken);
+
+    // Return access token in response body
     return {
-      domain: this.configService.get<string>('auth0.domain'),
-      clientId: this.configService.get<string>('auth0.clientId'),
-      audience: this.configService.get<string>('auth0.audience'),
-      redirectUri: `${this.configService.get<string>('FRONTEND_URL')}/callback`,
+      accessToken: tokenResult.accessToken,
+      tokenType: tokenResult.tokenType,
+      expiresIn: tokenResult.expiresIn,
     };
   }
 
+  @Public()
+  @ApiOperation({ summary: 'Begin OAuth2 authorization flow with PKCE' })
+  @ApiResponse({ status: 200, description: 'Authorization successful' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @Post('authorize')
+  @HttpCode(HttpStatus.OK)
+  async authorize(
+    @Body()
+    authData: { email: string; password: string; pkceParams: PKCEParams },
+    @Req() req: IAuthenticatedRequest,
+  ) {
+    const ip = this.getIpAddress(req);
+    const userAgent = req.headers['user-agent'] || 'unknown';
+
+    // Validate credentials
+    const user = await this.authService.validateUser(
+      authData.email,
+      authData.password,
+    );
+
+    if (!user) {
+      // Audit failed login attempt
+      await this.auditService.logAction({
+        userId: 'unknown',
+        action: AuditAction.FAILED_LOGIN,
+        resource: 'auth',
+        details: {
+          email: authData.email,
+          ip,
+          userAgent,
+          method: 'oauth_authorize',
+        },
+      });
+
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Generate authorization code with PKCE
+    return this.oauthService.generateAuthorizationCode(
+      user.id,
+      authData.pkceParams,
+      ip,
+      userAgent,
+    );
+  }
+
+  @Public()
+  @ApiOperation({ summary: 'Exchange authorization code for tokens' })
+  @ApiResponse({ status: 200, description: 'Token exchange successful' })
+  @ApiResponse({ status: 401, description: 'Invalid code or verifier' })
+  @Post('token')
+  @HttpCode(HttpStatus.OK)
+  async token(
+    @Body()
+    tokenData: {
+      grant_type: string;
+      code?: string;
+      code_verifier?: string;
+      client_id: string;
+      redirect_uri?: string;
+      refresh_token?: string;
+    },
+    @Req() req: IAuthenticatedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const ip = this.getIpAddress(req);
+    const userAgent = req.headers['user-agent'] || 'unknown';
+
+    if (tokenData.grant_type === 'authorization_code') {
+      // Exchange authorization code for tokens
+      const tokenResult = await this.oauthService.exchangeCodeForTokens(
+        tokenData.code,
+        tokenData.code_verifier,
+        tokenData.client_id,
+        tokenData.redirect_uri,
+        ip,
+        userAgent,
+      );
+
+      // Set refresh token in HttpOnly cookie
+      this.tokenService.setRefreshTokenCookie(res, tokenResult.refreshToken);
+
+      // Remove refresh token from response body for security
+      const { refreshToken, ...responseBody } = tokenResult;
+      return responseBody;
+    } else if (tokenData.grant_type === 'refresh_token') {
+      // Handle refresh token grant
+      // Extract refresh token from cookie or body
+      const refreshToken =
+        this.tokenService.extractRefreshToken(req) || tokenData.refresh_token;
+
+      if (!refreshToken) {
+        throw new UnauthorizedException('Refresh token is required');
+      }
+
+      const {
+        user,
+        accessToken,
+        refreshToken: newRefreshToken,
+      } = await this.tokenService.rotateRefreshToken(
+        refreshToken,
+        ip,
+        userAgent,
+      );
+
+      // Set new refresh token in HttpOnly cookie
+      this.tokenService.setRefreshTokenCookie(res, newRefreshToken);
+
+      return {
+        accessToken,
+        tokenType: 'Bearer',
+        expiresIn: parseInt(process.env.JWT_ACCESS_EXPIRATION || '900', 10), // 15 minutes in seconds
+      };
+    } else {
+      throw new UnauthorizedException('Unsupported grant type');
+    }
+  }
+
+  @Public()
+  @ApiOperation({ summary: 'Refresh access token using refresh token' })
+  @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
+  @ApiResponse({ status: 401, description: 'Invalid refresh token' })
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  async refresh(
+    @Req() req: IAuthenticatedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const ip = this.getIpAddress(req);
+    const userAgent = req.headers['user-agent'] || 'unknown';
+
+    // Extract refresh token from cookie
+    const refreshToken = this.tokenService.extractRefreshToken(req);
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token is missing');
+    }
+
+    try {
+      const {
+        user,
+        accessToken,
+        refreshToken: newRefreshToken,
+      } = await this.tokenService.rotateRefreshToken(
+        refreshToken,
+        ip,
+        userAgent,
+      );
+
+      // Set new refresh token in HttpOnly cookie
+      this.tokenService.setRefreshTokenCookie(res, newRefreshToken);
+
+      return {
+        accessToken,
+        tokenType: 'Bearer',
+        expiresIn: parseInt(process.env.JWT_ACCESS_EXPIRATION || '900', 10), // 15 minutes in seconds
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'User logout' })
+  @ApiResponse({ status: 200, description: 'Logout successful' })
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  async logout(
+    @Req() req: IAuthenticatedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const ip = this.getIpAddress(req);
+
+    // Clear refresh token cookie
+    this.tokenService.clearRefreshTokenCookie(res);
+
+    // Revoke user's refresh tokens
+    await this.tokenService.revokeUserRefreshTokens(req.user.userId, ip);
+
+    // Add token to blacklist if JWT ID is available
+    if (req.user.jti) {
+      const expiresAt = new Date(req.user.exp * 1000); // Convert to milliseconds
+      await this.tokenService.blacklistToken(req.user.jti, expiresAt);
+    }
+
+    // Audit logout
+    await this.auditService.logAction({
+      userId: req.user.userId,
+      action: AuditAction.LOGOUT,
+      resource: 'auth',
+      details: { ip },
+    });
+
+    return { message: 'Logout successful' };
+  }
+
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, description: 'Returns the current user profile' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @UseGuards(Auth0Guard)
   @Get('profile')
-  async getProfile(@Req() req: AuthenticatedRequest) {
+  async getProfile(@Req() req: IAuthenticatedRequest) {
     // Log the access for audit trail
     await this.auditService.logAction({
       userId: req.user.userId,
@@ -49,34 +286,22 @@ export class AuthController {
       details: { message: 'User accessed their profile' },
     });
 
-    // Enhanced profile with user data from Auth0
-    const auth0Profile = await this.auth0Service.getUserProfile(
-      req.user.auth0Id,
-    );
+    // Get user profile
+    const userProfile = await this.authService.getUserProfile(req.user.userId);
 
-    return {
-      user: {
-        ...req.user,
-        picture: auth0Profile.picture,
-        // Include any other relevant fields but exclude sensitive information
-      },
-    };
+    return { user: userProfile };
   }
 
-  @ApiOperation({ summary: 'Log user action for audit' })
-  @ApiResponse({ status: 200, description: 'Action logged successfully' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @UseGuards(Auth0Guard)
-  @Post('log-action')
-  async logAction(@Req() req: AuthenticatedRequest, @Body() actionData: any) {
-    await this.auditService.logAction({
-      userId: req.user.userId,
-      action: actionData.action,
-      resource: actionData.resource,
-      resourceId: actionData.resourceId,
-      details: actionData.details,
-    });
-
-    return { success: true };
+  /**
+   * Helper method to get client IP address
+   */
+  private getIpAddress(req: IAuthenticatedRequest): string {
+    const forwarded = req.headers['x-forwarded-for'];
+    if (forwarded) {
+      return Array.isArray(forwarded)
+        ? forwarded[0]
+        : forwarded.split(',')[0].trim();
+    }
+    return req.ip || 'unknown';
   }
 }

@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable, Logger } from '@nestjs/common';
-import { UserService } from 'src/modules/user/user.service';
-import { AuditService } from '../../core/audit/audit.service';
-import { AuditAction } from '../../core/audit/entities/audit-log.entity';
+import { UserService } from '../../modules/user/user.service';
+import { AuditService } from '../audit/audit.service';
+import { AuditAction } from '../audit/entities/audit-log.entity';
+import * as argon2 from 'argon2';
 
 @Injectable()
 export class AuthService {
@@ -13,37 +13,66 @@ export class AuthService {
     private readonly auditService: AuditService,
   ) {}
 
-  async handleAuth0User(auth0Profile: any): Promise<any> {
-    // Find or create user in our database
-    const user = await this.userService.findOrCreateAuth0User({
-      auth0Id: auth0Profile.sub,
-      email: auth0Profile.email,
-      name: auth0Profile.name,
-    });
+  /**
+   * Validate user credentials
+   */
+  async validateUser(email: string, password: string): Promise<any> {
+    try {
+      const user = await this.userService.findByEmail(email);
 
-    // Log the authentication
-    await this.auditService.logAction({
-      userId: user.id,
-      action: AuditAction.LOGIN,
-      resource: 'auth',
-      details: { method: 'auth0' },
-    });
+      if (!user) {
+        return null;
+      }
 
-    return user;
+      // Verify password using argon2
+      const validPassword = await argon2.verify(user.password, password);
+
+      if (validPassword) {
+        return user;
+      }
+
+      return null;
+    } catch (error) {
+      this.logger.error(`Error validating user: ${error.message}`, error.stack);
+      return null;
+    }
   }
 
-  // async getUserPermissions(userId: string): Promise<string[]> {
-  //   // Get user's permissions/roles from your database
-  //   // This focuses on authorization, not authentication
-  //   return this.userService.getUserPermissions(userId);
-  // }
+  /**
+   * Get user profile with roles and permissions
+   */
+  async getUserProfile(userId: string): Promise<any> {
+    const user = await this.userService.findOne(userId);
 
-  // async canAccessResource(
-  //   userId: string,
-  //   resourceType: string,
-  //   resourceId: string,
-  // ): Promise<boolean> {
-  //   // Authorization logic for sensitive mental health data
-  //   return this.userService.checkUserAccess(userId, resourceType, resourceId);
-  // }
+    // Extract role names and permissions
+    const roles = user.roles?.map((role) => role.name) || [];
+
+    // Collect all permissions from all roles
+    const permissionSet = new Set<string>();
+    user.roles?.forEach((role) => {
+      role.permissions?.forEach((permission) => {
+        permissionSet.add(permission.name);
+      });
+    });
+
+    // Create a sanitized user profile
+    const userProfile = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      surname: user.surname,
+      roles,
+      permissions: Array.from(permissionSet),
+    };
+
+    // Audit profile access
+    await this.auditService.logAction({
+      userId,
+      action: AuditAction.PROFILE_ACCESS,
+      resource: 'user',
+      resourceId: userId,
+    });
+
+    return userProfile;
+  }
 }
