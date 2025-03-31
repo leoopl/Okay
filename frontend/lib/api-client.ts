@@ -1,6 +1,6 @@
 import { ClientAuth } from '@/app/actions/client-auth';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.API_URL;
 
 /**
  * API client that handles authentication and token refresh
@@ -49,18 +49,15 @@ export class ApiClient {
       // Handle 401 Unauthorized - Try to refresh token
       if (response.status === 401) {
         try {
-          // Try to refresh the token
-          const tokenResponse = await ClientAuth.refreshToken();
-
-          // Update auth data with the new token
-          ClientAuth.setAuth(tokenResponse);
+          // Use the centralized refresh method (prevents race conditions)
+          const newToken = await ClientAuth.getRefreshedToken();
 
           // Retry the original request with the new token
           const retryOptions = {
             ...requestOptions,
             headers: {
               ...requestOptions.headers,
-              Authorization: `Bearer ${tokenResponse}`,
+              Authorization: `Bearer ${newToken}`,
             },
           };
 
@@ -76,28 +73,26 @@ export class ApiClient {
           // If retry failed, throw error
           throw new Error(`API request failed: ${retryResponse.status}`);
         } catch (refreshError) {
-          // If token refresh fails, clear auth and throw error
+          // If token refresh fails, clear auth and redirect to login
           ClientAuth.clearAuth();
+          window.location.href = '/signin?expired=true';
           throw new Error('Session expired. Please log in again.');
         }
       }
 
-      // Handle other errors
-      const errorText = await response.text();
-      let errorMessage = `API request failed: ${response.status}`;
-
-      try {
-        // Try to parse error as JSON
-        const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.message || errorMessage;
-      } catch {
-        // If error is not JSON, use text
-        errorMessage = errorText || errorMessage;
-      }
-
-      throw new Error(errorMessage);
+      // Handle other errors with better error extraction
+      const errorData = await response
+        .json()
+        .catch(() => ({ message: `HTTP error ${response.status}` }));
+      throw new Error(errorData.message || `Request failed with status ${response.status}`);
     } catch (error) {
       console.error('API request error:', error);
+
+      // Network errors need special handling
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        throw new Error('Network connection error. Please check your internet connection.');
+      }
+
       throw error;
     }
   }

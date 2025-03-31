@@ -4,12 +4,23 @@ import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import Image from 'next/image';
 import Link from 'next/link';
-import { SetStateAction, useActionState, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { SetStateAction, useActionState, useState, useEffect } from 'react';
 import { signin } from '@/app/actions/server-auth';
+import { AlertCircle } from 'lucide-react';
 
 const SigninPage: React.FC = () => {
   const [state, action, isPending] = useActionState(signin, undefined);
   const [password, setPassword] = useState('');
+  const searchParams = useSearchParams();
+  const [sessionExpired, setSessionExpired] = useState(false);
+
+  useEffect(() => {
+    // Check if redirected due to expired session
+    if (searchParams.get('expired') === 'true') {
+      setSessionExpired(true);
+    }
+  }, [searchParams]);
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
@@ -18,6 +29,19 @@ const SigninPage: React.FC = () => {
           <h2 className="small-caps font-varela mb-8 text-center text-4xl leading-9 font-bold tracking-tight text-gray-900">
             Espero que esteja tendo um bom dia!
           </h2>
+
+          {/* Session expired notification */}
+          {sessionExpired && (
+            <div className="mb-4 rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-800">
+              <div className="flex">
+                <AlertCircle className="h-5 w-5 text-amber-400" />
+                <div className="ml-3">
+                  <p className="text-sm">Sua sessão expirou. Por favor, faça login novamente.</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <form className="space-y-4" action={action}>
             <div>
               <Input
@@ -59,10 +83,13 @@ const SigninPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Display general error message */}
+            {/* Display general error message with better styling */}
             {state?.message && (
-              <div className="relative rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
-                <span className="block sm:inline">{state.message}</span>
+              <div className="relative rounded border border-red-400 bg-red-50 px-4 py-3 text-red-700">
+                <div className="flex">
+                  <AlertCircle className="h-5 w-5 text-red-400" />
+                  <span className="ml-3 block sm:inline">{state.message}</span>
+                </div>
               </div>
             )}
 
@@ -70,7 +97,7 @@ const SigninPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={isPending}
-                className="small-caps bg-green-dark hover:bg-green-medium focus:ring-green-dark flex w-full justify-center rounded-md px-4 py-2 text-sm font-semibold text-black shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
+                className="small-caps bg-green-dark hover:bg-green-medium focus:ring-green-dark flex w-full justify-center rounded-md px-4 py-2 text-sm font-semibold text-black shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:opacity-70"
               >
                 {isPending ? 'Entrando...' : 'Entrar'}
               </button>

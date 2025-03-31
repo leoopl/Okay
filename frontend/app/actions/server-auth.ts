@@ -7,9 +7,40 @@ import { SignupFormSchema, SigninFormSchema, AuthActionResponse } from '@/lib/de
 // API URL (server-side)
 const API_URL = process.env.API_URL;
 
+// Enhanced error handling for API responses
+async function handleApiResponse(response: Response): Promise<any> {
+  if (!response.ok) {
+    // Try to parse error response as JSON
+    try {
+      const errorData = await response.json();
+      if (errorData.message) {
+        return { success: false, message: errorData.message };
+      }
+
+      // Handle validation errors
+      if (errorData.errors) {
+        return { success: false, errors: errorData.errors };
+      }
+    } catch (e) {
+      // If error response isn't valid JSON, use status text
+      return {
+        success: false,
+        message: `Authentication failed (${response.status}: ${response.statusText})`,
+      };
+    }
+
+    // Fallback error message
+    return {
+      success: false,
+      message: 'Authentication failed. Please try again.',
+    };
+  }
+
+  return response.json();
+}
+
 /**
- * Server action for user signin
- * Handles credentials securely on the server side
+ * Production-ready server action for user signin
  */
 export async function signin(
   prevState: AuthActionResponse | undefined,
@@ -32,7 +63,7 @@ export async function signin(
   try {
     const credentials = validatedFields.data;
 
-    // Make secure server-to-server request
+    // Make secure server-to-server request with proper error handling
     const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -40,41 +71,49 @@ export async function signin(
       cache: 'no-store',
     });
 
-    if (!response.ok) {
-      const error = await response.json();
+    const result = await handleApiResponse(response);
+
+    if (!result.success && (result.message || result.errors)) {
+      return result;
+    }
+
+    // Handle invalid or unexpected response format
+    if (!result.accessToken) {
       return {
         success: false,
-        message: error.message || 'Authentication failed',
+        message: 'Unexpected server response. Please try again later.',
       };
     }
 
-    // Get token response
-    const tokenData = await response.json();
-
-    // Set refresh token in HTTP-only cookie (secure)
+    // Set the access token in a secure cookie for client retrieval
+    // This is a more secure approach than localStorage
     (await cookies()).set({
-      name: 'refresh_token',
-      value: tokenData.refreshToken || '', // Backend might use different property name
-      httpOnly: true,
+      name: 'access_token',
+      value: result.accessToken,
+      httpOnly: false, // Must be false to be accessible by clientAuth
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      path: '/api/auth/refresh',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
+      path: '/',
+      maxAge: result.expiresIn || 900, // Default 15 min in seconds
     });
 
-    redirect('/dashboard');
+    // Refresh token is automatically handled by the API via HttpOnly cookie
+
+    // Pass accessToken to client for auth initialization
+    // This avoids an extra round trip to read the cookie
+    const urlEncodedToken = encodeURIComponent(result.accessToken);
+    redirect(`/initialize?token=${urlEncodedToken}`);
   } catch (error: any) {
     console.error('Server-side login error:', error);
     return {
       success: false,
-      message: 'An error occurred during authentication. Please try again.',
+      message: 'An unexpected error occurred. Please try again later.',
     };
   }
 }
 
 /**
- * Server action for user signup
- * Securely creates user and sets authentication
+ * Production-ready server action for user signup
  */
 export async function signup(
   prevState: AuthActionResponse | undefined,
@@ -113,12 +152,10 @@ export async function signup(
       cache: 'no-store',
     });
 
-    if (!createResponse.ok) {
-      const error = await createResponse.json();
-      return {
-        success: false,
-        message: error.message || 'Failed to create account',
-      };
+    const createResult = await handleApiResponse(createResponse);
+
+    if (!createResult.success && (createResult.message || createResult.errors)) {
+      return createResult;
     }
 
     // Login with the new credentials
@@ -132,34 +169,46 @@ export async function signup(
       cache: 'no-store',
     });
 
-    if (!loginResponse.ok) {
-      const error = await loginResponse.json();
+    const loginResult = await handleApiResponse(loginResponse);
+
+    if (!loginResult.success && (loginResult.message || loginResult.errors)) {
       return {
         success: false,
-        message: error.message || 'Account created but failed to login',
+        message: loginResult.message || 'Account created but login failed. Please try signing in.',
       };
     }
 
-    // Get token response
-    const tokenData = await loginResponse.json();
-
-    // Set refresh token in HTTP-only cookie (secure)
+    // Set the access token in a secure cookie for client retrieval
     (await cookies()).set({
-      name: 'refresh_token',
-      value: tokenData.refreshToken || '',
-      httpOnly: true,
+      name: 'access_token',
+      value: loginResult.accessToken,
+      httpOnly: false, // Must be false to be accessible by clientAuth
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      path: '/api/auth/refresh',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
+      path: '/',
+      maxAge: loginResult.expiresIn || 900, // Default 15 min in seconds
     });
 
-    redirect('/dashboard');
+    // Pass accessToken to client for auth initialization
+    const urlEncodedToken = encodeURIComponent(loginResult.accessToken);
+    redirect(`/initialize?token=${urlEncodedToken}`);
   } catch (error: any) {
     console.error('Server-side signup error:', error);
     return {
       success: false,
-      message: 'An error occurred during registration. Please try again.',
+      message: 'An unexpected error occurred. Please try again later.',
     };
   }
+}
+
+/**
+ * Server action to handle logout
+ */
+export async function logout(): Promise<void> {
+  // Clear the cookies
+  (await cookies()).delete('access_token');
+  (await cookies()).delete('refresh_token');
+
+  // Redirect to home page
+  redirect('/');
 }

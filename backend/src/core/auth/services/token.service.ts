@@ -76,13 +76,17 @@ export class TokenService {
       roles,
       permissions: Array.from(permissions),
       jti: tokenId,
-      aud: this.configService.get<string>('JWT_AUDIENCE', 'okay-api'),
-      iss: this.configService.get<string>('JWT_ISSUER', 'okay-mental-health'),
+      // Remove audience and issuer from payload to avoid duplication
     };
 
     return this.jwtService.signAsync(payload, {
       secret: this.jwtSecret,
       expiresIn: this.accessTokenExpiration,
+      audience: this.configService.get<string>('JWT_AUDIENCE', 'okay-api'),
+      issuer: this.configService.get<string>(
+        'JWT_ISSUER',
+        'okay-mental-health',
+      ),
     });
   }
 

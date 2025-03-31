@@ -1,9 +1,15 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { ClientAuth } from '../app/actions/client-auth';
 import { UserProfile } from '@/lib/definitions';
+import { getCookie } from 'cookies-next';
+
+// Session timeout (15 minutes in milliseconds)
+const SESSION_TIMEOUT = parseInt(process.env.SESSION_TIMEOUT || '900000', 10);
+// Token refresh interval (14 minutes in milliseconds to be safe)
+const TOKEN_REFRESH_INTERVAL = 14 * 60 * 1000;
 
 // Define auth context types
 export type AuthContextType = {
@@ -20,25 +26,40 @@ export type AuthContextType = {
 // Create context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Session timeout (15 minutes)
-const SESSION_TIMEOUT = 15 * 60 * 1000;
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const router = useRouter();
+  const pathname = usePathname();
 
-  // Initialize auth state from localStorage
+  // Refs for timers
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const tokenRefreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Initialize auth state
   useEffect(() => {
-    const initAuth = () => {
+    const initAuth = async () => {
       try {
-        const storedUser = ClientAuth.getUser();
-        const token = ClientAuth.getToken();
+        // First try to get token from cookie (if we just logged in via server action)
+        let token = getCookie('access_token')?.toString() || null;
 
-        if (storedUser && token) {
-          setUser(storedUser);
-          setIsAuthenticated(true);
+        // If no token in cookie, try token from ClientAuth (memory or localStorage fallback)
+        if (!token) {
+          token = ClientAuth.getToken();
+        }
+
+        if (token) {
+          // Initialize auth state with token
+          const userData = ClientAuth.setAuth(token);
+
+          if (userData) {
+            setUser(userData);
+            setIsAuthenticated(true);
+
+            // Setup token refresh
+            setupTokenRefresh();
+          }
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
@@ -49,54 +70,101 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     initAuth();
+
+    // Cleanup function
+    return () => {
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+      if (tokenRefreshIntervalRef.current) {
+        clearInterval(tokenRefreshIntervalRef.current);
+      }
+    };
   }, []);
 
   // Set up session timeout
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    // Track user activity
-    let inactivityTimer: NodeJS.Timeout;
+    // Reset inactivity timer function
+    const resetInactivityTimer = () => {
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
 
-    const resetTimer = () => {
-      clearTimeout(inactivityTimer);
-      inactivityTimer = setTimeout(() => {
-        // Log out after inactivity
+      inactivityTimerRef.current = setTimeout(() => {
+        // Automatic logout after inactivity
         logout();
       }, SESSION_TIMEOUT);
     };
 
     // Set initial timer
-    resetTimer();
+    resetInactivityTimer();
 
     // Reset timer on user activity
     const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
     events.forEach((event) => {
-      window.addEventListener(event, resetTimer);
+      window.addEventListener(event, resetInactivityTimer);
     });
 
     // Clean up
     return () => {
-      clearTimeout(inactivityTimer);
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
       events.forEach((event) => {
-        window.removeEventListener(event, resetTimer);
+        window.removeEventListener(event, resetInactivityTimer);
       });
     };
   }, [isAuthenticated]);
 
-  // Set access token and user data (called after server-side signin/signup)
-  const setAccessToken = useCallback((token: string) => {
-    const userData = ClientAuth.setAuth(token);
-
-    if (userData) {
-      setUser(userData);
-      setIsAuthenticated(true);
+  // Setup token refresh at regular intervals
+  const setupTokenRefresh = useCallback(() => {
+    // Clear any existing interval
+    if (tokenRefreshIntervalRef.current) {
+      clearInterval(tokenRefreshIntervalRef.current);
     }
-  }, []);
 
-  // Client-side logout
+    // Set up automatic token refresh
+    tokenRefreshIntervalRef.current = setInterval(async () => {
+      try {
+        if (isAuthenticated) {
+          await ClientAuth.refreshToken();
+        }
+      } catch (error) {
+        console.error('Token refresh failed:', error);
+        // If refresh fails, logout
+        logout();
+      }
+    }, TOKEN_REFRESH_INTERVAL);
+  }, [isAuthenticated]);
+
+  // Set access token and user data
+  const setAccessToken = useCallback(
+    (token: string) => {
+      const userData = ClientAuth.setAuth(token);
+
+      if (userData) {
+        setUser(userData);
+        setIsAuthenticated(true);
+        setupTokenRefresh();
+      }
+    },
+    [setupTokenRefresh],
+  );
+
+  // Client-side logout with proper error handling
   const logout = useCallback(async () => {
     try {
+      // Clear timers
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+      if (tokenRefreshIntervalRef.current) {
+        clearInterval(tokenRefreshIntervalRef.current);
+      }
+
+      // Call server logout endpoint
       await ClientAuth.logout();
     } catch (error) {
       console.error('Logout error:', error);
@@ -105,19 +173,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       setIsAuthenticated(false);
       ClientAuth.clearAuth();
-      router.push('/');
+
+      // Redirect to home page
+      if (pathname !== '/') {
+        router.push('/');
+      }
     }
-  }, [router]);
+  }, [router, pathname]);
 
   // Check if user has role
-  const hasRole = useCallback((role: string): boolean => {
-    return ClientAuth.hasRole(role);
-  }, []);
+  const hasRole = useCallback(
+    (role: string): boolean => {
+      if (!user || !user.roles) return false;
+      return user.roles.includes(role);
+    },
+    [user],
+  );
 
   // Check if user has permission
-  const hasPermission = useCallback((permission: string): boolean => {
-    return ClientAuth.hasPermission(permission);
-  }, []);
+  const hasPermission = useCallback(
+    (permission: string): boolean => {
+      if (!user || !user.permissions) return false;
+      return user.permissions.includes(permission);
+    },
+    [user],
+  );
 
   // Make authenticated API request
   const fetchWithAuth = useCallback(async (endpoint: string, options: RequestInit = {}) => {

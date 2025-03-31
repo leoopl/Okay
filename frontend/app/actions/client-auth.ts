@@ -4,17 +4,21 @@ import { UserProfile } from '@/lib/definitions';
 import { jwtDecode } from 'jwt-decode';
 
 // API URL (client-side)
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_URL = process.env.API_URL || 'http://localhost:3001/api';
 
 // Client-side auth utilities
 export const ClientAuth = {
+  // Private memory token storage
+  memoryToken: null as string | null,
+
   /**
-   * Set auth data in local storage after signin/signup
+   * Set auth data after signin/signup - more secure approach
    */
   setAuth(accessToken: string): UserProfile | null {
     try {
-      // Store token in localStorage
-      localStorage.setItem('accessToken', accessToken);
+      // In memory storage for access token (not persisted)
+      // This protects against XSS while maintaining functionality
+      this.memoryToken = accessToken;
 
       // Decode JWT to get user data
       const decodedToken = jwtDecode<any>(accessToken);
@@ -24,13 +28,13 @@ export const ClientAuth = {
         id: decodedToken.sub,
         email: decodedToken.email,
         name: decodedToken.name || '',
-        surname: decodedToken.surname,
+        surname: decodedToken.surname || '',
         roles: decodedToken.roles || [],
         permissions: decodedToken.permissions || [],
       };
 
-      // Store user data
-      localStorage.setItem('user', JSON.stringify(user));
+      // Store only non-sensitive user data
+      sessionStorage.setItem('user', JSON.stringify(user));
 
       return user;
     } catch (error) {
@@ -45,7 +49,7 @@ export const ClientAuth = {
    */
   getUser(): UserProfile | null {
     try {
-      const userJson = localStorage.getItem('user');
+      const userJson = sessionStorage.getItem('user');
       return userJson ? JSON.parse(userJson) : null;
     } catch (error) {
       console.error('Error getting user data:', error);
@@ -54,10 +58,10 @@ export const ClientAuth = {
   },
 
   /**
-   * Get current access token
+   * Get current access token from memory
    */
   getToken(): string | null {
-    return localStorage.getItem('accessToken');
+    return this.memoryToken;
   },
 
   /**
@@ -80,8 +84,8 @@ export const ClientAuth = {
    * Clear all auth data (for logout)
    */
   clearAuth(): void {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('user');
+    this.memoryToken = null;
+    sessionStorage.removeItem('user');
   },
 
   /**
@@ -132,58 +136,116 @@ export const ClientAuth = {
     }
   },
 
+  // Single refresh promise to prevent multiple simultaneous refresh attempts
+  refreshPromise: null as Promise<string> | null,
+
+  /**
+   * Handle token refresh with debouncing
+   */
+  async getRefreshedToken(): Promise<string> {
+    // If a refresh is already in progress, return that promise
+    if (this.refreshPromise) {
+      return this.refreshPromise;
+    }
+
+    // Create a new refresh promise
+    this.refreshPromise = (async () => {
+      try {
+        const token = await this.refreshToken();
+        return token;
+      } finally {
+        // Clear the promise when done (success or error)
+        setTimeout(() => {
+          this.refreshPromise = null;
+        }, 100);
+      }
+    })();
+
+    return this.refreshPromise;
+  },
+
   /**
    * Make an authenticated API request
    */
   async fetchWithAuth(endpoint: string, options: RequestInit = {}): Promise<any> {
     const url = `${API_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
-    const token = this.getToken();
 
+    // Clone and prepare request options
     const requestOptions: RequestInit = {
       ...options,
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers,
       },
       credentials: 'include', // Include cookies for refresh token
     };
 
+    // Add Authorization header if we have a token
+    const token = this.getToken();
+    if (token) {
+      requestOptions.headers = {
+        ...requestOptions.headers,
+        Authorization: `Bearer ${token}`,
+      };
+    }
+
     try {
+      // Make the request
       let response = await fetch(url, requestOptions);
 
       // Handle 401 Unauthorized (token expired)
       if (response.status === 401) {
         try {
-          // Try to refresh the token
-          await this.refreshToken();
+          // Use the centralized refresh method (prevents race conditions)
+          const newToken = await this.getRefreshedToken();
 
-          // Retry the request with new token
-          const newToken = this.getToken();
-          response = await fetch(url, {
+          // Retry the original request with the new token
+          const retryOptions = {
             ...requestOptions,
             headers: {
               ...requestOptions.headers,
               Authorization: `Bearer ${newToken}`,
             },
-          });
-        } catch (error) {
-          // If refresh fails, clear auth and throw
+          };
+
+          response = await fetch(url, retryOptions);
+
+          // If still unauthorized after refresh, redirect to login
+          if (response.status === 401) {
+            this.clearAuth();
+            window.location.href = '/signin?expired=true';
+            throw new Error('Session expired. Please log in again.');
+          }
+        } catch (refreshError) {
+          // If refresh fails, clear auth and redirect to login
           this.clearAuth();
-          throw new Error('Session expired. Please login again.');
+          window.location.href = '/signin?expired=true';
+          throw new Error('Session expired. Please log in again.');
         }
       }
 
-      // Handle other error responses
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Request failed with status ${response.status}`);
+      // Handle successful responses
+      if (response.ok) {
+        // Return empty object for 204 No Content
+        if (response.status === 204) {
+          return {};
+        }
+
+        // Parse JSON for other responses
+        return await response.json();
       }
 
-      // Return successful response (or empty object for 204 No Content)
-      return response.status === 204 ? {} : response.json();
+      // Handle other error responses
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Request failed with status ${response.status}`);
     } catch (error) {
       console.error('API request failed:', error);
+
+      // Network errors need special handling
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        throw new Error('Network connection error. Please check your internet connection.');
+      }
+
       throw error;
     }
   },

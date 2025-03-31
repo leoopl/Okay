@@ -2,6 +2,7 @@
 import { Injectable, NestMiddleware, Logger } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { AuditService } from '../../core/audit/audit.service';
+import { AuditAction } from '../../core/audit/entities/audit-log.entity';
 
 @Injectable()
 export class AuditMiddleware implements NestMiddleware {
@@ -19,6 +20,23 @@ export class AuditMiddleware implements NestMiddleware {
     // Save a reference to 'this' for the closure
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
+
+    // Map HTTP methods to audit action types
+    const mapMethodToAction = (method: string): AuditAction => {
+      switch (method.toUpperCase()) {
+        case 'GET':
+          return AuditAction.READ;
+        case 'POST':
+          return AuditAction.CREATE;
+        case 'PUT':
+        case 'PATCH':
+          return AuditAction.UPDATE;
+        case 'DELETE':
+          return AuditAction.DELETE;
+        default:
+          return AuditAction.READ;
+      }
+    };
 
     // Override the end method
     res.end = function (
@@ -43,7 +61,7 @@ export class AuditMiddleware implements NestMiddleware {
           self.auditService
             .logAction({
               userId,
-              action: req.method as any,
+              action: mapMethodToAction(req.method), // Map HTTP method to proper AuditAction enum
               resource: req.path,
               resourceId: req.params?.id,
               details: {
