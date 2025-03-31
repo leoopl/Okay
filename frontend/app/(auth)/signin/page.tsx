@@ -5,7 +5,7 @@ import { PasswordInput } from '@/components/ui/password-input';
 import Image from 'next/image';
 import Link from 'next/link';
 import { SetStateAction, useActionState, useState } from 'react';
-import { signin } from '@/app/actions/auth';
+import { signin } from '@/app/actions/server-auth';
 
 const SigninPage: React.FC = () => {
   const [state, action, isPending] = useActionState(signin, undefined);
@@ -101,14 +101,5 @@ const SigninPage: React.FC = () => {
     </div>
   );
 };
-
-// Button component that shows loading state
-// function SubmitButton() {
-//   const { pending } = useFormStatus();
-
-//   return (
-
-//   );
-// }
 
 export default SigninPage;

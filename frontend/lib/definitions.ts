@@ -50,3 +50,27 @@ export type FormState =
       message?: string;
     }
   | undefined;
+
+// Types for client authentication
+export type UserProfile = {
+  id: string;
+  email: string;
+  name: string;
+  surname?: string;
+  roles: string[];
+  permissions?: string[];
+};
+
+export type TokenResponse = {
+  accessToken: string;
+  tokenType: string;
+  expiresIn: number;
+};
+
+// Response type for server actions
+export type AuthActionResponse = {
+  success?: boolean;
+  errors?: Record<string, string[]>;
+  message?: string;
+  token?: string; // Access token to pass to client
+};

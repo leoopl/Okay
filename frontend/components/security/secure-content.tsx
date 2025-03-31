@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { EyeIcon, EyeOffIcon, LockIcon } from 'lucide-react';
-import { useAuth } from '@/providers/auth0-provider';
+import { useAuth } from '@/providers/auth-provider';
 
 interface SecureContentProps {
   children: React.ReactNode;

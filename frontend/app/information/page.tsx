@@ -67,19 +67,19 @@ const InformationPage: React.FC = () => {
   );
 };
 
-export const getStaticPaths: GetStaticPaths = async () => {
-  // Fetch all post IDs from your API
-  const res = await fetch('https://your-api.com/posts');
-  const posts: Post[] = await res.json();
+// export const getStaticPaths: GetStaticPaths = async () => {
+//   // Fetch all post IDs from your API
+//   const res = await fetch('https://your-api.com/posts');
+//   const posts: Post[] = await res.json();
 
-  const paths = posts.map((post) => ({
-    params: { id: post.id },
-  }));
+//   const paths = posts.map((post) => ({
+//     params: { id: post.id },
+//   }));
 
-  return {
-    paths,
-    fallback: 'blocking', // or false if you want a 404 for not found pages
-  };
-};
+//   return {
+//     paths,
+//     fallback: 'blocking', // or false if you want a 404 for not found pages
+//   };
+// };
 
 export default InformationPage;
