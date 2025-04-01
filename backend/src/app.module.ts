@@ -34,6 +34,7 @@ import { DataIsolationMiddleware } from './common/middleware/data-isolation.midd
       useFactory: (configService: ConfigService) =>
         configService.get('database'),
     }),
+    AuthModule,
 
     // Rate limiting protection against brute force attacks
     ThrottlerModule.forRootAsync({
@@ -48,7 +49,6 @@ import { DataIsolationMiddleware } from './common/middleware/data-isolation.midd
     }),
 
     // Core modules - Make sure Auth is loaded early
-    AuthModule,
     AuditModule,
     EncryptionModule,
     MiddlewareModule,

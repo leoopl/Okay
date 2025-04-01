@@ -23,11 +23,20 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
 
     this.logger.log(
+      'JWT Strategy initialized with secret present: ' +
+        !!configService.get<string>('JWT_SECRET'),
+    );
+    this.logger.log(
       'JWT Strategy initialized with secret: ' +
         (configService.get<string>('JWT_SECRET')
           ? '[SECRET PRESENT]'
           : '[SECRET MISSING]'),
     );
+    console.log('JWT Strategy initialized'); // Add this
+    console.log(
+      'JWT Secret exists:',
+      !!configService.get<string>('JWT_SECRET'),
+    ); // Check if JWT_SECRET exists
   }
 
   async validate(payload: TokenPayload) {
