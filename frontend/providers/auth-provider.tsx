@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { useRouter, usePathname } from 'next/navigation';
 import { ClientAuth } from '../app/actions/client-auth';
 import { UserProfile } from '@/lib/definitions';
-import { getCookie } from 'cookies-next';
+import { jwtDecode } from 'jwt-decode';
 
 // Session timeout (15 minutes in milliseconds)
 const SESSION_TIMEOUT = parseInt(process.env.SESSION_TIMEOUT || '900000', 10);
@@ -41,24 +41,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        // First try to get token from cookie (if we just logged in via server action)
-        let token = getCookie('access_token')?.toString() || null;
+        console.log('Initializing auth state...');
 
-        // If no token in cookie, try token from ClientAuth (memory or localStorage fallback)
-        if (!token) {
-          token = ClientAuth.getToken();
-        }
+        // Try to get token from memory first
+        let token = ClientAuth.getToken();
+        console.log('Token from memory:', token ? 'exists' : 'not found');
 
         if (token) {
           // Initialize auth state with token
           const userData = ClientAuth.setAuth(token);
 
           if (userData) {
+            console.log('User authenticated:', userData.email);
             setUser(userData);
             setIsAuthenticated(true);
 
             // Setup token refresh
             setupTokenRefresh();
+          } else {
+            console.log('Failed to parse user data from token');
+          }
+        } else {
+          // If no token in memory, try to refresh
+          try {
+            console.log('Attempting token refresh...');
+            await ClientAuth.refreshToken();
+            token = ClientAuth.getToken();
+
+            if (token) {
+              console.log('Token refreshed successfully');
+              const userData = ClientAuth.setAuth(token);
+
+              if (userData) {
+                setUser(userData);
+                setIsAuthenticated(true);
+                setupTokenRefresh();
+              }
+            }
+          } catch (error) {
+            // Silent fail on refresh error during initialization
+            console.log('No active session found');
           }
         }
       } catch (error) {
@@ -142,12 +164,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Set access token and user data
   const setAccessToken = useCallback(
     (token: string) => {
-      const userData = ClientAuth.setAuth(token);
+      try {
+        console.log('Setting access token...');
 
-      if (userData) {
-        setUser(userData);
-        setIsAuthenticated(true);
-        setupTokenRefresh();
+        // Basic token validation
+        if (!token || typeof token !== 'string' || token.length < 10) {
+          throw new Error('Invalid token format');
+        }
+
+        // Decode the token to verify it's valid
+        let decoded;
+        try {
+          decoded = jwtDecode<any>(token);
+          console.log('Token decoded successfully:', decoded.sub ? 'valid' : 'invalid');
+        } catch (decodeError) {
+          console.error('Failed to decode token:', decodeError);
+          throw new Error('Invalid token format');
+        }
+
+        if (!decoded || !decoded.sub) {
+          throw new Error('Invalid token payload');
+        }
+
+        // Set token in memory
+        const userData = ClientAuth.setAuth(token);
+
+        if (userData) {
+          console.log('User authenticated:', userData.email);
+          setUser(userData);
+          setIsAuthenticated(true);
+          setupTokenRefresh();
+        } else {
+          throw new Error('Failed to extract user data from token');
+        }
+      } catch (error) {
+        console.error('Invalid token format:', error);
+        ClientAuth.clearAuth();
+        throw error; // Re-throw so caller can handle it
       }
     },
     [setupTokenRefresh],

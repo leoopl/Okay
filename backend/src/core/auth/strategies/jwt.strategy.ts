@@ -21,6 +21,13 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       audience: configService.get<string>('JWT_AUDIENCE', 'okay-api'),
       issuer: configService.get<string>('JWT_ISSUER', 'okay-mental-health'),
     });
+
+    this.logger.log(
+      'JWT Strategy initialized with secret: ' +
+        (configService.get<string>('JWT_SECRET')
+          ? '[SECRET PRESENT]'
+          : '[SECRET MISSING]'),
+    );
   }
 
   async validate(payload: TokenPayload) {

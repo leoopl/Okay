@@ -6,7 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { JwtStrategy } from './strategies/jwt.strategy';
+// import { JwtStrategy } from './strategies/jwt.strategy';
 import { TokenService } from './services/token.service';
 import { OAuthService } from './services/oauth.service';
 import { RefreshToken } from './entities/refresh-token.entity';
@@ -19,7 +19,7 @@ import { AuditModule } from '../audit/audit.module';
   imports: [
     UserModule,
     AuditModule,
-    PassportModule.register({ defaultStrategy: 'jwt' }),
+    PassportModule,
     TypeOrmModule.forFeature([RefreshToken, TokenBlacklist, AuthorizationCode]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -36,7 +36,7 @@ import { AuditModule } from '../audit/audit.module';
     HttpModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, TokenService, OAuthService, JwtStrategy],
-  exports: [AuthService, TokenService, OAuthService],
+  providers: [AuthService, TokenService, OAuthService],
+  exports: [AuthService, TokenService, OAuthService, PassportModule],
 })
 export class AuthModule {}

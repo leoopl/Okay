@@ -47,13 +47,13 @@ import { DataIsolationMiddleware } from './common/middleware/data-isolation.midd
       ],
     }),
 
-    // Core modules - reordered to resolve dependencies properly
+    // Core modules - Make sure Auth is loaded early
+    AuthModule,
     AuditModule,
     EncryptionModule,
     MiddlewareModule,
     CaslModule,
     UserModule,
-    AuthModule,
 
     // Feature modules
     JournalModule,
