@@ -44,15 +44,13 @@ export class TokenService {
   ) {
     this.accessTokenExpiration = configService.get<string>(
       'JWT_ACCESS_EXPIRATION',
-      '15m',
     );
     this.refreshTokenExpiration = configService.get<string>(
       'JWT_REFRESH_EXPIRATION',
-      '7d',
     );
     this.jwtSecret = configService.get<string>('JWT_SECRET');
-    this.secureCookies = configService.get<boolean>('SECURE_COOKIES', false);
-    this.cookieDomain = configService.get<string>('COOKIE_DOMAIN', 'localhost');
+    this.secureCookies = configService.get<boolean>('SECURE_COOKIES');
+    this.cookieDomain = configService.get<string>('COOKIE_DOMAIN');
   }
 
   /**
@@ -82,11 +80,8 @@ export class TokenService {
     return this.jwtService.signAsync(payload, {
       secret: this.jwtSecret,
       expiresIn: this.accessTokenExpiration,
-      audience: this.configService.get<string>('JWT_AUDIENCE', 'okay-api'),
-      issuer: this.configService.get<string>(
-        'JWT_ISSUER',
-        'okay-mental-health',
-      ),
+      audience: this.configService.get<string>('JWT_AUDIENCE'),
+      issuer: this.configService.get<string>('JWT_ISSUER'),
     });
   }
 
