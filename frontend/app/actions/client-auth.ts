@@ -4,13 +4,7 @@ import { UserProfile } from '@/lib/definitions';
 import { jwtDecode } from 'jwt-decode';
 
 // API URL (client-side)
-const API_URL = process.env.API_URL;
-
-/**
- * This key is used to store the token in sessionStorage
- * as a backup in case of page refresh
- */
-const TOKEN_STORAGE_KEY = 'okay_access_token';
+const API_URL = process.env.API_URL || 'http://localhost:3001/api';
 
 // Client-side auth utilities
 export const ClientAuth = {
@@ -25,14 +19,6 @@ export const ClientAuth = {
       // In memory storage for access token (not persisted)
       // This protects against XSS while maintaining functionality
       this.memoryToken = accessToken;
-
-      // Store token in sessionStorage as backup
-      // (still better than localStorage for security reasons)
-      try {
-        sessionStorage.setItem(TOKEN_STORAGE_KEY, accessToken);
-      } catch (e) {
-        console.warn('Failed to store token in sessionStorage');
-      }
 
       // Decode JWT to get user data
       const decodedToken = jwtDecode<any>(accessToken);
@@ -72,27 +58,10 @@ export const ClientAuth = {
   },
 
   /**
-   * Get current access token from memory or sessionStorage
+   * Get current access token from memory
    */
   getToken(): string | null {
-    // Try memory first
-    if (this.memoryToken) {
-      return this.memoryToken;
-    }
-
-    // Try sessionStorage as backup
-    try {
-      const token = sessionStorage.getItem(TOKEN_STORAGE_KEY);
-      if (token) {
-        // Restore token to memory
-        this.memoryToken = token;
-        return token;
-      }
-    } catch (e) {
-      console.warn('Failed to retrieve token from sessionStorage');
-    }
-
-    return null;
+    return this.memoryToken;
   },
 
   /**
@@ -116,12 +85,7 @@ export const ClientAuth = {
    */
   clearAuth(): void {
     this.memoryToken = null;
-    try {
-      sessionStorage.removeItem(TOKEN_STORAGE_KEY);
-      sessionStorage.removeItem('user');
-    } catch (e) {
-      console.warn('Failed to clear token from sessionStorage');
-    }
+    sessionStorage.removeItem('user');
   },
 
   /**

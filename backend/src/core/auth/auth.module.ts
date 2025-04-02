@@ -31,19 +31,7 @@ import { getJwtModuleOptions } from './auth-module.config';
     AuditModule,
   ],
   controllers: [AuthController],
-  providers: [
-    AuthService,
-    TokenService,
-    OAuthService,
-    JwtStrategy, // Ensure this is included
-  ],
-  exports: [
-    AuthService,
-    TokenService,
-    OAuthService,
-    JwtStrategy, // Ensure this is exported
-    PassportModule, // Export PassportModule
-    JwtModule, // Export JwtModule
-  ],
+  providers: [AuthService, TokenService, OAuthService, JwtStrategy],
+  exports: [AuthService, TokenService, OAuthService],
 })
 export class AuthModule {}

@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useState } from 'react';
 import { signup } from '@/app/actions/server-auth';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -17,26 +17,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/providers/auth-provider';
 
 const genders = ['Masculino', 'Feminino', 'Outro', 'Prefiro não dizer'];
 
 const SignupPage: React.FC = () => {
   const [state, action, isPending] = useActionState(signup, undefined);
-  const { setAccessToken } = useAuth();
-  const router = useRouter();
-
-  // Handle successful signup
-  useEffect(() => {
-    if (state?.success && state.token) {
-      // Initialize auth context with the token
-      setAccessToken(state.token);
-
-      // Redirect to dashboard
-      router.push('/dashboard');
-    }
-  }, [state, setAccessToken, router]);
   // async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
   //   event.preventDefault();
 

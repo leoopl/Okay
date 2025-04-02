@@ -1,10 +1,11 @@
 'use server';
 
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { SignupFormSchema, SigninFormSchema, AuthActionResponse } from '@/lib/definitions';
 
 // API URL (server-side)
-const API_URL = process.env.API_URL || 'http://localhost:3001/api';
+const API_URL = process.env.API_URL;
 
 // Enhanced error handling for API responses
 async function handleApiResponse(response: Response): Promise<any> {
@@ -35,10 +36,7 @@ async function handleApiResponse(response: Response): Promise<any> {
     };
   }
 
-  // Parse success response
-  const data = await response.json();
-  console.log('API response:', data);
-  return { success: true, ...data };
+  return response.json();
 }
 
 /**
@@ -64,7 +62,6 @@ export async function signin(
 
   try {
     const credentials = validatedFields.data;
-    console.log('Login attempt for:', credentials.email);
 
     // Make secure server-to-server request with proper error handling
     const response = await fetch(`${API_URL}/auth/login`, {
@@ -74,12 +71,7 @@ export async function signin(
       cache: 'no-store',
     });
 
-    console.log('Login response status:', response.status);
     const result = await handleApiResponse(response);
-    console.log('Processed result:', {
-      ...result,
-      accessToken: result.accessToken ? '[REDACTED]' : undefined,
-    });
 
     if (!result.success && (result.message || result.errors)) {
       return result;
@@ -89,20 +81,33 @@ export async function signin(
     if (!result.accessToken) {
       return {
         success: false,
-        message: 'Unexpected server response: No access token returned.',
+        message: 'Unexpected server response. Please try again later.',
       };
     }
 
-    // Return success with the token
-    return {
-      success: true,
-      token: result.accessToken,
-    };
+    // Set the access token in a secure cookie for client retrieval
+    // This is a more secure approach than localStorage
+    (await cookies()).set({
+      name: 'access_token',
+      value: result.accessToken,
+      httpOnly: false, // Must be false to be accessible by clientAuth
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: result.expiresIn || 900, // Default 15 min in seconds
+    });
+
+    // Refresh token is automatically handled by the API via HttpOnly cookie
+
+    // Pass accessToken to client for auth initialization
+    // This avoids an extra round trip to read the cookie
+    const urlEncodedToken = encodeURIComponent(result.accessToken);
+    redirect(`/initialize?token=${urlEncodedToken}`);
   } catch (error: any) {
     console.error('Server-side login error:', error);
     return {
       success: false,
-      message: `Login error: ${error.message || 'Unknown error'}`,
+      message: 'An unexpected error occurred. Please try again later.',
     };
   }
 }
@@ -173,16 +178,25 @@ export async function signup(
       };
     }
 
-    // Return success with the token
-    return {
-      success: true,
-      token: loginResult.accessToken,
-    };
+    // Set the access token in a secure cookie for client retrieval
+    (await cookies()).set({
+      name: 'access_token',
+      value: loginResult.accessToken,
+      httpOnly: false, // Must be false to be accessible by clientAuth
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: loginResult.expiresIn || 900, // Default 15 min in seconds
+    });
+
+    // Pass accessToken to client for auth initialization
+    const urlEncodedToken = encodeURIComponent(loginResult.accessToken);
+    redirect(`/initialize?token=${urlEncodedToken}`);
   } catch (error: any) {
     console.error('Server-side signup error:', error);
     return {
       success: false,
-      message: `Signup error: ${error.message || 'Unknown error'}`,
+      message: 'An unexpected error occurred. Please try again later.',
     };
   }
 }
@@ -190,18 +204,11 @@ export async function signup(
 /**
  * Server action to handle logout
  */
-export async function logout(): Promise<{ success: boolean }> {
-  try {
-    // Clear the cookies
-    (
-      await // Clear the cookies
-      cookies()
-    ).delete('access_token');
-    (await cookies()).delete('refresh_token');
+export async function logout(): Promise<void> {
+  // Clear the cookies
+  (await cookies()).delete('access_token');
+  (await cookies()).delete('refresh_token');
 
-    return { success: true };
-  } catch (error) {
-    console.error('Logout error:', error);
-    return { success: false };
-  }
+  // Redirect to home page
+  redirect('/');
 }

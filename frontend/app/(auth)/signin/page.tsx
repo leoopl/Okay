@@ -4,20 +4,16 @@ import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { SetStateAction, useActionState, useState, useEffect } from 'react';
 import { signin } from '@/app/actions/server-auth';
 import { AlertCircle } from 'lucide-react';
-import { useAuth } from '@/providers/auth-provider';
 
 const SigninPage: React.FC = () => {
   const [state, action, isPending] = useActionState(signin, undefined);
   const [password, setPassword] = useState('');
   const searchParams = useSearchParams();
   const [sessionExpired, setSessionExpired] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<string | null>(null);
-  const { setAccessToken } = useAuth();
-  const router = useRouter();
 
   useEffect(() => {
     // Check if redirected due to expired session
@@ -25,28 +21,6 @@ const SigninPage: React.FC = () => {
       setSessionExpired(true);
     }
   }, [searchParams]);
-
-  // Handle successful authentication
-  useEffect(() => {
-    console.log('Auth state updated:', state);
-
-    if (state?.success && state.token) {
-      try {
-        console.log('Setting token:', state.token.substring(0, 10) + '...');
-
-        // Initialize auth context with the token
-        setAccessToken(state.token);
-
-        // Redirect to dashboard or requested page
-        const redirectTo = searchParams.get('from') || '/dashboard';
-        console.log('Redirecting to:', redirectTo);
-        router.push(redirectTo);
-      } catch (error) {
-        console.error('Error processing login:', error);
-        setDebugInfo(`Error: ${error instanceof Error ? error.message : String(error)}`);
-      }
-    }
-  }, [state, setAccessToken, router, searchParams]);
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
@@ -63,17 +37,6 @@ const SigninPage: React.FC = () => {
                 <AlertCircle className="h-5 w-5 text-amber-400" />
                 <div className="ml-3">
                   <p className="text-sm">Sua sessão expirou. Por favor, faça login novamente.</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Debug info */}
-          {debugInfo && (
-            <div className="mb-4 rounded-md border border-blue-300 bg-blue-50 p-4 text-blue-800">
-              <div className="flex">
-                <div className="ml-3">
-                  <p className="font-mono text-sm">{debugInfo}</p>
                 </div>
               </div>
             </div>

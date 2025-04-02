@@ -54,6 +54,7 @@ import { DataIsolationMiddleware } from './common/middleware/data-isolation.midd
     MiddlewareModule,
     CaslModule,
     UserModule,
+    AuthModule,
 
     // Feature modules
     JournalModule,
