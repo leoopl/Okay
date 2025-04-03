@@ -62,7 +62,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={`${varelaRound.variable} min-h-min antialiased`}>
+    <html lang="pt-BR" className={`${varelaRound.variable} min-h-screen antialiased`}>
       <link rel="manifest" href="/manifest.json" />
       <head />
       <body>

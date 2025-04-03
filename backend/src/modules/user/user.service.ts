@@ -43,10 +43,7 @@ export class UserService {
       });
 
       // Assign default role (patient by default)
-      const defaultRoleName = this.configService.get<string>(
-        'DEFAULT_ROLE',
-        'patient',
-      );
+      const defaultRoleName = this.configService.get<string>('DEFAULT_ROLE');
       const defaultRole = await this.rolesRepository.findOne({
         where: { name: defaultRoleName },
       });
@@ -57,13 +54,6 @@ export class UserService {
       }
 
       user.roles = [defaultRole];
-
-      // Set consent values explicitly
-      user.updateConsent({
-        dataProcessing: createUserDto.consentToDataProcessing || false,
-        research: createUserDto.consentToResearch || false,
-        marketing: createUserDto.consentToMarketing || false,
-      });
 
       const savedUser = await this.usersRepository.save(user);
 
@@ -134,19 +124,6 @@ export class UserService {
     // Update user properties
     const updatedUser = this.usersRepository.merge(user, updateUserDto);
 
-    // Handle consent fields separately to track consent updates
-    if (
-      updateUserDto.consentToDataProcessing !== undefined ||
-      updateUserDto.consentToResearch !== undefined ||
-      updateUserDto.consentToMarketing !== undefined
-    ) {
-      updatedUser.updateConsent({
-        dataProcessing: updateUserDto.consentToDataProcessing,
-        research: updateUserDto.consentToResearch,
-        marketing: updateUserDto.consentToMarketing,
-      });
-    }
-
     await this.usersRepository.save(updatedUser);
 
     // Audit the update
@@ -167,15 +144,7 @@ export class UserService {
     return this.findOne(id);
   }
 
-  async updateConsent(
-    id: string,
-    consentData: {
-      dataProcessing?: boolean;
-      research?: boolean;
-      marketing?: boolean;
-    },
-    actorId: string,
-  ): Promise<User> {
+  async updateConsent(id: string, actorId: string): Promise<User> {
     const user = await this.findOne(id);
 
     if (!user) {
@@ -183,11 +152,7 @@ export class UserService {
     }
 
     // Update consent fields
-    user.updateConsent({
-      dataProcessing: consentData.dataProcessing,
-      research: consentData.research,
-      marketing: consentData.marketing,
-    });
+    user.updateConsent();
 
     await this.usersRepository.save(user);
 
@@ -199,9 +164,9 @@ export class UserService {
       resourceId: id,
       details: {
         consent: {
-          dataProcessing: consentData.dataProcessing,
-          research: consentData.research,
-          marketing: consentData.marketing,
+          dataProcessing: user.consentToDataProcessing,
+          research: user.consentToResearch,
+          marketing: user.consentToMarketing,
         },
       },
     });

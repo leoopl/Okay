@@ -1,21 +1,26 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsOptional } from 'class-validator';
+import { IsOptional } from 'class-validator';
 import { CreateUserDto } from './create-user.dto';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
-  @ApiProperty({ description: 'Consent to data processing', required: false })
-  @IsBoolean()
+  @ApiProperty({ description: 'Name', required: false })
   @IsOptional()
-  readonly consentToDataProcessing?: boolean;
+  readonly name?: string;
 
-  @ApiProperty({ description: 'Consent to research', required: false })
-  @IsBoolean()
+  @ApiProperty({ description: 'Email', required: false })
   @IsOptional()
-  readonly consentToResearch?: boolean;
+  readonly email?: string;
 
-  @ApiProperty({ description: 'Consent to marketing', required: false })
-  @IsBoolean()
+  @ApiProperty({ description: 'Surname', required: false })
   @IsOptional()
-  readonly consentToMarketing?: boolean;
+  readonly surname?: string;
+
+  @ApiProperty({ description: 'Gender', required: false })
+  @IsOptional()
+  readonly gender?: string;
+
+  @ApiProperty({ description: 'Birthdate', required: false })
+  @IsOptional()
+  readonly birthdate?: Date;
 }

@@ -143,12 +143,6 @@ export class UserController {
   @Patch(':id/consent')
   async updateConsent(
     @Param('id') id: string,
-    @Body()
-    consentData: {
-      dataProcessing?: boolean;
-      research?: boolean;
-      marketing?: boolean;
-    },
     @Req() req: IAuthenticatedRequest,
   ) {
     // Users can only update their own consent unless they're admins
@@ -158,15 +152,7 @@ export class UserController {
       );
     }
 
-    const user = await this.userService.updateConsent(
-      id,
-      {
-        dataProcessing: consentData.dataProcessing,
-        research: consentData.research,
-        marketing: consentData.marketing,
-      },
-      req.user.userId,
-    );
+    const user = await this.userService.updateConsent(id, req.user.userId);
 
     return new UserProfile(user);
   }

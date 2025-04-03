@@ -14,8 +14,6 @@
     @apply border-border outline-ring/50;
   }
   body {
-    margin: 0;
-    padding: 0;
     @apply bg-background text-foreground;
   }
   :root {
@@ -30,5 +28,11 @@
   }
   .small-caps {
     font-variant: small-caps;
+  }
+}
+
+@layer components {
+  .card {
+    @apply overflow-hidden rounded-xl p-6 shadow-md transition-shadow duration-300 hover:shadow-lg;
   }
 }

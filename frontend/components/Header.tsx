@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import logo from '../public/logo.png';
 import UserButton from './UserButton';
+import Logo from './Logo';
 
 interface Page {
   name: string;
@@ -51,8 +52,7 @@ const Header: React.FC = () => {
         <div className="flex items-center">
           <Link href="/" passHref legacyBehavior>
             <a className="flex items-center">
-              <Image src={logo} alt="Okay" width={20} height={20} />
-              <span className="font-varela text-yellow-dark ml-3 text-2xl font-bold">Okay!</span>
+              <Logo size="lg" />
             </a>
           </Link>
         </div>
@@ -63,7 +63,7 @@ const Header: React.FC = () => {
             <Link
               key={page.name}
               href={page.href}
-              className="hover:text-yellow-dark text-lg font-semibold text-gray-900"
+              className="hover:text-yellow-dark text-lg font-semibold text-gray-900 transition-colors"
             >
               {page.name}
             </Link>
@@ -74,7 +74,7 @@ const Header: React.FC = () => {
             href="/signin"
             className="hover:text-yellow-dark text-lg font-semibold text-gray-900"
           >
-            Login <span aria-hidden="true">&rarr;</span>
+            Login
           </Link>
         </div>
         {/* <div className="flex items-center"> */}
