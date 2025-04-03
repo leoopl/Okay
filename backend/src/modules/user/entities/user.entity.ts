@@ -99,20 +99,10 @@ export class User {
   }
 
   // Method to update consent fields
-  updateConsent(consentData: {
-    dataProcessing?: boolean;
-    research?: boolean;
-    marketing?: boolean;
-  }) {
-    if (consentData.dataProcessing !== undefined) {
-      this.consentToDataProcessing = consentData.dataProcessing;
-    }
-    if (consentData.research !== undefined) {
-      this.consentToResearch = consentData.research;
-    }
-    if (consentData.marketing !== undefined) {
-      this.consentToMarketing = consentData.marketing;
-    }
+  updateConsent() {
+    this.consentToDataProcessing = !this.consentToDataProcessing;
+    this.consentToResearch = !this.consentToResearch;
+    this.consentToMarketing = !this.consentToMarketing;
     this.consentUpdatedAt = new Date();
   }
 }
