@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { RadioGroupItem, RadioGroup } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import data from '../../../data/beck.json';
+import { Button } from '@/components/ui/button';
 
 interface IQuestion {
   id: number;
@@ -54,7 +55,7 @@ const BeckPage: React.FC = () => {
   return (
     <div className="min-h-screen px-4 py-8">
       <div className="mx-auto max-w-3xl">
-        <h1 className="font-varela text-center text-3xl font-bold text-gray-900">
+        <h1 className="font-varela text-green-dark small-caps text-center text-3xl font-bold">
           {questionnaire.title}
         </h1>
         <div className="mt-8 space-y-6">
@@ -78,14 +79,11 @@ const BeckPage: React.FC = () => {
           </RadioGroup>
 
           <div className="text-center">
-            <button
-              onClick={handleNextQuestion}
-              className="small-caps bg-green-dark hover:bg-green-medium focus:ring-green-dark inline-flex justify-center rounded-md px-4 py-2 text-sm font-semibold text-black shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
-            >
+            <Button onClick={handleNextQuestion}>
               {currentQuestionIndex < questionnaire.questions.length - 1
                 ? 'Next Question'
                 : 'See Results'}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

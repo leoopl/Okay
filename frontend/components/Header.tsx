@@ -44,10 +44,10 @@ const pages: Page[] = [
 
 const Header: React.FC = () => {
   return (
-    <header className="bg-white shadow">
+    <header className="shadow-soft-xs">
       <nav
         aria-label="Global"
-        className="bg-yellow-light/40 mx-auto flex max-w-full items-center justify-between p-4 sm:px-6 lg:px-8"
+        className="mx-auto flex max-w-full items-center justify-between p-4 sm:px-6 lg:px-8"
       >
         <div className="flex items-center">
           <Link href="/" passHref legacyBehavior>

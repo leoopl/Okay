@@ -46,7 +46,7 @@ const SignupPage: React.FC = () => {
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
       <div className="grid w-full max-w-4xl gap-8 md:grid-cols-2 md:items-center">
         <div className="px-4">
-          <h2 className="small-caps font-varela mb-8 text-center text-4xl leading-9 font-bold tracking-tight text-gray-900">
+          <h2 className="small-caps font-varela text-green-dark mb-8 text-center text-4xl leading-9 font-bold tracking-tight">
             Faça a sua conta!
           </h2>
           <div className="mx-auto w-full max-w-md">
@@ -147,13 +147,9 @@ const SignupPage: React.FC = () => {
               </div>
 
               <div>
-                <button
-                  disabled={isPending}
-                  type="submit"
-                  className="small-caps bg-green-dark hover:bg-green-medium focus:ring-green-dark flex w-full justify-center rounded-md px-4 py-2 text-sm font-semibold text-black shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
-                >
-                  Cadastre-se
-                </button>
+                <Button disabled={isPending} type="submit" className="small-caps w-full px-4 py-2">
+                  {isPending ? 'Carregando...' : 'Cadastre-se'}
+                </Button>
               </div>
             </form>
 
@@ -193,7 +189,7 @@ function DatePicker({ name }: { name: string }) {
           <Button
             variant={'outline'}
             className={cn(
-              'hover:bg-green-light w-full justify-start rounded-md border-gray-500 px-3 py-2 text-left font-normal text-gray-900 shadow-md hover:text-gray-900/50',
+              'hover:bg-green-light w-full justify-start rounded-md border-gray-500 bg-white/90 px-3 py-2 text-left font-normal text-gray-900 shadow-md hover:text-gray-900/50',
               !birthdate && 'text-muted-foreground',
             )}
           >
@@ -211,9 +207,6 @@ function DatePicker({ name }: { name: string }) {
             showOutsideDays={false}
             captionLayout="dropdown"
             disabled={[{ after: new Date() }]}
-            className="rounded-md bg-white/90 shadow-md"
-            buttonNextClassName="cursor-pointer hover:bg-green-light hover:text-black"
-            buttonPreviousClassName="cursor-pointer hover:bg-green-light hover:text-black"
           />
         </PopoverContent>
       </Popover>

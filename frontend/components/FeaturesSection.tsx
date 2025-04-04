@@ -68,7 +68,7 @@ const FeaturesSection: React.FC = () => {
   ];
 
   return (
-    <section className="bg-gradient-to-b from-[#F2DECC]/30 to-[#A5DCF6]/20 py-16">
+    <section className="py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 text-center">
           <h2 className="text-green-dark font-varela mb-4 text-3xl font-bold">Nossos Recursos</h2>

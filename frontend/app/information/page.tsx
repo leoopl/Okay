@@ -4,6 +4,7 @@ import Link from 'next/link';
 import data from '../../data/information.json';
 import IllnessCard from '../../components/IllnessCard';
 import { GetStaticPaths } from 'next';
+import { badgeVariants } from '@/components/ui/badge';
 
 interface IIllnessData {
   id: number;
@@ -27,8 +28,10 @@ const InformationPage: React.FC = () => {
     <div className="min-h-screen px-4 py-8">
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-8 md:grid-cols-2 md:items-center">
-          <div className="space-y-6 text-center md:text-left">
-            <h1 className="font-varela text-4xl font-bold text-gray-900">Recursos e informações</h1>
+          <div className="animate-fade-in space-y-6 text-center md:text-left">
+            <h1 className="font-varela small-caps text-green-dark text-4xl font-bold">
+              Recursos e informações
+            </h1>
             <p className="text-base text-gray-700">
               Encontre informações sobre diversas condições de saúde mental.
             </p>
@@ -36,7 +39,7 @@ const InformationPage: React.FC = () => {
               {illnessData.map((item) => (
                 <Link
                   key={item.id}
-                  className="bg-green-light text-green-dark hover:bg-green-medium rounded-full px-4 py-2 text-sm font-medium hover:text-white"
+                  className={badgeVariants({ variant: 'outline' })}
                   href={`#${item.redirection}`}
                 >
                   {item.illness}

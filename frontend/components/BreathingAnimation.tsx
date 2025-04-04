@@ -13,13 +13,14 @@ const BreathingAnimation: React.FC<BreathingAnimationProps> = ({ onClose, breath
     isAnimating: true,
   });
 
+  // make the bg black
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95">
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="relative flex flex-col items-center">
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-4 right-4 cursor-pointer text-white focus:outline-none"
+          className="absolute top-0 right-0 text-white focus:outline-none"
           onClick={onClose}
           aria-label="Fechar"
         >

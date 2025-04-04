@@ -62,10 +62,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={`${varelaRound.variable} min-h-screen antialiased`}>
+    <html lang="pt-BR" suppressHydrationWarning>
       <link rel="manifest" href="/manifest.json" />
       <head />
-      <body>
+      <body className={`${varelaRound.variable} gradient-background min-h-screen antialiased`}>
         <AuthProvider>
           <Headers />
           {children}

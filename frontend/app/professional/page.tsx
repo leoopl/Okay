@@ -30,7 +30,7 @@ const ProfessionalPage: React.FC = () => {
     <div className="flex min-h-screen flex-col items-center justify-center px-4 py-8">
       <div className="grid gap-8 md:grid-cols-2 md:items-center">
         <div className="px-4">
-          <h1 className="small-caps mb-8 text-center font-varela text-4xl font-bold leading-9 tracking-tight text-gray-900">
+          <h1 className="small-caps font-varela text-green-dark small-caps mb-8 text-center text-4xl leading-9 font-bold tracking-tight">
             Profissionais de Saúde
           </h1>
         </div>
@@ -59,7 +59,7 @@ const ProfessionalPage: React.FC = () => {
               className="object-contain"
               priority
             />
-            <h2 className="small-caps text-center font-varela text-lg font-bold leading-9 tracking-tight text-gray-900">
+            <h2 className="small-caps font-varela text-center text-lg leading-9 font-bold tracking-tight text-gray-900">
               {professional.name}
             </h2>
             <p className="text-center text-gray-500">{professional.specialty}</p>

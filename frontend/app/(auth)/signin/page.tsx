@@ -8,6 +8,7 @@ import { useSearchParams } from 'next/navigation';
 import { SetStateAction, useActionState, useState, useEffect } from 'react';
 import { signin } from '@/app/actions/server-auth';
 import { AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const SigninPage: React.FC = () => {
   const [state, action, isPending] = useActionState(signin, undefined);
@@ -26,7 +27,7 @@ const SigninPage: React.FC = () => {
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
       <div className="grid w-full max-w-4xl gap-8 md:grid-cols-2 md:items-center">
         <div className="px-4">
-          <h2 className="small-caps font-varela mb-8 text-center text-4xl leading-9 font-bold tracking-tight text-gray-900">
+          <h2 className="small-caps font-varela text-green-dark mb-8 text-center text-4xl leading-9 font-bold tracking-tight">
             Espero que esteja tendo um bom dia!
           </h2>
 
@@ -83,7 +84,6 @@ const SigninPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Display general error message with better styling */}
             {state?.message && (
               <div className="relative rounded border border-red-400 bg-red-50 px-4 py-3 text-red-700">
                 <div className="flex">
@@ -94,13 +94,9 @@ const SigninPage: React.FC = () => {
             )}
 
             <div>
-              <button
-                type="submit"
-                disabled={isPending}
-                className="small-caps bg-green-dark hover:bg-green-medium focus:ring-green-dark flex w-full justify-center rounded-md px-4 py-2 text-sm font-semibold text-black shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:opacity-70"
-              >
+              <Button disabled={isPending} type="submit" className="small-caps w-full px-4 py-2">
                 {isPending ? 'Entrando...' : 'Entrar'}
-              </button>
+              </Button>
             </div>
           </form>
 

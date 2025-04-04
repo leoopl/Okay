@@ -5,29 +5,141 @@
   @apply hidden;
 }
 
-/* Custom global styles */
 @layer base {
   html {
     scroll-behavior: smooth;
   }
+
+  :root {
+    --background: 140 14% 95%; /* #f2f5f3 */
+    --foreground: 225 8% 24%; /* #3a3c42 */
+    --card: 0 0% 100%; /* #ffffff */
+    --card-foreground: 225 8% 24%; /* #3a3c42 */
+    --popover: 0 0% 100%; /* #ffffff */
+    --popover-foreground: 225 8% 24%; /* #3a3c42 */
+
+    /* Primary - Warm, optimistic accent from logo */
+    --primary: 41 94% 58%; /* #f9c22e */
+    --primary-foreground: 39 25% 21%; /* #2d2a1b */
+
+    /* Secondary - Calming blue from your selection */
+    --secondary: 199 84% 81%; /* #a5dcf6 */
+    --secondary-foreground: 210 22% 26%; /* #2a3642 */
+
+    /* Muted - Warm neutral from your selection */
+    --muted: 26 65% 87%; /* #f2decc */
+    --muted-foreground: 27 10% 53%; /* #91857a */
+
+    /* Accent - Soft green from your gradient base */
+    --accent: 126 23% 76%; /* #b6cfb8 */
+    --accent-foreground: 225 8% 24%; /* #3a3c42 */
+
+    /* Destructive - Gentle red that doesn't trigger anxiety */
+    --destructive: 0 67% 73%; /* #e88a8a */
+    --destructive-foreground: 0 0% 100%; /* #ffffff */
+
+    /* Border & UI elements - Soft, unobtrusive */
+    --border: 220 15% 82%; /* #cbcfd7 */
+    --input: 220 15% 82%; /* #cbcfd7 */
+    --ring: 228 8% 66%; /* #a3a6b0 */
+
+    /* Chart colors - aligned with your color selections */
+    --chart-1: 41 94% 58%; /* #f9c22e */
+    --chart-2: 201 79% 70%; /* #78c7ee */
+    --chart-3: 95 19% 66%; /* #abb899 */
+    --chart-4: 26 65% 87%; /* #f2decc */
+    --chart-5: 28 20% 70%; /* #c2b2a3 */
+
+    /* Sidebar - creates a sense of safety with subtle differentiation */
+    --sidebar: 195 20% 95%; /* #eff3f4 */
+    --sidebar-foreground: 225 8% 24%; /* #3a3c42 */
+    --sidebar-primary: 41 94% 58%; /* #f9c22e */
+    --sidebar-primary-foreground: 39 25% 21%; /* #2d2a1b */
+    --sidebar-accent: 126 23% 76%; /* #b6cfb8 */
+    --sidebar-accent-foreground: 225 8% 24%; /* #3a3c42 */
+    --sidebar-border: 220 15% 82%; /* #cbcfd7 */
+    --sidebar-ring: 228 8% 66%; /* #a3a6b0 */
+
+    --radius: 0.5rem;
+    --font-varela-round: 'Varela Round', sans-serif;
+  }
+
+  .dark {
+    /* Base colors - dark but not harsh black */
+    --background: 217 16% 12%; /* #1a1e24 */
+    --foreground: 210 16% 93%; /* #e9ecef */
+    --card: 217 15% 17%; /* #242931 */
+    --card-foreground: 210 16% 93%; /* #e9ecef */
+    --popover: 217 15% 17%; /* #242931 */
+    --popover-foreground: 210 16% 93%; /* #e9ecef */
+
+    /* Primary - slightly muted yellow to avoid eye strain */
+    --primary: 44 81% 54%; /* #e9b829 */
+    /* --primary-foreground: 39 25% 21%; #2d2a1b */
+    --primary-foreground: 0 0% 0%; /* #2d2a1b */
+
+    /* Secondary - deeper blue that's still calming in dark mode */
+    --secondary: 201 50% 51%; /* #4095c3 */
+    --secondary-foreground: 210 16% 93%; /* #e9ecef */
+
+    /* Muted - darker neutral tones */
+    --muted: 216 11% 25%; /* #394149 */
+    --muted-foreground: 206 11% 78%; /* #b8c0c7 */
+
+    /* Accent - deeper green still conveying growth */
+    /*--accent: 127 11% 45%;  #657f68 */
+    --accent: 124.8 20.66% 76.27%; /*  #657f68 */
+    --accent-foreground: 210 16% 93%; /* #e9ecef */
+
+    /* Destructive - muted red that doesn't trigger anxiety */
+    --destructive: 0 35% 49%; /* #a95151 */
+    --destructive-foreground: 0 0% 95%; /* #f2f2f2 */
+
+    /* Border & UI elements - subtle separation */
+    --border: 216 11% 25%; /* #394149 */
+    --input: 216 11% 25%; /* #394149 */
+    --ring: 214 8% 40%; /* #5d656c */
+
+    /* Chart colors - consistent meaning with light theme */
+    --chart-1: 44 81% 54%; /* #e9b829 */
+    --chart-2: 201 50% 51%; /* #4095c3 */
+    --chart-3: 127 11% 45%; /* #657f68 */
+    --chart-4: 23 15% 52%; /* #9a8672 */
+    --chart-5: 271 12% 48%; /* #7d6c8a */
+
+    /* Sidebar - creates a sense of safety with subtle differentiation */
+    --sidebar: 218 18% 15%; /* #1f242c */
+    --sidebar-foreground: 210 16% 93%; /* #e9ecef */
+    --sidebar-primary: 44 81% 54%; /* #e9b829 */
+    --sidebar-primary-foreground: 39 25% 21%; /* #2d2a1b */
+    --sidebar-accent: 127 11% 45%; /* #657f68 */
+    --sidebar-accent-foreground: 210 16% 93%; /* #e9ecef */
+    --sidebar-border: 216 11% 25%; /* #394149 */
+    --sidebar-ring: 214 8% 40%; /* #5d656c */
+  }
+}
+
+/* Base styles */
+@layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
   }
-  :root {
-    --radius: 0.5rem;
-    --font-varela-round: 'Varela Round', sans-serif;
-  }
 }
 
+/* Custom utility classes */
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
   .small-caps {
     font-variant: small-caps;
+  }
+
+  .gradient-background {
+    @apply bg-background bg-gradient-to-b from-[#F2DECC]/30 to-[#A5DCF6]/20;
   }
 }
 

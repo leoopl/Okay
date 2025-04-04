@@ -59,8 +59,8 @@ const Breathing: React.FC = () => {
 
       <div className="flex min-h-screen items-center justify-center px-4 py-8">
         <div className="grid gap-8 md:grid-cols-2 md:items-center">
-          <div className="text-center">
-            <h1 className="small-caps font-varela mb-4 text-center text-4xl leading-9 font-bold tracking-tight text-gray-900">
+          <div className="animate-fade-in text-center">
+            <h1 className="font-varela small-caps text-green-dark mb-4 text-center text-4xl leading-9 font-bold tracking-tight">
               Técnicas de Respiração
             </h1>
             <p className="text-base text-gray-700">
@@ -94,10 +94,6 @@ const Breathing: React.FC = () => {
               onInteractOutside={(e) => e.preventDefault()}
             >
               <div className="relative grid size-full place-content-center overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl">
-                <DialogClose className="absolute top-4 right-4 cursor-pointer text-gray-500 hover:text-gray-700 focus:outline-none">
-                  <X className="size-6" aria-hidden="true" />
-                </DialogClose>
-
                 <div className="mt-2 text-center">
                   {selectedTechnique && (
                     <Image
@@ -122,12 +118,7 @@ const Breathing: React.FC = () => {
                   <p className="mb-4 text-sm text-gray-700">
                     Fique confortável e comece a respirar.
                   </p>
-                  <Button
-                    className="inline-flex cursor-pointer items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                    onClick={startAnimation}
-                  >
-                    Iniciar
-                  </Button>
+                  <Button onClick={startAnimation}>Iniciar</Button>
                 </div>
               </div>
             </DialogContent>
