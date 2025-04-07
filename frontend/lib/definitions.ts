@@ -59,6 +59,7 @@ export type UserProfile = {
   surname?: string;
   roles: string[];
   permissions?: string[];
+  tokenFingerprint?: string;
 };
 
 export type TokenResponse = {

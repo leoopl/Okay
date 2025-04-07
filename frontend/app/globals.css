@@ -75,8 +75,7 @@
 
     /* Primary - slightly muted yellow to avoid eye strain */
     --primary: 44 81% 54%; /* #e9b829 */
-    /* --primary-foreground: 39 25% 21%; #2d2a1b */
-    --primary-foreground: 0 0% 0%; /* #2d2a1b */
+    --primary-foreground: 39 25% 21%; /* #2d2a1b */
 
     /* Secondary - deeper blue that's still calming in dark mode */
     --secondary: 201 50% 51%; /* #4095c3 */

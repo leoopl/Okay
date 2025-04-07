@@ -1,20 +1,25 @@
+// app/(auth)/initialize/page.tsx
 'use client';
 
 import { useAuth } from '@/providers/auth-provider';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { getCookie, deleteCookie } from 'cookies-next';
 
 export default function TokenInitializePage() {
   const { setAccessToken } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const token = searchParams.get('token');
+    // Get token from cookie instead of URL parameter
+    const token = getCookie('access_token');
 
     if (token) {
-      // Initialize auth with the token from URL
-      setAccessToken(token);
+      // Initialize auth with token
+      setAccessToken(token.toString());
+
+      // Delete the cookie immediately after use for security
+      deleteCookie('access_token');
 
       // Redirect to dashboard
       router.replace('/dashboard');
@@ -22,7 +27,7 @@ export default function TokenInitializePage() {
       // If no token, redirect to login
       router.replace('/signin');
     }
-  }, [searchParams, setAccessToken, router]);
+  }, [setAccessToken, router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center">

@@ -284,6 +284,38 @@ export class UserService {
     }
   }
 
+  /**
+   * Update user password securely
+   */
+  async updatePassword(userId: string, newPassword: string): Promise<User> {
+    // Find user
+    const user = await this.findOne(userId);
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    // Update password - using argon2 hashing through entity hook
+    user.password = newPassword;
+
+    // Save user
+    const updatedUser = await this.usersRepository.save(user);
+
+    // Audit password update
+    await this.auditService.logAction({
+      userId: userId,
+      action: 'PASSWORD_UPDATED' as any,
+      resource: 'user',
+      resourceId: userId,
+      details: {
+        // Don't log the actual password!
+        timestamp: new Date(),
+      },
+    });
+
+    return updatedUser;
+  }
+
   async addRole(
     userId: string,
     roleName: string,

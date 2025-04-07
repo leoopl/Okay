@@ -4,12 +4,13 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { useRouter, usePathname } from 'next/navigation';
 import { ClientAuth } from '../app/actions/client-auth';
 import { UserProfile } from '@/lib/definitions';
-import { getCookie } from 'cookies-next';
+import { getCookie, deleteCookie } from 'cookies-next';
+import { ApiClient, ApiError } from '@/lib/api-client';
 
 // Session timeout (15 minutes in milliseconds)
-const SESSION_TIMEOUT = parseInt(process.env.SESSION_TIMEOUT || '900000', 10);
-// Token refresh interval (14 minutes in milliseconds to be safe)
-const TOKEN_REFRESH_INTERVAL = 14 * 60 * 1000;
+const SESSION_TIMEOUT = parseInt(process.env.JWT_ACCESS_EXPIRATION || '900000', 10);
+// Token refresh interval (5 minutes in milliseconds)
+const TOKEN_REFRESH_INTERVAL = 5 * 60 * 1000;
 
 // Define auth context types
 export type AuthContextType = {
@@ -21,6 +22,7 @@ export type AuthContextType = {
   hasRole: (role: string) => boolean;
   hasPermission: (permission: string) => boolean;
   fetchWithAuth: (endpoint: string, options?: RequestInit) => Promise<any>;
+  refreshUserProfile: () => Promise<void>;
 };
 
 // Create context
@@ -44,8 +46,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // First try to get token from cookie (if we just logged in via server action)
         let token = getCookie('access_token')?.toString() || null;
 
-        // If no token in cookie, try token from ClientAuth (memory or localStorage fallback)
-        if (!token) {
+        // If token found in cookie, remove it after reading
+        if (token) {
+          deleteCookie('access_token');
+        } else {
+          // If no token in cookie, try token from ClientAuth (memory)
           token = ClientAuth.getToken();
         }
 
@@ -63,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
-        ClientAuth.clearAuth();
+        await handleAuthFailure();
       } finally {
         setIsLoading(false);
       }
@@ -81,6 +86,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
   }, []);
+
+  /**
+   * Handle authentication failures consistently
+   */
+  const handleAuthFailure = async () => {
+    // Clear all auth state
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+    if (tokenRefreshIntervalRef.current) {
+      clearInterval(tokenRefreshIntervalRef.current);
+    }
+
+    ClientAuth.clearAuth();
+    setUser(null);
+    setIsAuthenticated(false);
+  };
 
   // Set up session timeout
   useEffect(() => {
@@ -129,7 +151,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     tokenRefreshIntervalRef.current = setInterval(async () => {
       try {
         if (isAuthenticated) {
-          await ClientAuth.refreshToken();
+          const token = ClientAuth.getToken();
+
+          // Only refresh if token exists and is expiring soon
+          if (token && ClientAuth.isTokenExpiring(token)) {
+            await ClientAuth.refreshToken();
+          }
         }
       } catch (error) {
         console.error('Token refresh failed:', error);
@@ -181,6 +208,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [router, pathname]);
 
+  // Refresh user profile from server
+  const refreshUserProfile = useCallback(async () => {
+    if (!isAuthenticated) return;
+
+    try {
+      const userProfile = await ApiClient.get<{ user: UserProfile }>('/auth/profile');
+      if (userProfile.user) {
+        setUser(userProfile.user);
+        sessionStorage.setItem('user', JSON.stringify(userProfile.user));
+      }
+    } catch (error) {
+      console.error('Error refreshing user profile:', error);
+
+      // If unauthorized, trigger auth failure
+      if (error instanceof ApiError && error.status === 401) {
+        await handleAuthFailure();
+        router.push('/signin?expired=true');
+      }
+    }
+  }, [isAuthenticated, router]);
+
   // Check if user has role
   const hasRole = useCallback(
     (role: string): boolean => {
@@ -214,6 +262,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     hasRole,
     hasPermission,
     fetchWithAuth,
+    refreshUserProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

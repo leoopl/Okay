@@ -99,10 +99,7 @@ export async function signin(
 
     // Refresh token is automatically handled by the API via HttpOnly cookie
 
-    // Pass accessToken to client for auth initialization
-    // This avoids an extra round trip to read the cookie
-    const urlEncodedToken = encodeURIComponent(result.accessToken);
-    redirect(`/initialize?token=${urlEncodedToken}`);
+    redirect('/initialize');
   } catch (error: any) {
     console.error('Server-side login error:', error);
     return {

@@ -58,8 +58,8 @@ const Breathing: React.FC = () => {
       )}
 
       <div className="flex min-h-screen items-center justify-center px-4 py-8">
-        <div className="grid gap-8 md:grid-cols-2 md:items-center">
-          <div className="animate-fade-in text-center">
+        <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2">
+          <div className="animate-fade-in flex flex-col gap-8 text-center">
             <h1 className="font-varela small-caps text-green-dark mb-4 text-center text-4xl leading-9 font-bold tracking-tight">
               Técnicas de Respiração
             </h1>
@@ -70,7 +70,7 @@ const Breathing: React.FC = () => {
               {data.map((item) => (
                 <button
                   key={item.id}
-                  className="relative flex cursor-pointer flex-col items-center justify-center rounded-lg px-6 py-5 shadow transition hover:shadow-md"
+                  className="relative flex cursor-pointer flex-col items-center justify-center rounded-lg px-6 py-5 shadow transition-transform duration-300 hover:-translate-y-1 hover:shadow-md"
                   style={{ backgroundColor: item.bgcolor }}
                   onClick={() => openModal(item)}
                 >
