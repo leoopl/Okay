@@ -1,8 +1,8 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 import { SignupFormSchema, SigninFormSchema, AuthActionResponse } from '@/lib/definitions';
+import { redirect } from 'next/navigation';
 
 // API URL (server-side)
 const API_URL = process.env.API_URL;
@@ -42,10 +42,7 @@ async function handleApiResponse(response: Response): Promise<any> {
 /**
  * Production-ready server action for user signin
  */
-export async function signin(
-  prevState: AuthActionResponse | undefined,
-  formData: FormData,
-): Promise<AuthActionResponse> {
+export async function signin(prevState: AuthActionResponse | undefined, formData: FormData) {
   // Validate form data
   const validatedFields = SigninFormSchema.safeParse({
     email: formData.get('email'),
@@ -98,8 +95,6 @@ export async function signin(
     });
 
     // Refresh token is automatically handled by the API via HttpOnly cookie
-
-    redirect('/dashboard'); // Redirect to dashboard after successful login
   } catch (error: any) {
     console.error('Server-side login error:', error);
     return {
@@ -107,6 +102,7 @@ export async function signin(
       message: 'An unexpected error occurred. Please try again later.',
     };
   }
+  redirect('/dashboard');
 }
 
 /**
@@ -185,8 +181,6 @@ export async function signup(
       path: '/',
       maxAge: loginResult.expiresIn || 900, // Default 15 min in seconds
     });
-
-    redirect('/dashboard'); // Redirect to dashboard after successful signup
   } catch (error: any) {
     console.error('Server-side signup error:', error);
     return {
@@ -194,16 +188,17 @@ export async function signup(
       message: 'An unexpected error occurred. Please try again later.',
     };
   }
+
+  redirect('/dashboard');
 }
 
 /**
  * Server action to handle logout
  */
-export async function logout(): Promise<void> {
+export async function logout(): Promise<{ success: boolean; redirectUrl?: string }> {
   // Clear the cookies
   (await cookies()).delete('access_token');
   (await cookies()).delete('refresh_token');
 
-  // Redirect to home page
   redirect('/');
 }

@@ -84,9 +84,10 @@ export const ClientAuth = {
         return null;
       }
 
-      // Check expiration
-      if (decoded.exp <= now) {
-        console.error('Token is expired');
+      // Check expiration with a small buffer to prevent edge cases
+      if (decoded.exp <= now + 10) {
+        // 10 second buffer
+        console.error('Token is expired or about to expire');
         return null;
       }
 
@@ -100,7 +101,7 @@ export const ClientAuth = {
       if (
         decoded.aud &&
         (Array.isArray(decoded.aud)
-          ? !decoded.aud.includes(JWT_AUDIENCE)
+          ? !decoded.aud.includes(JWT_AUDIENCE as string)
           : decoded.aud !== JWT_AUDIENCE)
       ) {
         console.error('Token has invalid audience');

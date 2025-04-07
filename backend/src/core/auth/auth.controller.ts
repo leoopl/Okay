@@ -67,11 +67,15 @@ export class AuthController {
     // Set refresh token in HttpOnly cookie
     this.tokenService.setRefreshTokenCookie(res, tokenResult.refreshToken);
 
+    // Generate CSRF token and set in cookie
+    const csrfToken = req['csrfMiddleware'].generateToken(res);
+
     // Return access token in response body
     return {
       accessToken: tokenResult.accessToken,
       tokenType: tokenResult.tokenType,
       expiresIn: tokenResult.expiresIn,
+      csrfToken: csrfToken, // Return CSRF token to client
     };
   }
 
@@ -227,10 +231,14 @@ export class AuthController {
       // Set new refresh token in HttpOnly cookie
       this.tokenService.setRefreshTokenCookie(res, newRefreshToken);
 
+      // Generate new CSRF token
+      const csrfToken = req['csrfMiddleware'].generateToken(res);
+
       return {
         accessToken,
         tokenType: 'Bearer',
         expiresIn: parseInt(process.env.JWT_ACCESS_EXPIRATION || '900', 10), // 15 minutes in seconds
+        csrfToken: csrfToken, // Return new CSRF token
       };
     } catch (error) {
       throw new UnauthorizedException('Invalid refresh token');
@@ -250,6 +258,9 @@ export class AuthController {
 
     // Clear refresh token cookie
     this.tokenService.clearRefreshTokenCookie(res);
+
+    // Clear CSRF token cookie
+    req['csrfMiddleware'].clearToken(res);
 
     // Revoke user's refresh tokens
     await this.tokenService.revokeUserRefreshTokens(req.user.userId, ip);

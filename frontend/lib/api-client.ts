@@ -1,4 +1,5 @@
 import { ClientAuth } from '@/app/actions/client-auth';
+import { getCookie } from 'cookies-next';
 
 const API_URL = process.env.API_URL;
 
@@ -8,14 +9,33 @@ const API_URL = process.env.API_URL;
 export class ApiError extends Error {
   status: number;
   data?: any;
+  isNetworkError: boolean;
+  isAuthError: boolean;
 
   constructor(message: string, status: number, data?: any) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.data = data;
+    this.isNetworkError = status === 0;
+    this.isAuthError = status === 401 || status === 403;
+  }
+
+  static fromResponse(response: Response, data?: any): ApiError {
+    let message = `API error: ${response.status} ${response.statusText}`;
+    if (data?.message) {
+      message = data.message;
+    }
+    return new ApiError(message, response.status, data);
+  }
+
+  static network(error: Error): ApiError {
+    return new ApiError(`Network error: ${error.message}`, 0, { originalError: error });
   }
 }
+
+// Global error status tracking to prevent multiple auth failures
+let isHandlingAuthError = false;
 
 /**
  * API client that handles authentication and token refresh
@@ -32,7 +52,7 @@ export class ApiClient {
       ...options,
       headers: {
         'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest', // CSRF protection
+        'X-Requested-With': 'XMLHttpRequest', // Basic CSRF protection
         ...options.headers,
       },
       credentials: 'include', // Include cookies for refresh token
@@ -47,6 +67,15 @@ export class ApiClient {
       };
     }
 
+    // Add CSRF token if available
+    const csrfToken = getCookie('csrf_token')?.toString();
+    if (csrfToken) {
+      requestOptions.headers = {
+        ...requestOptions.headers,
+        'X-CSRF-Token': csrfToken,
+      };
+    }
+
     let response: Response;
 
     try {
@@ -54,8 +83,10 @@ export class ApiClient {
       response = await fetch(url, requestOptions);
 
       // Handle 401 Unauthorized (token expired)
-      if (response.status === 401) {
+      if (response.status === 401 && !isHandlingAuthError) {
         try {
+          isHandlingAuthError = true;
+
           // Use the centralized refresh method (prevents race conditions)
           const newToken = await ClientAuth.getRefreshedToken();
 
@@ -69,6 +100,7 @@ export class ApiClient {
           };
 
           const retryResponse = await fetch(url, retryOptions);
+          isHandlingAuthError = false;
 
           if (retryResponse.ok) {
             // Return empty object for 204 No Content
@@ -88,12 +120,10 @@ export class ApiClient {
             errorData = { message: retryResponse.statusText };
           }
 
-          throw new ApiError(
-            errorData.message || `Request failed after token refresh: ${retryResponse.status}`,
-            retryResponse.status,
-            errorData,
-          );
+          throw ApiError.fromResponse(retryResponse, errorData);
         } catch (refreshError) {
+          isHandlingAuthError = false;
+
           // If token refresh fails, clear auth and redirect to login
           ClientAuth.clearAuth();
 
@@ -125,20 +155,16 @@ export class ApiClient {
         errorData = { message: response.statusText };
       }
 
-      throw new ApiError(
-        errorData.message || `Request failed with status ${response.status}`,
-        response.status,
-        errorData,
-      );
+      throw ApiError.fromResponse(response, errorData);
     } catch (error) {
-      // Network errors need special handling
-      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        throw new ApiError('Network connection error. Please check your internet connection.', 0);
-      }
-
-      // Re-throw ApiErrors
+      // Handle ApiErrors that we've already created
       if (error instanceof ApiError) {
         throw error;
+      }
+
+      // Network errors need special handling
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        throw ApiError.network(error);
       }
 
       // Other unknown errors
@@ -146,6 +172,7 @@ export class ApiClient {
       throw new ApiError(
         `Unknown error: ${error instanceof Error ? error.message : String(error)}`,
         0,
+        { originalError: error },
       );
     }
   }

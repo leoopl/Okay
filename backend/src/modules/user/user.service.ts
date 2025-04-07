@@ -43,7 +43,8 @@ export class UserService {
       });
 
       // Assign default role (patient by default)
-      const defaultRoleName = this.configService.get<string>('DEFAULT_ROLE');
+      const defaultRoleName =
+        this.configService.get<string>('DEFAULT_USER_ROLE');
       const defaultRole = await this.rolesRepository.findOne({
         where: { name: defaultRoleName },
       });

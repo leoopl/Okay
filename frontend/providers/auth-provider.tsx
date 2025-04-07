@@ -8,7 +8,7 @@ import { getCookie, deleteCookie } from 'cookies-next';
 import { ApiClient, ApiError } from '@/lib/api-client';
 
 // Session timeout (15 minutes in milliseconds)
-const SESSION_TIMEOUT = parseInt(process.env.JWT_ACCESS_EXPIRATION || '900000', 10);
+const SESSION_TIMEOUT = parseInt(process.env.SESSION_TIMEOUT as string, 10);
 // Token refresh interval (5 minutes in milliseconds)
 const TOKEN_REFRESH_INTERVAL = 5 * 60 * 1000;
 
@@ -17,8 +17,10 @@ export type AuthContextType = {
   user: UserProfile | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  sessionExpiresAt: number | null;
   setAccessToken: (token: string) => void;
   logout: () => Promise<void>;
+  refreshToken: () => Promise<void>;
   hasRole: (role: string) => boolean;
   hasPermission: (permission: string) => boolean;
   fetchWithAuth: (endpoint: string, options?: RequestInit) => Promise<any>;
@@ -32,6 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [sessionExpiresAt, setSessionExpiresAt] = useState<number | null>(null);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -39,31 +42,97 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
   const tokenRefreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  /**
+   * Handle authentication failures consistently
+   */
+  const handleAuthFailure = async () => {
+    // Clear all auth state
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+    if (tokenRefreshIntervalRef.current) {
+      clearInterval(tokenRefreshIntervalRef.current);
+    }
+
+    ClientAuth.clearAuth();
+    setUser(null);
+    setIsAuthenticated(false);
+    setSessionExpiresAt(null);
+  };
+
+  // Set access token and user data - must be declared before initAuth
+  const setAccessToken = useCallback((token: string) => {
+    const userData = ClientAuth.setAuth(token);
+
+    if (userData) {
+      setUser(userData);
+      setIsAuthenticated(true);
+      updateSessionExpiry();
+      setupTokenRefresh();
+    }
+  }, []); // setupTokenRefresh and updateSessionExpiry will be defined below
+
+  // Update session expiry time based on current time + timeout
+  const updateSessionExpiry = useCallback(() => {
+    setSessionExpiresAt(Date.now() + SESSION_TIMEOUT);
+  }, []);
+
+  // Setup token refresh at regular intervals
+  const setupTokenRefresh = useCallback(() => {
+    // Clear any existing interval
+    if (tokenRefreshIntervalRef.current) {
+      clearInterval(tokenRefreshIntervalRef.current);
+    }
+
+    // Set up automatic token refresh
+    tokenRefreshIntervalRef.current = setInterval(async () => {
+      try {
+        if (isAuthenticated) {
+          const token = ClientAuth.getToken();
+
+          // Only refresh if token exists and is expiring soon
+          if (token && ClientAuth.isTokenExpiring(token)) {
+            await refreshToken();
+          }
+        }
+      } catch (error) {
+        console.error('Token refresh failed:', error);
+        // If refresh fails, logout
+        logout();
+      }
+    }, TOKEN_REFRESH_INTERVAL);
+  }, [isAuthenticated]); // logout and refreshToken will be defined below
+
   // Initialize auth state
   useEffect(() => {
     const initAuth = async () => {
       try {
-        // First try to get token from cookie (if we just logged in via server action)
         let token = getCookie('access_token')?.toString() || null;
 
         // If token found in cookie, remove it after reading
         if (token) {
           deleteCookie('access_token');
+
+          // Initialize auth state with token
+          setAccessToken(token);
         } else {
           // If no token in cookie, try token from ClientAuth (memory)
           token = ClientAuth.getToken();
-        }
 
-        if (token) {
-          // Initialize auth state with token
-          const userData = ClientAuth.setAuth(token);
+          if (token) {
+            // Initialize auth state with token
+            const userData = ClientAuth.setAuth(token);
 
-          if (userData) {
-            setUser(userData);
-            setIsAuthenticated(true);
+            if (userData) {
+              setUser(userData);
+              setIsAuthenticated(true);
 
-            // Setup token refresh
-            setupTokenRefresh();
+              // Calculate session expiry time
+              updateSessionExpiry();
+
+              // Setup token refresh
+              setupTokenRefresh();
+            }
           }
         }
       } catch (error) {
@@ -85,24 +154,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         clearInterval(tokenRefreshIntervalRef.current);
       }
     };
-  }, []);
-
-  /**
-   * Handle authentication failures consistently
-   */
-  const handleAuthFailure = async () => {
-    // Clear all auth state
-    if (inactivityTimerRef.current) {
-      clearTimeout(inactivityTimerRef.current);
-    }
-    if (tokenRefreshIntervalRef.current) {
-      clearInterval(tokenRefreshIntervalRef.current);
-    }
-
-    ClientAuth.clearAuth();
-    setUser(null);
-    setIsAuthenticated(false);
-  };
+  }, [setAccessToken, updateSessionExpiry, setupTokenRefresh]);
 
   // Set up session timeout
   useEffect(() => {
@@ -113,6 +165,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (inactivityTimerRef.current) {
         clearTimeout(inactivityTimerRef.current);
       }
+
+      // Update the session expiry time
+      updateSessionExpiry();
 
       inactivityTimerRef.current = setTimeout(() => {
         // Automatic logout after inactivity
@@ -138,47 +193,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         window.removeEventListener(event, resetInactivityTimer);
       });
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, updateSessionExpiry]);
 
-  // Setup token refresh at regular intervals
-  const setupTokenRefresh = useCallback(() => {
-    // Clear any existing interval
-    if (tokenRefreshIntervalRef.current) {
-      clearInterval(tokenRefreshIntervalRef.current);
-    }
+  // Refresh token - now exposed in the context
+  const refreshToken = useCallback(async () => {
+    try {
+      // Use existing ClientAuth method for refreshing
+      const newToken = await ClientAuth.getRefreshedToken();
 
-    // Set up automatic token refresh
-    tokenRefreshIntervalRef.current = setInterval(async () => {
-      try {
-        if (isAuthenticated) {
-          const token = ClientAuth.getToken();
-
-          // Only refresh if token exists and is expiring soon
-          if (token && ClientAuth.isTokenExpiring(token)) {
-            await ClientAuth.refreshToken();
-          }
-        }
-      } catch (error) {
-        console.error('Token refresh failed:', error);
-        // If refresh fails, logout
-        logout();
-      }
-    }, TOKEN_REFRESH_INTERVAL);
-  }, [isAuthenticated]);
-
-  // Set access token and user data
-  const setAccessToken = useCallback(
-    (token: string) => {
-      const userData = ClientAuth.setAuth(token);
-
+      // Update user data if needed
+      const userData = ClientAuth.setAuth(newToken);
       if (userData) {
         setUser(userData);
-        setIsAuthenticated(true);
-        setupTokenRefresh();
       }
-    },
-    [setupTokenRefresh],
-  );
+
+      // Reset session expiry
+      updateSessionExpiry();
+
+      // No return value to match Promise<void> type
+    } catch (error) {
+      console.error('Failed to refresh token:', error);
+      // If token refresh fails, logout
+      await logout();
+      throw error;
+    }
+  }, [updateSessionExpiry]);
 
   // Client-side logout with proper error handling
   const logout = useCallback(async () => {
@@ -199,6 +238,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Always clear local state
       setUser(null);
       setIsAuthenticated(false);
+      setSessionExpiresAt(null);
       ClientAuth.clearAuth();
 
       // Redirect to home page
@@ -257,8 +297,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     isLoading,
     isAuthenticated,
+    sessionExpiresAt,
     setAccessToken,
     logout,
+    refreshToken,
     hasRole,
     hasPermission,
     fetchWithAuth,

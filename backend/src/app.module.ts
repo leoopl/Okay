@@ -19,6 +19,7 @@ import { JwtAuthGuard } from './core/auth/guards/jwt-auth.guard';
 import { MiddlewareModule } from './common/middleware/middleware.module';
 import { AuditMiddleware } from './common/middleware/audit.middleware';
 import { DataIsolationMiddleware } from './common/middleware/data-isolation.middleware';
+import { CsrfMiddleware } from './common/middleware/csrf.middleware';
 
 @Module({
   imports: [
@@ -74,6 +75,9 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     // Apply audit middleware globally
     consumer.apply(AuditMiddleware).forRoutes('*');
+
+    // Apply CSRF middleware
+    consumer.apply(CsrfMiddleware).forRoutes('*');
 
     // Apply data isolation middleware for authenticated routes
     consumer
