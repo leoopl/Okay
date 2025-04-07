@@ -99,7 +99,7 @@ export async function signin(
 
     // Refresh token is automatically handled by the API via HttpOnly cookie
 
-    redirect('/initialize');
+    redirect('/dashboard'); // Redirect to dashboard after successful login
   } catch (error: any) {
     console.error('Server-side login error:', error);
     return {
@@ -186,9 +186,7 @@ export async function signup(
       maxAge: loginResult.expiresIn || 900, // Default 15 min in seconds
     });
 
-    // Pass accessToken to client for auth initialization
-    const urlEncodedToken = encodeURIComponent(loginResult.accessToken);
-    redirect(`/initialize?token=${urlEncodedToken}`);
+    redirect('/dashboard'); // Redirect to dashboard after successful signup
   } catch (error: any) {
     console.error('Server-side signup error:', error);
     return {

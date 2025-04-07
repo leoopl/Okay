@@ -9,7 +9,6 @@ import * as cookieParser from 'cookie-parser';
 import { AuditMiddleware } from './common/middleware/audit.middleware';
 
 async function bootstrap() {
-  // Create NestJS app
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn', 'log', 'debug'],
   });
@@ -36,9 +35,11 @@ async function bootstrap() {
   // Set up CORS for frontend integration
   app.enableCors({
     origin: configService.get<string>('CORS_ORIGIN'),
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true, // Important for cookies/auth
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    exposedHeaders: ['Authorization'],
+    maxAge: 86400, // 24 hours
   });
 
   // Set global API prefix
@@ -73,7 +74,7 @@ async function bootstrap() {
   app.use(auditMiddleware.use.bind(auditMiddleware));
 
   // Start the server
-  const port = configService.get<number>('PORT', 3001);
+  const port = configService.get<number>('PORT');
   await app.listen(port);
   console.log(`Application is running on: ${await app.getUrl()}`);
   console.log(`API Documentation: ${await app.getUrl()}/api/docs`);

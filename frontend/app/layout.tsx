@@ -4,6 +4,7 @@ import { Varela_Round } from 'next/font/google';
 import Headers from '../components/Header';
 import Footer from '../components/Footer';
 import AuthProvider from '@/providers/auth-provider';
+import SessionInit from './(auth)/SessionInit';
 
 const varelaRound = Varela_Round({
   subsets: ['latin'],
@@ -67,6 +68,7 @@ export default function RootLayout({
       <head />
       <body className={`${varelaRound.variable} gradient-background min-h-screen antialiased`}>
         <AuthProvider>
+          <SessionInit />
           <Headers />
           {children}
           <Footer />
