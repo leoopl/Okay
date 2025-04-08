@@ -49,13 +49,22 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   const initializeAuth = useCallback(async () => {
     try {
       setIsLoading(true);
+      setError(null); // Clear any previous errors
 
       // Check for access token in cookies
       const accessToken = getAccessToken();
 
       if (!accessToken) {
-        setIsAuthenticated(false);
-        setUser(null);
+        // No access token found, try to refresh
+        const refreshed = await refreshAccessToken();
+        if (!refreshed) {
+          // If refresh failed, clear auth state
+          setIsAuthenticated(false);
+          setUser(null);
+          return;
+        }
+        // If refresh succeeded, try again with the new token
+        initializeAuth();
         return;
       }
 
@@ -66,12 +75,15 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         // Check if token is expired
         const now = Math.floor(Date.now() / 1000);
         if (decodedToken.exp && decodedToken.exp < now) {
+          console.log('Token expired, attempting refresh');
           // Try to refresh token
           const refreshed = await refreshAccessToken();
           if (!refreshed) {
+            console.log('Token refresh failed');
             clearAuthState();
             return;
           }
+          console.log('Token refreshed successfully');
           // If refresh successful, try to initialize again
           initializeAuth();
           return;
@@ -87,6 +99,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
           permissions: decodedToken.permissions || [],
         };
 
+        console.log('Authentication successful', userProfile);
         setUser(userProfile);
         setIsAuthenticated(true);
         setupTokenRefresh();

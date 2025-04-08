@@ -29,7 +29,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Get refresh token from cookie (must exist for authenticated user)
+  // Check for both access token and refresh token
+  const accessToken = request.cookies.get('access_token');
   const refreshToken = request.cookies.get('refresh_token');
 
   // If no refresh token, redirect to login
@@ -39,9 +40,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Get access token from client cookies (if present)
-  const accessToken = request.cookies.get('access_token');
-
+  // If access token exists, validate it
   if (accessToken) {
     try {
       // Decode token (not full verification - that happens on the API)
@@ -64,21 +63,13 @@ export function middleware(request: NextRequest) {
       // Allow access
       return NextResponse.next();
     } catch (error) {
-      // Invalid token
-      return NextResponse.redirect(new URL('/signin', request.url));
+      // If access token is invalid but refresh token exists,
+      // the client-side auth will handle refreshing the token
+      return NextResponse.next();
     }
   } else {
-    // No access token but has refresh token - let the client handle token refresh
-    // We'll check for CSRF token for any POST/PUT/DELETE requests
-    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) {
-      const csrfToken = request.headers.get('X-CSRF-Token');
-      const csrfCookie = request.cookies.get('csrf_token');
-
-      if (!csrfToken || !csrfCookie || csrfToken !== csrfCookie.value) {
-        return NextResponse.json({ error: 'CSRF token validation failed' }, { status: 403 });
-      }
-    }
-
+    // No access token but has refresh token
+    // Let client-side auth handle token refresh
     return NextResponse.next();
   }
 }

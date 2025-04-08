@@ -40,23 +40,25 @@ export class ApiError extends Error {
  */
 export async function refreshAccessToken(): Promise<boolean> {
   try {
-    const response = await fetch(`${API_URL}/auth/refresh`, {
+    // Use server-side route instead of calling the API directly
+    const response = await fetch('/api/auth/refresh', {
       method: 'POST',
-      credentials: 'include',
+      credentials: 'include', // Important to include cookies
       headers: {
         'Content-Type': 'application/json',
       },
     });
 
     if (!response.ok) {
+      console.error('Token refresh failed:', response.status);
       return false;
     }
 
     const data = await response.json();
 
-    // Update CSRF token in cookie
-    if (data.csrfToken) {
-      document.cookie = `csrf_token=${data.csrfToken}; path=/; samesite=lax`;
+    if (!data.success) {
+      console.error('Token refresh failed:', data.message);
+      return false;
     }
 
     return true;

@@ -122,7 +122,7 @@ export class TokenService {
       sameSite: 'lax',
       domain: this.cookieDomain,
       maxAge: this.parseTimeToMs(this.refreshTokenExpiration),
-      path: '/api/auth/refresh',
+      path: '/',
     });
   }
 
@@ -143,7 +143,7 @@ export class TokenService {
       sameSite: 'lax',
       domain: this.cookieDomain,
       maxAge: 0,
-      path: '/api/auth/refresh',
+      path: '/',
     });
   }
 
