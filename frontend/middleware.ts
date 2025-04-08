@@ -29,48 +29,42 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check for both access token and refresh token
+  // Check for access token - this is the key change!
+  // We're no longer looking for refresh_token since it's HttpOnly and not accessible
   const accessToken = request.cookies.get('access_token');
-  const refreshToken = request.cookies.get('refresh_token');
 
-  // If no refresh token, redirect to login
-  if (!refreshToken) {
+  // If no access token, redirect to login
+  if (!accessToken) {
     const url = new URL('/signin', request.url);
     url.searchParams.set('from', pathname);
     return NextResponse.redirect(url);
   }
 
-  // If access token exists, validate it
-  if (accessToken) {
-    try {
-      // Decode token (not full verification - that happens on the API)
-      const decodedToken: any = jwtDecode(accessToken.value);
+  try {
+    // Decode token (not full verification - that happens on the API)
+    const decodedToken: any = jwtDecode(accessToken.value);
 
-      // Check if token is expired
-      const now = Math.floor(Date.now() / 1000);
-      if (decodedToken.exp && decodedToken.exp < now) {
-        // Token expired - redirect to refresh flow
-        const url = new URL('/signin', request.url);
-        url.searchParams.set('expired', 'true');
-        return NextResponse.redirect(url);
-      }
-
-      // Check role for admin routes
-      if (isAdminRoute && (!decodedToken.roles || !decodedToken.roles.includes('admin'))) {
-        return NextResponse.redirect(new URL('/unauthorized', request.url));
-      }
-
-      // Allow access
-      return NextResponse.next();
-    } catch (error) {
-      // If access token is invalid but refresh token exists,
-      // the client-side auth will handle refreshing the token
-      return NextResponse.next();
+    // Check if token is expired
+    const now = Math.floor(Date.now() / 1000);
+    if (decodedToken.exp && decodedToken.exp < now) {
+      // Token expired - redirect to refresh flow
+      const url = new URL('/signin', request.url);
+      url.searchParams.set('expired', 'true');
+      return NextResponse.redirect(url);
     }
-  } else {
-    // No access token but has refresh token
-    // Let client-side auth handle token refresh
+
+    // Check role for admin routes
+    if (isAdminRoute && (!decodedToken.roles || !decodedToken.roles.includes('admin'))) {
+      return NextResponse.redirect(new URL('/unauthorized', request.url));
+    }
+
+    // Allow access
     return NextResponse.next();
+  } catch (error) {
+    // Invalid token, redirect to login
+    console.error('Token validation error:', error);
+    const url = new URL('/signin', request.url);
+    return NextResponse.redirect(url);
   }
 }
 

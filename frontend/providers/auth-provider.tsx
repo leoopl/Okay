@@ -45,6 +45,39 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   const [tokenRefreshInterval, setTokenRefreshInterval] = useState<NodeJS.Timeout | null>(null);
   const router = useRouter();
 
+  // Clear auth state
+  const clearAuthState = useCallback(() => {
+    setUser(null);
+    setIsAuthenticated(false);
+    if (tokenRefreshInterval) {
+      clearInterval(tokenRefreshInterval);
+      setTokenRefreshInterval(null);
+    }
+  }, [tokenRefreshInterval]);
+
+  // Set up automatic token refresh
+  const setupTokenRefresh = useCallback(() => {
+    if (tokenRefreshInterval) {
+      clearInterval(tokenRefreshInterval);
+    }
+
+    const intervalId = setInterval(async () => {
+      try {
+        const refreshed = await refreshAccessToken();
+        if (!refreshed) {
+          clearAuthState();
+          router.push('/signin?expired=true');
+        }
+      } catch (error) {
+        console.error('Token refresh failed:', error);
+        clearAuthState();
+        router.push('/signin?expired=true');
+      }
+    }, TOKEN_REFRESH_INTERVAL);
+
+    setTokenRefreshInterval(intervalId);
+  }, [clearAuthState, router]);
+
   // Initialize auth from access token in cookies
   const initializeAuth = useCallback(async () => {
     try {
@@ -55,14 +88,16 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       const accessToken = getAccessToken();
 
       if (!accessToken) {
+        console.log('No access token found, trying to refresh');
         // No access token found, try to refresh
         const refreshed = await refreshAccessToken();
         if (!refreshed) {
+          console.log('Token refresh failed');
           // If refresh failed, clear auth state
-          setIsAuthenticated(false);
-          setUser(null);
+          clearAuthState();
           return;
         }
+        console.log('Token refreshed successfully');
         // If refresh succeeded, try again with the new token
         initializeAuth();
         return;
@@ -114,40 +149,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [router]);
-
-  // Clear auth state
-  const clearAuthState = useCallback(() => {
-    setUser(null);
-    setIsAuthenticated(false);
-    if (tokenRefreshInterval) {
-      clearInterval(tokenRefreshInterval);
-      setTokenRefreshInterval(null);
-    }
-  }, [tokenRefreshInterval]);
-
-  // Set up automatic token refresh
-  const setupTokenRefresh = useCallback(() => {
-    if (tokenRefreshInterval) {
-      clearInterval(tokenRefreshInterval);
-    }
-
-    const intervalId = setInterval(async () => {
-      try {
-        const refreshed = await refreshAccessToken();
-        if (!refreshed) {
-          clearAuthState();
-          router.push('/signin?expired=true');
-        }
-      } catch (error) {
-        console.error('Token refresh failed:', error);
-        clearAuthState();
-        router.push('/signin?expired=true');
-      }
-    }, TOKEN_REFRESH_INTERVAL);
-
-    setTokenRefreshInterval(intervalId);
-  }, [clearAuthState, router]);
+  }, [clearAuthState, setupTokenRefresh]);
 
   // Set up session timeout for security
   useEffect(() => {

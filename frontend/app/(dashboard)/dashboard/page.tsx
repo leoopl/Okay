@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SecureContent } from '@/components/security/secure-content';
 import { ProtectedContent } from '@/components/auth/ProtectedRoute';
+import { useEffect } from 'react';
+import { logCookies } from '@/lib/utils';
 
 /**
  * Dashboard Page
@@ -15,6 +17,10 @@ import { ProtectedContent } from '@/components/auth/ProtectedRoute';
 export default function Dashboard() {
   const { isAuthenticated, user, logout, isLoading, error } = useAuth();
   const router = useRouter();
+
+  // useEffect(() => {
+  //   logCookies();
+  // }, []);
 
   const handleLogout = async () => {
     await logout();
