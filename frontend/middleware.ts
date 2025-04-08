@@ -69,6 +69,16 @@ export function middleware(request: NextRequest) {
     }
   } else {
     // No access token but has refresh token - let the client handle token refresh
+    // We'll check for CSRF token for any POST/PUT/DELETE requests
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) {
+      const csrfToken = request.headers.get('X-CSRF-Token');
+      const csrfCookie = request.cookies.get('csrf_token');
+
+      if (!csrfToken || !csrfCookie || csrfToken !== csrfCookie.value) {
+        return NextResponse.json({ error: 'CSRF token validation failed' }, { status: 403 });
+      }
+    }
+
     return NextResponse.next();
   }
 }
@@ -82,6 +92,6 @@ export const config = {
      * - static files (favicon, images, etc)
      * - auth-related pages
      */
-    '/((?!_next|api|favicon\\.ico|.*\\.(?:jpg|jpeg|gif|png|svg|webp)|signin|signup|initialize).*)',
+    '/((?!_next|api|favicon\\.ico|.*\\.(?:jpg|jpeg|gif|png|svg|webp)|signin|signup).*)',
   ],
 };

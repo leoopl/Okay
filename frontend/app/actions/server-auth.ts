@@ -4,7 +4,6 @@ import { cookies } from 'next/headers';
 import { SignupFormSchema, SigninFormSchema, AuthActionResponse } from '@/lib/definitions';
 import { redirect } from 'next/navigation';
 
-// API URL (server-side)
 const API_URL = process.env.API_URL;
 
 // Enhanced error handling for API responses
@@ -94,6 +93,19 @@ export async function signin(prevState: AuthActionResponse | undefined, formData
       maxAge: result.expiresIn || 900, // Default 15 min in seconds
     });
 
+    // Store CSRF token for use in future requests
+    if (result.csrfToken) {
+      (await cookies()).set({
+        name: 'csrf_token',
+        value: result.csrfToken,
+        httpOnly: false, // Must be accessible from JavaScript
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 24 * 60 * 60, // 24 hours
+      });
+    }
+
     // Refresh token is automatically handled by the API via HttpOnly cookie
   } catch (error: any) {
     console.error('Server-side login error:', error);
@@ -181,6 +193,19 @@ export async function signup(
       path: '/',
       maxAge: loginResult.expiresIn || 900, // Default 15 min in seconds
     });
+
+    // Store CSRF token
+    if (loginResult.csrfToken) {
+      (await cookies()).set({
+        name: 'csrf_token',
+        value: loginResult.csrfToken,
+        httpOnly: false, // Must be accessible from JavaScript
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 24 * 60 * 60, // 24 hours
+      });
+    }
   } catch (error: any) {
     console.error('Server-side signup error:', error);
     return {
@@ -196,9 +221,25 @@ export async function signup(
  * Server action to handle logout
  */
 export async function logout(): Promise<{ success: boolean; redirectUrl?: string }> {
+  try {
+    // Call the API to invalidate the token server-side
+    await fetch(`${API_URL}/auth/logout`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        // Include CSRF token from cookie
+        'X-CSRF-Token': (await cookies()).get('csrf_token')?.value || '',
+      },
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+  }
+
   // Clear the cookies
   (await cookies()).delete('access_token');
-  (await cookies()).delete('refresh_token');
+  (await cookies()).delete('csrf_token');
+  // refresh_token is cleared by the API via HttpOnly cookie
 
   redirect('/');
 }
