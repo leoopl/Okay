@@ -7,6 +7,7 @@ import Link from 'next/link';
 import logo from '../public/logo.png';
 import UserButton from './UserButton';
 import Logo from './Logo';
+import { useAuth } from '@/providers/auth-provider';
 
 interface Page {
   name: string;
@@ -43,6 +44,8 @@ const pages: Page[] = [
 ];
 
 const Header: React.FC = () => {
+  const { user } = useAuth();
+  console.log(user);
   return (
     <header className="shadow-soft-xs">
       <nav
@@ -70,12 +73,16 @@ const Header: React.FC = () => {
           ))}
         </div>
         <div className="hidden lg:flex lg:items-center">
-          <Link
-            href="/signin"
-            className="hover:text-yellow-dark text-lg font-semibold text-gray-900"
-          >
-            Login
-          </Link>
+          {user ? (
+            <UserButton />
+          ) : (
+            <Link
+              href="/signin"
+              className="hover:text-yellow-dark text-lg font-semibold text-gray-900"
+            >
+              Login
+            </Link>
+          )}
         </div>
         {/* <div className="flex items-center"> */}
         <div className="flex lg:hidden">
@@ -113,12 +120,16 @@ const Header: React.FC = () => {
                     {page.name}
                   </Link>
                 ))}
-                <Link
-                  href="/login"
-                  className="hover:bg-yellow-dark/40 block rounded-md px-3 py-2 text-base font-medium text-gray-900"
-                >
-                  Log in
-                </Link>
+                {user ? (
+                  <></>
+                ) : (
+                  <Link
+                    href="/signin"
+                    className="hover:bg-yellow-dark/40 block rounded-md px-3 py-2 text-base font-medium text-gray-900"
+                  >
+                    Login
+                  </Link>
+                )}
               </div>
             </SheetContent>
           </Sheet>

@@ -92,45 +92,6 @@ export async function generateEncryptionKey(): Promise<CryptoKey> {
 }
 
 /**
- * Safely wipe sensitive data from memory
- * @param data Object containing sensitive data
- */
-export function secureClearData(data: any): void {
-  if (!data) return;
-
-  if (typeof data === 'string') {
-    // Overwrite strings with random data before clearing
-    const length = data.length;
-    const random = Array(length)
-      .fill(0)
-      .map(() => String.fromCharCode(Math.floor(Math.random() * 94) + 32))
-      .join('');
-
-    // This is a hack that may or may not work depending on JavaScript engine
-    // but it's better than nothing
-    data = random;
-    data = '';
-    return;
-  }
-
-  if (typeof data === 'object') {
-    // Handle arrays
-    if (Array.isArray(data)) {
-      for (let i = 0; i < data.length; i++) {
-        secureClearData(data[i]);
-        data[i] = null;
-      }
-    } else {
-      // Handle objects
-      Object.keys(data).forEach((key) => {
-        secureClearData(data[key]);
-        data[key] = null;
-      });
-    }
-  }
-}
-
-/**
  * Set up automatic session timeout for security
  * @param onTimeout Callback function to execute when timeout occurs
  * @param timeoutMs Timeout in milliseconds (defaults to 15 minutes)

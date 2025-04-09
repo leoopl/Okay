@@ -21,9 +21,9 @@ export function ProtectedContent({
   requiredPermission,
   fallback = null,
 }: ProtectedContentProps) {
-  const { isAuthenticated, hasRole, hasPermission } = useAuth();
+  const { isAuth, hasRole, hasPermission } = useAuth();
 
-  if (!isAuthenticated) {
+  if (!isAuth) {
     return fallback;
   }
 

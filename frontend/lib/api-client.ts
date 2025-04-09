@@ -35,39 +35,6 @@ export class ApiError extends Error {
   }
 }
 
-/**
- * Refresh the access token using the refresh token
- */
-export async function refreshAccessToken(): Promise<boolean> {
-  try {
-    // Use server-side route instead of calling the API directly
-    const response = await fetch('/api/auth/refresh', {
-      method: 'POST',
-      credentials: 'include', // Important to include cookies
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      console.error('Token refresh failed:', response.status);
-      return false;
-    }
-
-    const data = await response.json();
-
-    if (!data.success) {
-      console.error('Token refresh failed:', data.message);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Token refresh error:', error);
-    return false;
-  }
-}
-
 export class ApiClient {
   /**
    * Make an authenticated request to the API
@@ -152,12 +119,7 @@ export class ApiClient {
       }
 
       // Handle empty responses
-      if (response.status === 204) {
-        return {} as T;
-      }
-
-      // Parse JSON response
-      return await response.json();
+      return response.status === 204 ? ({} as T) : await response.json();
     } catch (error) {
       // Already handled API errors
       if (error instanceof ApiError) {

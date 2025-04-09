@@ -4,6 +4,7 @@ import { Varela_Round } from 'next/font/google';
 import Headers from '../components/Header';
 import Footer from '../components/Footer';
 import AuthProvider from '@/providers/auth-provider';
+import { getServerSession, logout } from './actions/server-auth';
 
 const varelaRound = Varela_Round({
   subsets: ['latin'],
@@ -56,17 +57,23 @@ export const viewport: Viewport = {
   themeColor: '#fbe5a8',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getServerSession();
+  let isAuth = false;
+  if (user) {
+    isAuth = true;
+  }
+
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <link rel="manifest" href="/manifest.json" />
       <head />
       <body className={`${varelaRound.variable} gradient-background min-h-screen antialiased`}>
-        <AuthProvider>
+        <AuthProvider initialUser={user} isAuthenticated={isAuth} logoutFunction={logout}>
           <Headers />
           {children}
           <Footer />

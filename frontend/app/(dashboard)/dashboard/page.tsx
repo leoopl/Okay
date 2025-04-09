@@ -1,26 +1,24 @@
 'use client';
 
 import { useAuth } from '@/providers/auth-provider';
-import { useRouter } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import { LogOut, User, Shield, LogIn, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SecureContent } from '@/components/security/secure-content';
 import { ProtectedContent } from '@/components/auth/ProtectedRoute';
-import { useEffect } from 'react';
-import { logCookies } from '@/lib/utils';
 
 /**
  * Dashboard Page
  * Demonstrates authentication integration and secure content display
  */
 export default function Dashboard() {
-  const { isAuthenticated, user, logout, isLoading, error } = useAuth();
+  const { user, isAuth, logout } = useAuth();
   const router = useRouter();
 
-  // useEffect(() => {
-  //   logCookies();
-  // }, []);
+  if (!user) {
+    redirect('/signin');
+  }
 
   const handleLogout = async () => {
     await logout();
@@ -31,21 +29,12 @@ export default function Dashboard() {
     router.push('/signin');
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <Loader2 className="text-primary h-8 w-8 animate-spin" />
-        <span className="ml-2">Loading...</span>
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto p-6">
       <h1 className="mb-6 text-3xl font-bold">Dashboard</h1>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {isAuthenticated && user ? (
+        {isAuth && user ? (
           <>
             <Card>
               <CardHeader>
@@ -64,7 +53,6 @@ export default function Dashboard() {
                 </Button>
               </CardContent>
             </Card>
-
             <ProtectedContent requiredRole="admin">
               <Card className="bg-yellow-light/30">
                 <CardHeader>
@@ -76,25 +64,15 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
             </ProtectedContent>
-
-            {isLoading ? (
-              <div className="flex items-center space-x-2">
-                <Loader2 className="h-5 w-5 animate-spin" />
-                <span>Loading profile data...</span>
-              </div>
-            ) : error ? (
-              <div className="text-red-500">{error}</div>
-            ) : (
-              <SecureContent
-                title="Your Profile Information"
-                description="This data is encrypted for your privacy"
-                sensitivityLevel="medium"
-              >
-                <pre className="bg-muted/50 overflow-auto rounded-md p-4 text-sm">
-                  {JSON.stringify(user, null, 2)}
-                </pre>
-              </SecureContent>
-            )}
+            <SecureContent
+              title="Your Profile Information"
+              description="This data is encrypted for your privacy"
+              sensitivityLevel="medium"
+            >
+              <pre className="bg-muted/50 overflow-auto rounded-md p-4 text-sm">
+                {JSON.stringify(user, null, 2)}
+              </pre>
+            </SecureContent>
           </>
         ) : (
           <Card>

@@ -1,8 +1,14 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { SignupFormSchema, SigninFormSchema, AuthActionResponse } from '@/lib/definitions';
+import {
+  SignupFormSchema,
+  SigninFormSchema,
+  AuthActionResponse,
+  UserProfile,
+} from '@/lib/definitions';
 import { redirect } from 'next/navigation';
+import { jwtDecode } from 'jwt-decode';
 
 const API_URL = process.env.API_URL;
 
@@ -220,7 +226,7 @@ export async function signup(
 /**
  * Server action to handle logout
  */
-export async function logout(): Promise<{ success: boolean; redirectUrl?: string }> {
+export async function logout(): Promise<void> {
   try {
     // Call the API to invalidate the token server-side
     await fetch(`${API_URL}/auth/logout`, {
@@ -243,3 +249,123 @@ export async function logout(): Promise<{ success: boolean; redirectUrl?: string
 
   redirect('/');
 }
+
+/**
+ * Validate token and return user data (server-side only)
+ * @returns User profile if authenticated, null otherwise
+ */
+export async function getServerSession(): Promise<UserProfile | null> {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get('access_token')?.value;
+
+  // No token, no session
+  if (!accessToken) {
+    return null;
+  }
+
+  try {
+    // Decode token to get basic info and check expiration
+    const decoded: any = jwtDecode(accessToken);
+
+    // Check if token is expired
+    const now = Math.floor(Date.now() / 1000);
+    if (decoded.exp && decoded.exp < now) {
+      // Token is expired - try to refresh
+      const refreshed = await refreshServerToken();
+      if (!refreshed) {
+        return null;
+      }
+
+      // If refresh succeeded, try again with the new token
+      return getServerSession();
+    }
+
+    // Create user profile from token data
+    const userProfile: UserProfile = {
+      id: decoded.sub,
+      email: decoded.email,
+      name: decoded.name || '',
+      surname: decoded.surname || '',
+      roles: decoded.roles || [],
+      permissions: decoded.permissions || [],
+    };
+
+    return userProfile;
+  } catch (error) {
+    console.error('Error validating token:', error);
+    return null;
+  }
+}
+
+/**
+ * Refresh the access token using the refresh token (server-side only)
+ * @returns boolean indicating if refresh was successful
+ */
+export async function refreshServerToken(): Promise<boolean> {
+  try {
+    // Make server-to-server request to refresh token
+    const response = await fetch(`${API_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: cookies().toString(),
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = await response.json();
+
+    if (!data.accessToken) {
+      return false;
+    }
+
+    // Set the new access token in a cookie
+    (await cookies()).set({
+      name: 'access_token',
+      value: data.accessToken,
+      httpOnly: false, // Must be false to be accessible by client JS
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: data.expiresIn || 900, // Default 15 min in seconds
+    });
+
+    // Set the new CSRF token if provided
+    if (data.csrfToken) {
+      (await cookies()).set({
+        name: 'csrf_token',
+        value: data.csrfToken,
+        httpOnly: false, // Must be accessible by client JS
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 24 * 60 * 60, // 24 hours
+      });
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Server token refresh error:', error);
+    return false;
+  }
+}
+
+// /**
+//  * Helper function to require authentication for a route
+//  * Use this in server components to ensure user is authenticated
+//  * @param redirectTo Optional redirect path if not authenticated
+//  * @returns User profile data
+//  */
+// export async function requireAuth(redirectTo: string = '/signin'): Promise<UserProfile> {
+//   const session = await getServerSession();
+
+//   if (!session) {
+//     redirect(redirectTo);
+//   }
+
+//   return session;
+// }

@@ -5,66 +5,66 @@ import { jwtDecode } from 'jwt-decode';
 // Define routes that require authentication
 const protectedRoutes = ['/dashboard', '/profile', '/journal', '/inventory'];
 
-// Define routes that are accessible only for specific roles
-const adminRoutes = [
-  '/admin',
-  // Add admin-only routes here
-];
+const authRoutes = ['/signin', '/signup'];
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+export default async function middleware(req: NextRequest) {
+  const path = req.nextUrl.pathname;
 
-  // Check if the route is protected
-  const isProtectedRoute = protectedRoutes.some(
-    (route) => pathname === route || pathname.startsWith(`${route}/`),
-  );
+  const isProtectedRoute = protectedRoutes.includes(path);
 
-  // Check if the route is admin-only
-  const isAdminRoute = adminRoutes.some(
-    (route) => pathname === route || pathname.startsWith(`${route}/`),
-  );
+  const isAuthRoute = authRoutes.includes(path);
+
+  // Check for access token
+  // No longer looking for refresh_token since it's HttpOnly and not accessible
+  const accessToken = req.cookies.get('access_token');
+
+  // Redirect to /dashboard if the user is authenticated
+  if (accessToken && isAuthRoute && !req.nextUrl.pathname.startsWith('/dashboard')) {
+    try {
+      // Decode token to check if it's valid
+      const decodedToken: any = jwtDecode(accessToken.value);
+      console.log('Decoded token:', decodedToken);
+
+      // Check if token is expired
+      const now = Math.floor(Date.now() / 1000);
+      if (decodedToken.exp && decodedToken.exp > now) {
+        return NextResponse.redirect(new URL('/dashboard', req.nextUrl));
+      }
+    } catch (error) {
+      console.error('Token decode error in middleware:', error);
+      return NextResponse.redirect(new URL('/signin', req.nextUrl));
+    }
+  }
 
   // Skip middleware for non-protected routes
-  if (!isProtectedRoute && !isAdminRoute) {
+  if (!isProtectedRoute) {
     return NextResponse.next();
   }
 
-  // Check for access token - this is the key change!
-  // We're no longer looking for refresh_token since it's HttpOnly and not accessible
-  const accessToken = request.cookies.get('access_token');
-
-  // If no access token, redirect to login
-  if (!accessToken) {
-    const url = new URL('/signin', request.url);
-    url.searchParams.set('from', pathname);
-    return NextResponse.redirect(url);
+  if (!accessToken && isProtectedRoute) {
+    return NextResponse.redirect(new URL('/signin', req.nextUrl));
   }
 
-  try {
-    // Decode token (not full verification - that happens on the API)
-    const decodedToken: any = jwtDecode(accessToken.value);
+  if (accessToken) {
+    try {
+      // Decode token (not full verification - that happens on the API)
+      const decodedToken: any = jwtDecode(accessToken.value);
 
-    // Check if token is expired
-    const now = Math.floor(Date.now() / 1000);
-    if (decodedToken.exp && decodedToken.exp < now) {
-      // Token expired - redirect to refresh flow
-      const url = new URL('/signin', request.url);
-      url.searchParams.set('expired', 'true');
-      return NextResponse.redirect(url);
+      // Check if token is expired
+      const now = Math.floor(Date.now() / 1000);
+      if (decodedToken.exp && decodedToken.exp < now) {
+        // Token expired - redirect to refresh flow
+        req.nextUrl.searchParams.set('expired', 'true');
+        return NextResponse.redirect(new URL('/signin', req.nextUrl));
+      }
+
+      // Allow access
+      return NextResponse.next();
+    } catch (error) {
+      // Invalid token, redirect to login
+      console.error('Token validation error:', error);
+      return NextResponse.redirect(new URL('/signin', req.nextUrl));
     }
-
-    // Check role for admin routes
-    if (isAdminRoute && (!decodedToken.roles || !decodedToken.roles.includes('admin'))) {
-      return NextResponse.redirect(new URL('/unauthorized', request.url));
-    }
-
-    // Allow access
-    return NextResponse.next();
-  } catch (error) {
-    // Invalid token, redirect to login
-    console.error('Token validation error:', error);
-    const url = new URL('/signin', request.url);
-    return NextResponse.redirect(url);
   }
 }
 
@@ -77,6 +77,6 @@ export const config = {
      * - static files (favicon, images, etc)
      * - auth-related pages
      */
-    '/((?!_next|api|favicon\\.ico|.*\\.(?:jpg|jpeg|gif|png|svg|webp)|signin|signup).*)',
+    '/((?!_next|api|favicon\\.ico|_next/static|_next/image|.*\\.(?:jpg|jpeg|gif|png|svg|webp)).*)',
   ],
 };
