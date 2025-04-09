@@ -32,6 +32,6 @@ import { getJwtModuleOptions } from './auth-module.config';
   ],
   controllers: [AuthController],
   providers: [AuthService, TokenService, OAuthService, JwtStrategy],
-  exports: [AuthService, TokenService, OAuthService],
+  exports: [AuthService, TokenService, OAuthService, JwtStrategy],
 })
 export class AuthModule {}

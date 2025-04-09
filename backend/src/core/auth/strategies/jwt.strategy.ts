@@ -3,12 +3,19 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { TokenPayload } from '../services/token.service';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { TokenBlacklist } from '../entities/token-blacklist.entity';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   private readonly logger = new Logger(JwtStrategy.name);
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    @InjectRepository(TokenBlacklist)
+    private tokenBlacklistRepository: Repository<TokenBlacklist>,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -22,32 +29,16 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     this.logger.debug(`Validating JWT payload: ${JSON.stringify(payload)}`);
 
     try {
-      // circular dependency error BUG TO FIX
-      // Check if token is blacklisted
-      // const isBlacklisted = await this.tokenService.isTokenBlacklisted(
-      //   payload.jti,
-      // );
-      // if (isBlacklisted) {
-      //   throw new UnauthorizedException('Token has been revoked');
-      // }
+      // Check if token is blacklisted directly without TokenService
+      if (payload.jti) {
+        const blacklistedToken = await this.tokenBlacklistRepository.findOne({
+          where: { jti: payload.jti },
+        });
 
-      // // Ensure user exists in our database
-      // const user = await this.userService.findOne(payload.sub);
-
-      // if (!user) {
-      //   throw new UnauthorizedException('User not found');
-      // }
-
-      // // Get user roles
-      // const roles = user.roles?.map((role) => role.name) || [];
-
-      // // Get user permissions from roles
-      // const permissionSet = new Set<string>();
-      // user.roles?.forEach((role) => {
-      //   role.permissions?.forEach((permission) => {
-      //     permissionSet.add(permission.name);
-      //   });
-      // });
+        if (blacklistedToken) {
+          throw new UnauthorizedException('Token has been revoked');
+        }
+      }
 
       return {
         userId: payload.sub,
@@ -55,6 +46,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         roles: payload.roles || [],
         permissions: payload.permissions || [],
         jti: payload.jti,
+        exp: payload.exp,
       };
     } catch (error) {
       this.logger.error(`JWT validation error: ${error.message}`, error.stack);

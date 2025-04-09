@@ -21,6 +21,7 @@ export interface TokenPayload {
   jti?: string; // JWT ID for revocation tracking
   aud?: string; // Audience
   iss?: string; // Issuer
+  exp?: number; // Expiration time
 }
 
 @Injectable()

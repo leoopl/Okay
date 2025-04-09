@@ -64,6 +64,7 @@ export async function signin(prevState: AuthActionResponse | undefined, formData
 
   try {
     const credentials = validatedFields.data;
+    console.log('Making login request to API');
 
     // Make secure server-to-server request with proper error handling
     const response = await fetch(`${API_URL}/auth/login`, {
@@ -87,9 +88,11 @@ export async function signin(prevState: AuthActionResponse | undefined, formData
       };
     }
 
+    console.log('Login successful, setting cookies');
+
     // Set the access token in a secure cookie for client retrieval
-    // This is a more secure approach than localStorage
-    (await cookies()).set({
+    const cookieStore = await cookies();
+    cookieStore.set({
       name: 'access_token',
       value: result.accessToken,
       httpOnly: false, // Must be false to be accessible by clientAuth
@@ -101,7 +104,8 @@ export async function signin(prevState: AuthActionResponse | undefined, formData
 
     // Store CSRF token for use in future requests
     if (result.csrfToken) {
-      (await cookies()).set({
+      console.log('Setting CSRF token cookie');
+      cookieStore.set({
         name: 'csrf_token',
         value: result.csrfToken,
         httpOnly: false, // Must be accessible from JavaScript
@@ -110,6 +114,8 @@ export async function signin(prevState: AuthActionResponse | undefined, formData
         path: '/',
         maxAge: 24 * 60 * 60, // 24 hours
       });
+    } else {
+      console.warn('No CSRF token received from API');
     }
 
     // Refresh token is automatically handled by the API via HttpOnly cookie
@@ -120,6 +126,8 @@ export async function signin(prevState: AuthActionResponse | undefined, formData
       message: 'An unexpected error occurred. Please try again later.',
     };
   }
+
+  console.log('Redirecting to dashboard');
   redirect('/dashboard');
 }
 
