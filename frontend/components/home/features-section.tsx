@@ -1,5 +1,5 @@
 import React from 'react';
-import FeatureCard from './FeatureCard';
+import FeatureCard from './feature-card';
 import { Brain, Users, Wind, BookOpen, Pencil, CheckSquare, Heart, Pill } from 'lucide-react';
 
 const FeaturesSection: React.FC = () => {

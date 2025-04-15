@@ -5,7 +5,7 @@ import { Menu } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import logo from '../public/logo.png';
-import UserButton from './UserButton';
+import UserButton from './user-button';
 import Logo from './Logo';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -19,7 +19,7 @@ const pages: Page[] = [
   {
     name: 'Recursos e informações',
     description: 'Conheça o seu inimigo e como combatê-lo',
-    href: '/information',
+    href: '/blog',
   },
   {
     name: 'Técnica de respiração',

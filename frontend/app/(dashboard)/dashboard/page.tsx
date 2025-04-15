@@ -6,7 +6,7 @@ import { LogOut, User, Shield, LogIn, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SecureContent } from '@/components/security/secure-content';
-import { ProtectedContent } from '@/components/auth/ProtectedRoute';
+import { ProtectedContent } from '@/components/auth/protected-route';
 
 /**
  * Dashboard Page

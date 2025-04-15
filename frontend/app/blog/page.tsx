@@ -1,28 +1,14 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
-import data from '../../data/information.json';
-import IllnessCard from '../../components/IllnessCard';
-import { GetStaticPaths } from 'next';
-import { badgeVariants } from '@/components/ui/badge';
+import { BlogList } from '@/components/blog/blog-list';
 
-interface IIllnessData {
-  id: number;
-  redirection: string;
-  illness: string;
-  image: string;
-  description: string;
-}
-type Post = {
-  id: string;
-  title: string;
-  content: string;
-  references: string[];
-  createdAt: string;
-};
-
-const InformationPage: React.FC = () => {
-  const illnessData: IIllnessData[] = data;
+export default function BlogPage({
+  searchParams,
+}: {
+  searchParams: { tag?: string; search?: string };
+}) {
+  const tag = searchParams.tag || '';
+  const search = searchParams.search || '';
 
   return (
     <div className="min-h-screen px-4 py-8">
@@ -35,7 +21,7 @@ const InformationPage: React.FC = () => {
             <p className="text-base text-gray-700">
               Encontre informações sobre diversas condições de saúde mental.
             </p>
-            <nav className="flex flex-wrap gap-2">
+            {/* <nav className="flex flex-wrap gap-2">
               {illnessData.map((item) => (
                 <Link
                   key={item.id}
@@ -44,8 +30,16 @@ const InformationPage: React.FC = () => {
                 >
                   {item.illness}
                 </Link>
+                // <Button
+                //   key={item.id}
+                //   variant="outline"
+                //   className="size-min rounded-xl bg-transparent text-xs"
+                //   href={`#${item.redirection}`}
+                // >
+                //   {item.illness}
+                // </Button>
               ))}
-            </nav>
+            </nav> */}
           </div>
 
           <div className="flex justify-center">
@@ -61,28 +55,11 @@ const InformationPage: React.FC = () => {
         </div>
 
         <div className="mt-12">
-          {illnessData.map((item, index) => (
-            <IllnessCard key={item.id} item={item} reverseLayout={index % 2 !== 0} />
-          ))}
+          <Suspense fallback={<div className="py-12 text-center">Loading articles...</div>}>
+            <BlogList tag={tag} search={search} />
+          </Suspense>
         </div>
       </div>
     </div>
   );
-};
-
-// export const getStaticPaths: GetStaticPaths = async () => {
-//   // Fetch all post IDs from your API
-//   const res = await fetch('https://your-api.com/posts');
-//   const posts: Post[] = await res.json();
-
-//   const paths = posts.map((post) => ({
-//     params: { id: post.id },
-//   }));
-
-//   return {
-//     paths,
-//     fallback: 'blocking', // or false if you want a 404 for not found pages
-//   };
-// };
-
-export default InformationPage;
+}
