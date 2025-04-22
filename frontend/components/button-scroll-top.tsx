@@ -24,7 +24,7 @@ const ButtonScrollTop = () => {
       <button
         onClick={handleScrollTop}
         aria-label="Scroll to top"
-        className="bg-yellow-medium text-beige-dark hover:bg-yellow-light rounded-full p-2 transition-all"
+        className="bg-yellow-medium text-beige-dark hover:bg-yellow-light cursor-pointer rounded-full p-2 transition-all"
       >
         <ArrowUpIcon size={24} />
       </button>

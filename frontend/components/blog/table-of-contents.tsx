@@ -1,47 +1,40 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
-interface TableOfContentsProps {
-  content: string;
-}
-
-interface Heading {
+interface TOCEntry {
   id: string;
   text: string;
   level: number;
 }
 
-export function TableOfContents({ content }: TableOfContentsProps) {
-  const [headings, setHeadings] = useState<Heading[]>([]);
+function extractHeadings(content: string): TOCEntry[] {
+  // Regular expression to match markdown headings
+  const headingRegex = /^(#{1,6})\s+(.+)$/gm;
+  const headings: TOCEntry[] = [];
+
+  let match;
+  while ((match = headingRegex.exec(content)) !== null) {
+    const level = match[1].length;
+    const text = match[2].trim();
+    const id = text
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/--+/g, '-');
+
+    headings.push({ id, text, level });
+  }
+
+  return headings;
+}
+
+export function TableOfContents({ content }: { content: string }) {
   const [activeId, setActiveId] = useState<string>('');
+  const headings = extractHeadings(content);
 
-  // Extract headings from markdown content
   useEffect(() => {
-    const extractHeadings = () => {
-      const headingRegex = /^(#{1,3})\s+(.+)$/gm;
-      const matches = [...content.matchAll(headingRegex)];
-
-      return matches.map((match, index) => {
-        const level = match[1].length;
-        const text = match[2];
-        const id = text
-          .toLowerCase()
-          .replace(/[^\w\s]/g, '')
-          .replace(/\s+/g, '-');
-
-        return { id, text, level };
-      });
-    };
-
-    setHeadings(extractHeadings());
-  }, [content]);
-
-  // Track active heading based on scroll position
-  useEffect(() => {
-    if (headings.length === 0) return;
-
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -53,44 +46,34 @@ export function TableOfContents({ content }: TableOfContentsProps) {
       { rootMargin: '0px 0px -80% 0px' },
     );
 
-    headings.forEach((heading) => {
-      const element = document.getElementById(heading.id);
-      if (element) observer.observe(element);
-    });
+    const headingElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    headingElements.forEach((element) => observer.observe(element));
 
     return () => {
-      headings.forEach((heading) => {
-        const element = document.getElementById(heading.id);
-        if (element) observer.unobserve(element);
-      });
+      headingElements.forEach((element) => observer.unobserve(element));
     };
-  }, [headings]);
+  }, []);
 
   if (headings.length === 0) {
-    return <div className="text-[#91857A] italic">No sections found</div>;
+    return null;
   }
 
   return (
-    <nav className="space-y-2">
-      {headings.map((heading) => (
-        <a
-          key={heading.id}
-          href={`#${heading.id}`}
-          className={cn(
-            'block text-[#91857A] transition-colors hover:text-[#039BE5]',
-            heading.level === 1 && 'font-medium',
-            heading.level === 2 && 'pl-4',
-            heading.level === 3 && 'pl-8 text-sm',
-            activeId === heading.id && 'font-medium text-[#039BE5]',
-          )}
-          onClick={(e) => {
-            e.preventDefault();
-            document.getElementById(heading.id)?.scrollIntoView({ behavior: 'smooth' });
-          }}
-        >
-          {heading.text}
-        </a>
-      ))}
+    <nav className="table-of-contents text-sm">
+      <ul className="space-y-1">
+        {headings.map((heading) => (
+          <li
+            key={heading.id}
+            className={`${
+              heading.level > 2 ? 'ml-' + (heading.level - 2) * 3 : ''
+            } ${activeId === heading.id ? 'text-green-dark font-semibold' : 'text-gray-600 hover:text-gray-900'}`}
+          >
+            <Link href={`#${heading.id}`} className="block py-1 transition-colors">
+              {heading.text}
+            </Link>
+          </li>
+        ))}
+      </ul>
     </nav>
   );
 }

@@ -40,6 +40,11 @@ export function getBlogPosts() {
   return getMDXData(path.join(process.cwd(), 'app', 'blog', 'content'));
 }
 
+export function getBlogPostBySlug(slug: string) {
+  const posts = getBlogPosts();
+  return posts.find((post) => post.slug === slug);
+}
+
 // Format date in Brazilian style (dd/mm/yyyy) with optional relative time in Portuguese
 export function formatDate(date: string, includeRelative = false): string {
   const currentDate = new Date();

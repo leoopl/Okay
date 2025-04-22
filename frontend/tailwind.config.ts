@@ -3,10 +3,10 @@ import type { Config } from 'tailwindcss';
 export default {
   darkMode: 'class',
   content: [
-    './pages/**/*.{ts,tsx,mdx}',
-    './components/**/*.{ts,tsx,mdx}',
-    './app/**/*.{ts,tsx,mdx}',
-    './src/**/*.{ts,tsx,mdx}',
+    './pages/**/*.{ts,tsx,md,mdx}',
+    './components/**/*.{ts,tsx,md,mdx}',
+    './app/**/*.{ts,tsx,md,mdx}',
+    './src/**/*.{ts,tsx,md,mdx}',
   ],
   theme: {
     // Tailwind v4 flattens the theme structure

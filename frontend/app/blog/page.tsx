@@ -2,13 +2,34 @@ import React, { Suspense } from 'react';
 import Image from 'next/image';
 import { BlogList } from '@/components/blog/blog-list';
 
-export default function BlogPage({
-  searchParams,
-}: {
-  searchParams: { tag?: string; search?: string };
-}) {
-  const tag = searchParams.tag || '';
-  const search = searchParams.search || '';
+import data from '../../data/information.json';
+import Link from 'next/link';
+import { badgeVariants } from '@/components/ui/badge';
+
+interface BlogPageProps {
+  searchParams: Promise<{ tag?: string; search?: string }>;
+}
+
+interface IIllnessData {
+  id: number;
+  redirection: string;
+  illness: string;
+  image: string;
+  description: string;
+}
+type Post = {
+  id: string;
+  title: string;
+  content: string;
+  references: string[];
+  createdAt: string;
+};
+
+export default async function BlogPage({ searchParams }: BlogPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const tag = resolvedSearchParams?.tag || '';
+  const search = resolvedSearchParams?.search || '';
+  const illnessData: IIllnessData[] = data;
 
   return (
     <div className="min-h-screen px-4 py-8">
@@ -21,25 +42,27 @@ export default function BlogPage({
             <p className="text-base text-gray-700">
               Encontre informações sobre diversas condições de saúde mental.
             </p>
-            {/* <nav className="flex flex-wrap gap-2">
+            <nav className="flex flex-wrap gap-2">
               {illnessData.map((item) => (
-                <Link
-                  key={item.id}
-                  className={badgeVariants({ variant: 'outline' })}
-                  href={`#${item.redirection}`}
-                >
-                  {item.illness}
-                </Link>
-                // <Button
+                // <Link
                 //   key={item.id}
-                //   variant="outline"
-                //   className="size-min rounded-xl bg-transparent text-xs"
+                //   className={badgeVariants({ variant: 'outline' })}
                 //   href={`#${item.redirection}`}
                 // >
                 //   {item.illness}
-                // </Button>
+                // </Link>
+                <button
+                  key={item.id}
+                  className={badgeVariants({
+                    variant: 'outline',
+                    className:
+                      'hover:bg-yellow-dark cursor-pointer select-none focus:ring-offset-1',
+                  })}
+                >
+                  {item.illness}
+                </button>
               ))}
-            </nav> */}
+            </nav>
           </div>
 
           <div className="flex justify-center">

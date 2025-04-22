@@ -84,9 +84,9 @@ const Header: React.FC = () => {
             </Link>
           )}
         </div>
-        {/* <div className="flex items-center"> */}
+
+        {/* Mobile Menu Button */}
         <div className="flex lg:hidden">
-          {/* Mobile Menu Button */}
           <Sheet>
             <SheetTrigger asChild>
               <button
@@ -94,14 +94,13 @@ const Header: React.FC = () => {
                 className="inline-flex items-center justify-center rounded-md p-2 text-gray-700 focus:ring-2 focus:outline-none focus:ring-inset"
                 aria-label="Open main menu"
               >
-                <Menu className="size-6" aria-hidden="true" />
+                <Menu className="size-6 cursor-pointer" aria-hidden="true" />
               </button>
             </SheetTrigger>
-            <SheetContent side="right" className="bg-yellow-light/90 p-4">
+            <SheetContent side="right" className="bg-green-light p-4">
               <SheetTitle>
                 <Link href="/" className="flex items-center">
-                  <Image src={logo} alt="Okay" width={15} height={15} />
-                  <span className="font-varela ml-4 text-2xl font-bold text-gray-900">Okay!</span>
+                  <Logo />
                 </Link>
               </SheetTitle>
               <div className="flex items-center justify-between">
@@ -134,8 +133,6 @@ const Header: React.FC = () => {
             </SheetContent>
           </Sheet>
         </div>
-        {/* <UserButton />
-        </div> */}
       </nav>
     </header>
   );

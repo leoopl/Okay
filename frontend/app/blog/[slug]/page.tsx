@@ -1,74 +1,113 @@
 import ButtonScrollTop from '@/components/button-scroll-top';
-import React from 'react';
-import MdxLayout from '@/components/mdx-layout';
-import { formatDate, getBlogPosts } from '../util';
+import { formatDate, getBlogPostBySlug, getBlogPosts } from '../util';
 import { notFound } from 'next/navigation';
-import { CustomMDX } from '@/components/mdx';
+import { Metadata } from 'next';
+import MdxComponent from '@/components/mdx';
+import { TableOfContents } from '@/components/blog/table-of-contents';
+import { Badge } from '@/components/ui/badge';
+import { Suspense } from 'react';
 
+type Props = {
+  params: Promise<{ slug: string }>;
+};
+
+// Generate static paths for all blog posts
 export async function generateStaticParams() {
-  let posts = getBlogPosts();
-
+  const posts = getBlogPosts();
   return posts.map((post) => ({
     slug: post.slug,
   }));
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  // In case params was a promise in a future scenario:
-  const { slug } = await Promise.resolve(params);
-  let post = getBlogPosts().find((post) => post.slug === slug);
-  if (!post) {
-    return;
+// Generate metadata for each blog post
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  try {
+    const resolvedParams = await params;
+    const post = getBlogPostBySlug(resolvedParams.slug);
+
+    if (!post) {
+      return {
+        title: 'Post Not Found',
+        description: 'The requested blog post could not be found',
+      };
+    }
+
+    return {
+      title: post.metadata.title,
+      description: post.metadata.summary,
+    };
+  } catch (error) {
+    console.error('Error generating metadata:', error);
+    return {
+      title: 'Error',
+      description: 'An error occurred while loading the post',
+    };
   }
-
-  let { title, summary: description } = post.metadata;
-
-  return {
-    title,
-    description,
-  };
 }
 
-export default function BlogPostPage({ params }: { params: { slug: string } }) {
-  let post = getBlogPosts().find((post) => post.slug === params.slug);
-
-  if (!post) {
-    notFound();
-  }
+function BlogPostContent({ post }: { post: any }) {
   return (
-    // section bg-white/20
-    <section className="bg-beige-light/80 container mx-auto max-w-4xl px-4 py-8 shadow-2xl">
+    <section className="container mx-auto max-w-4xl px-4 py-8 shadow-2xl">
       <ButtonScrollTop />
-      <article className="divide-gray-medium mx-auto max-w-3xl divide-y">
-        <header className="mb-8">
-          <h1 className="font-varela text-green-dark mb-1 text-5xl font-bold">
-            {post.metadata.title}
-          </h1>
-          <time dateTime={post.metadata.publishedAt}>{formatDate(post.metadata.publishedAt)}</time>
-        </header>
-        <div>
-          <MdxLayout>
-            <CustomMDX source={post.content} />
-          </MdxLayout>
+      <div className="lg:grid lg:grid-cols-4 lg:gap-8">
+        <div className="hidden lg:col-span-1 lg:block">
+          <div className="sticky top-8">
+            <h2 className="text-green-dark mb-4 text-lg font-bold">Neste artigo</h2>
+            <TableOfContents content={post.content} />
+          </div>
         </div>
-        <div className="mt-8">
+        <article className="divide-gray-medium mx-auto divide-y lg:col-span-3">
+          <header className="mb-8">
+            <h1 className="font-varela text-green-dark mb-1 text-5xl font-bold">
+              {post.metadata.title}
+            </h1>
+            <time dateTime={post.metadata.publishedAt} className="text-beige-dark text-sm italic">
+              {formatDate(post.metadata.publishedAt)}
+            </time>
+            <span className="text-beige-dark"> • </span>
+            <span className="text-beige-dark text-sm italic">
+              {post.metadata.readingTime} min de leitura.
+            </span>
+          </header>
+
+          <div className="py-6">
+            <MdxComponent content={post.content} />
+          </div>
+
           {post.metadata.tags && post.metadata.tags.length > 0 && (
             <footer className="pt-5">
-              <h2 className="font-varela mb-4 text-xl font-semibold text-black">Tags</h2>
               <div className="flex flex-wrap gap-2">
-                {post.metadata.tags.map((tag: string, idx) => (
-                  <p
-                    key={idx}
-                    className="text-green-dark hover:bg-green-medium rounded-sm px-4 py-2 text-sm font-medium hover:text-white"
-                  >
-                    {tag}
-                  </p>
+                {post.metadata.tags.map((tag: string, idx: number) => (
+                  <Badge key={idx} variant="outline">
+                    <span className="text-grey-dark text-sm font-semibold italic">{tag}</span>
+                  </Badge>
                 ))}
               </div>
             </footer>
           )}
-        </div>
-      </article>
+        </article>
+      </div>
     </section>
   );
+}
+export default async function BlogPostPage({ params }: Props) {
+  try {
+    const resolvedParams = await params;
+    const post = getBlogPostBySlug(resolvedParams.slug);
+
+    if (!post) {
+      notFound();
+    }
+
+    return (
+      <Suspense
+        fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}
+      >
+        <BlogPostContent post={post} />
+      </Suspense>
+    );
+  } catch (error) {
+    console.error('Error loading blog post:', error);
+    notFound();
+  }
 }

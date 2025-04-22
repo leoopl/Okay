@@ -2,7 +2,7 @@ import React from 'react';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import Image from 'next/image';
 import Link from 'next/link';
-// import { highlight } from 'sugar-high';
+import { highlight } from 'sugar-high';
 
 function Blockquote(props: any) {
   return (
@@ -14,10 +14,9 @@ function Blockquote(props: any) {
 }
 
 function Code({ children, ...props }: any) {
-  return;
-  //   let codeHTML = highlight(children);
+  let codeHTML = highlight(children);
 
-  //   return <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />;
+  return <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />;
 }
 
 function CustomLink(props: any) {
