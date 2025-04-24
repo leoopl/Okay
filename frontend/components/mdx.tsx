@@ -1,3 +1,5 @@
+'use server';
+
 import React from 'react';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import Image from 'next/image';
@@ -102,6 +104,6 @@ let components = {
   Table,
 };
 
-export function CustomMDX(props: any) {
+export async function CustomMDX(props: any) {
   return <MDXRemote {...props} components={{ ...components, ...(props.components || {}) }} />;
 }

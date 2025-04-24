@@ -1,6 +1,6 @@
 'use server';
-import CustomMDX from '@/components/mdx';
+import { MDXRemote } from 'next-mdx-remote/rsc';
 
-export default async function TestMDX() {
-  return <CustomMDX source="# Hello World" />;
+export default async function Home() {
+  return <MDXRemote source="# Hello World" />;
 }

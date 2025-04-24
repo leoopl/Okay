@@ -2,9 +2,7 @@
 
 import { Sheet, SheetContent, SheetClose, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
-import logo from '../public/logo.png';
 import UserButton from './user-button';
 import Logo from './Logo';
 import { useAuth } from '@/providers/auth-provider';
@@ -45,7 +43,7 @@ const pages: Page[] = [
 
 const Header: React.FC = () => {
   const { user } = useAuth();
-  console.log(user);
+  // console.log(user);
   return (
     <header className="shadow-soft-xs">
       <nav
@@ -53,10 +51,8 @@ const Header: React.FC = () => {
         className="mx-auto flex max-w-full items-center justify-between p-4 sm:px-6 lg:px-8"
       >
         <div className="flex items-center">
-          <Link href="/" passHref legacyBehavior>
-            <a className="flex items-center">
-              <Logo size="lg" />
-            </a>
+          <Link href="/" passHref>
+            <Logo size="lg" />
           </Link>
         </div>
 
@@ -66,7 +62,7 @@ const Header: React.FC = () => {
             <Link
               key={page.name}
               href={page.href}
-              className="hover:text-yellow-dark text-lg font-semibold text-gray-900 transition-colors"
+              className="hover:text-yellow-dark font-varela text-lg text-gray-900 transition-colors"
             >
               {page.name}
             </Link>
@@ -78,7 +74,7 @@ const Header: React.FC = () => {
           ) : (
             <Link
               href="/signin"
-              className="hover:text-yellow-dark text-lg font-semibold text-gray-900"
+              className="hover:text-yellow-dark font-varela text-lg font-semibold text-gray-900"
             >
               Login
             </Link>
@@ -114,7 +110,7 @@ const Header: React.FC = () => {
                   <Link
                     key={page.name}
                     href={page.href}
-                    className="hover:bg-yellow-dark/40 block rounded-md px-3 py-2 text-base font-medium text-gray-900"
+                    className="hover:bg-yellow-dark/40 block rounded-md px-3 py-2 text-base font-medium text-black"
                   >
                     {page.name}
                   </Link>

@@ -2,7 +2,7 @@ import ButtonScrollTop from '@/components/button-scroll-top';
 import { formatDate, getBlogPostBySlug, getBlogPosts } from '../util';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import CustomMDX from '@/components/mdx';
+import { CustomMDX } from '@/components/mdx';
 import { TableOfContents } from '@/components/blog/table-of-contents';
 import { Badge } from '@/components/ui/badge';
 import { Suspense } from 'react';
@@ -46,6 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 function BlogPostContent({ post }: { post: any }) {
+  console.log(post.content);
   return (
     <section className="container mx-auto max-w-4xl px-4 py-8 shadow-2xl">
       <ButtonScrollTop />
@@ -70,9 +71,9 @@ function BlogPostContent({ post }: { post: any }) {
             </span>
           </header>
 
-          <div className="py-6">
-            <CustomMDX content={post.content} />
-          </div>
+          <article className="prose prose-headings:mt-8 prose-headings:font-semibold prose-headings:text-yellow-dark prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-p:text-black max-w-full py-6">
+            <CustomMDX source={post.content} />
+          </article>
 
           {post.metadata.tags && post.metadata.tags.length > 0 && (
             <footer className="pt-5">
