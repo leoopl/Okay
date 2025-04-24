@@ -2,7 +2,7 @@ import ButtonScrollTop from '@/components/button-scroll-top';
 import { formatDate, getBlogPostBySlug, getBlogPosts } from '../util';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import MdxComponent from '@/components/mdx';
+import CustomMDX from '@/components/mdx';
 import { TableOfContents } from '@/components/blog/table-of-contents';
 import { Badge } from '@/components/ui/badge';
 import { Suspense } from 'react';
@@ -71,7 +71,7 @@ function BlogPostContent({ post }: { post: any }) {
           </header>
 
           <div className="py-6">
-            <MdxComponent content={post.content} />
+            <CustomMDX content={post.content} />
           </div>
 
           {post.metadata.tags && post.metadata.tags.length > 0 && (

@@ -22,25 +22,6 @@ const genders = ['Masculino', 'Feminino', 'Outro', 'Prefiro não dizer'];
 
 const SignupPage: React.FC = () => {
   const [state, action, isPending] = useActionState(signup, undefined);
-  // async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-  //   event.preventDefault();
-
-  //   // server side
-  //   const formData = new FormData(event.currentTarget);
-
-  //   // client side
-  //   const data = {
-  //     name: formData.get('name') as string,
-  //     surname: formData.get('surname') as string,
-  //     email: formData.get('email') as string,
-  //     password: formData.get('password') as string,
-  //     confirmPassword: formData.get('confirm') as string,
-  //     birthdate: formData.get('birthdate') as string,
-  //     gender: formData.get('gender') as string,
-  //   };
-
-  //   console.log(data);
-  // }
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
@@ -173,6 +154,7 @@ const SignupPage: React.FC = () => {
             className="object-contain"
             priority
             src="/signup.svg"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         </div>
       </div>

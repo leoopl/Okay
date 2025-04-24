@@ -132,6 +132,9 @@ const Breathing: React.FC = () => {
               height={500}
               className="mx-auto"
               priority
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              // placeholder="blur" Add placeholder for non-SVG images
+              // blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAEtgJyBzPZIQAAAABJRU5ErkJggg=="
             />
           </div>
         </div>

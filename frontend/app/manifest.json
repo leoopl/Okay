@@ -3,15 +3,33 @@
   "background_color": "#b6cfb8",
   "icons": [
     {
-      "purpose": "ios",
+      "purpose": "any maskable",
       "sizes": "512x512",
-      "src": "public/ios-512.png",
+      "src": "/icon.png",
       "type": "image/png"
     },
     {
-      "purpose": "android",
-      "sizes": "512x512",
-      "src": "public/android-512.png",
+      "purpose": "any",
+      "sizes": "192x192",
+      "src": "/icon.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "any",
+      "sizes": "384x384",
+      "src": "/icon.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "maskable",
+      "sizes": "192x192",
+      "src": "/icon.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "apple",
+      "sizes": "180x180",
+      "src": "/icon.png",
       "type": "image/png"
     }
   ],
@@ -19,9 +37,22 @@
   "display": "standalone",
   "dir": "auto",
   "lang": "pt-BR",
-  "name": "Okay",
+  "name": "Okay - Mental Health Support",
   "short_name": "Okay",
-  "description": "Your mental health it's Okay?",
+  "description": "Support for your mental health journey with resources, tools and guidance",
   "start_url": "/",
-  "scope": "/"
+  "scope": "/",
+  "shortcuts": [
+    {
+      "name": "Breathing Techniques",
+      "url": "/breathing",
+      "description": "Practice breathing exercises"
+    },
+    {
+      "name": "Mental Health Resources",
+      "url": "/blog",
+      "description": "Read articles about mental health"
+    }
+  ],
+  "categories": ["health", "lifestyle", "medical"]
 }

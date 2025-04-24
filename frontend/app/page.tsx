@@ -2,6 +2,7 @@ import Image from 'next/image';
 import tree from '../public/tree.png';
 import type { NextPage } from 'next';
 import FeaturesSection from '@/components/home/features-section';
+import Testimonials from '@/components/home/testimonials-section';
 
 const Home: NextPage = () => {
   return (
@@ -30,11 +31,13 @@ const Home: NextPage = () => {
               fill
               className="object-cover"
               priority
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </div>
         </div>
       </div>
       <FeaturesSection />
+      <Testimonials />
     </div>
   );
 };

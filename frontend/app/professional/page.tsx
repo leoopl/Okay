@@ -58,6 +58,7 @@ const ProfessionalPage: React.FC = () => {
               src={professional.photo}
               className="object-contain"
               priority
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
             <h2 className="small-caps font-varela text-center text-lg leading-9 font-bold tracking-tight text-gray-900">
               {professional.name}

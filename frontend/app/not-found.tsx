@@ -28,6 +28,7 @@ const NotFound: React.FC = () => {
             src={`/404_error_${randomInt(4)}.svg`}
             className="object-contain"
             priority
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         </div>
       </div>

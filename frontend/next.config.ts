@@ -1,10 +1,13 @@
 import type { NextConfig } from 'next';
 import withPWAInit from '@ducanh2912/next-pwa';
-import createMDX from '@next/mdx';
 
 const withPWA = withPWAInit({
   dest: 'public',
   disable: process.env.NODE_ENV === 'development',
+  register: true,
+  fallbacks: {
+    document: '/offline',
+  },
 });
 
 // Production security headers
@@ -56,19 +59,11 @@ const devSecurityHeaders = [
   },
 ];
 
-const withMDX = createMDX({
-  extension: /\.(md|mdx)$/,
-  options: {
-    remarkPlugins: [],
-    rehypePlugins: [],
-  },
-});
-
 /**
  * @type {import('next').NextConfig}
  */
 const nextConfig: NextConfig = {
-  pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx'],
   async headers() {
     return [
       {
@@ -82,4 +77,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWA(withMDX(nextConfig));
+export default withPWA(nextConfig);
