@@ -7,11 +7,12 @@ interface BlogListProps {
 }
 
 export async function BlogList({ tag, search }: BlogListProps) {
-  const allPosts = getBlogPosts();
+  // Need to await the Promise
+  const allPosts = await getBlogPosts();
 
   // Filter articles based on tag and search
   const filteredPosts = allPosts.filter((post) => {
-    const matchesTag = tag ? post.metadata.tags.includes(tag) : true;
+    const matchesTag = tag ? post.metadata.tags?.includes(tag) : true;
     const matchesSearch = search
       ? post.metadata.title.toLowerCase().includes(search.toLowerCase()) ||
         post.metadata.summary.toLowerCase().includes(search.toLowerCase())

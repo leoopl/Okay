@@ -32,7 +32,7 @@ const BlogCard = ({ slug, metadata, reverseLayout }: BlogCardProps) => {
       <div className={`flex-1 ${reverseLayout ? 'md:order-1' : 'md:order-2'} flex justify-center`}>
         <Image
           src={metadata.image || '/thinking.svg'}
-          alt={metadata.title} // Improved alt text
+          alt={metadata.title}
           width={400}
           height={400}
           className="object-contain"

@@ -3,19 +3,21 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
-interface TOCEntry {
+interface TOCItem {
   id: string;
   text: string;
   level: number;
 }
 
-function extractHeadings(content: string): TOCEntry[] {
-  // Regular expression to match markdown headings
+function extractHeadingsFromMarkdown(markdown: string): TOCItem[] {
+  if (!markdown) return [];
+
+  // Extract headings from markdown text
   const headingRegex = /^(#{1,6})\s+(.+)$/gm;
-  const headings: TOCEntry[] = [];
+  const headings: TOCItem[] = [];
 
   let match;
-  while ((match = headingRegex.exec(content)) !== null) {
+  while ((match = headingRegex.exec(markdown)) !== null) {
     const level = match[1].length;
     const text = match[2].trim();
     const id = text
@@ -30,11 +32,55 @@ function extractHeadings(content: string): TOCEntry[] {
   return headings;
 }
 
-export function TableOfContents({ content }: { content: string }) {
+export function TableOfContents({ rawContent }: { rawContent?: string }) {
+  const [headings, setHeadings] = useState<TOCItem[]>([]);
   const [activeId, setActiveId] = useState<string>('');
-  const headings = extractHeadings(content);
 
+  // Try to extract headings from markdown if available
   useEffect(() => {
+    if (rawContent) {
+      const extractedHeadings = extractHeadingsFromMarkdown(rawContent);
+      if (extractedHeadings.length > 0) {
+        setHeadings(extractedHeadings);
+      } else {
+        // Fallback to DOM detection if markdown parsing fails
+        detectHeadingsFromDOM();
+      }
+    } else {
+      // If no raw content, try DOM detection
+      detectHeadingsFromDOM();
+    }
+  }, [rawContent]);
+
+  // Function to detect headings from DOM
+  const detectHeadingsFromDOM = () => {
+    setTimeout(() => {
+      const articleElement = document.querySelector('article.prose');
+      if (!articleElement) return;
+
+      const headingElements = articleElement.querySelectorAll('h1, h2, h3, h4, h5, h6');
+      const domHeadings: TOCItem[] = [];
+
+      headingElements.forEach((el) => {
+        const level = parseInt(el.tagName.charAt(1));
+        const text = el.textContent || '';
+        const id = el.id || '';
+
+        if (id && text) {
+          domHeadings.push({ id, text, level });
+        }
+      });
+
+      if (domHeadings.length > 0) {
+        setHeadings(domHeadings);
+      }
+    }, 500); // Wait for content to render
+  };
+
+  // Set up intersection observer to track active heading
+  useEffect(() => {
+    if (headings.length === 0) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -46,13 +92,22 @@ export function TableOfContents({ content }: { content: string }) {
       { rootMargin: '0px 0px -80% 0px' },
     );
 
-    const headingElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
-    headingElements.forEach((element) => observer.observe(element));
+    headings.forEach(({ id }) => {
+      const element = document.getElementById(id);
+      if (element) {
+        observer.observe(element);
+      }
+    });
 
     return () => {
-      headingElements.forEach((element) => observer.unobserve(element));
+      headings.forEach(({ id }) => {
+        const element = document.getElementById(id);
+        if (element) {
+          observer.unobserve(element);
+        }
+      });
     };
-  }, []);
+  }, [headings]);
 
   if (headings.length === 0) {
     return null;

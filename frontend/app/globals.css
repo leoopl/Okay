@@ -41,7 +41,8 @@
     /* Border & UI elements - Soft, unobtrusive */
     --border: 220 15% 82%; /* #cbcfd7 */
     --input: 220 15% 82%; /* #cbcfd7 */
-    --ring: 228 8% 66%; /* #a3a6b0 */
+    --ring: 201 79% 70%; /* #a3a6b0 */
+    /* --ring: 228 8% 66%; #a3a6b0 */
 
     /* Chart colors - aligned with your color selections */
     --chart-1: 41 94% 58%; /* #f9c22e */

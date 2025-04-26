@@ -20,7 +20,7 @@ const ButtonScrollTop = () => {
   };
 
   return (
-    <div className={`fixed right-8 bottom-8 hidden ${show ? 'md:flex' : 'md:hidden'}`}>
+    <div className={`fixed right-10 bottom-12 hidden ${show ? 'md:flex' : 'md:hidden'}`}>
       <button
         onClick={handleScrollTop}
         aria-label="Scroll to top"

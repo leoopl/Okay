@@ -1,35 +1,19 @@
 import React, { Suspense } from 'react';
 import Image from 'next/image';
 import { BlogList } from '@/components/blog/blog-list';
-
-import data from '../../data/information.json';
-import Link from 'next/link';
 import { badgeVariants } from '@/components/ui/badge';
+import { TagFilter } from '@/components/blog/tag-filter';
+import SearchInput from '@/components/search-input';
 
 interface BlogPageProps {
-  searchParams: Promise<{ tag?: string; search?: string }>;
+  searchParams: { tag?: string; search?: string } | Promise<{ tag?: string; search?: string }>;
 }
-
-interface IIllnessData {
-  id: number;
-  redirection: string;
-  illness: string;
-  image: string;
-  description: string;
-}
-type Post = {
-  id: string;
-  title: string;
-  content: string;
-  references: string[];
-  createdAt: string;
-};
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
-  const resolvedSearchParams = await searchParams;
-  const tag = resolvedSearchParams?.tag || '';
-  const search = resolvedSearchParams?.search || '';
-  const illnessData: IIllnessData[] = data;
+  // Need to await the searchParams
+  const resolvedParams = await Promise.resolve(searchParams);
+  const tag = resolvedParams?.tag || '';
+  const search = resolvedParams?.search || '';
 
   return (
     <div className="min-h-screen px-4 py-8">
@@ -43,25 +27,8 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
               Encontre informações sobre diversas condições de saúde mental.
             </p>
             <nav className="flex flex-wrap gap-2">
-              {illnessData.map((item) => (
-                // <Link
-                //   key={item.id}
-                //   className={badgeVariants({ variant: 'outline' })}
-                //   href={`#${item.redirection}`}
-                // >
-                //   {item.illness}
-                // </Link>
-                <button
-                  key={item.id}
-                  className={badgeVariants({
-                    variant: 'outline',
-                    className:
-                      'hover:bg-yellow-dark cursor-pointer select-none focus:ring-offset-1',
-                  })}
-                >
-                  {item.illness}
-                </button>
-              ))}
+              {/* <SearchInput defaultValue={search} /> */}
+              <TagFilter selectedTag={tag} />
             </nav>
           </div>
 

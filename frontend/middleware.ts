@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtDecode } from 'jwt-decode';
 
-// Define routes that require authentication
-const protectedRoutes = ['/dashboard', '/profile', '/journal', '/inventory'];
+// Define routes that require authentication'/profile'
+const protectedRoutes = ['/dashboard', '/journal', '/inventory'];
 
 const authRoutes = ['/signin', '/signup'];
 

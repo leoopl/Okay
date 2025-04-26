@@ -1,51 +1,98 @@
 import fs from 'fs';
 import path from 'path';
-import matter from 'gray-matter';
+import { compileMDX } from 'next-mdx-remote/rsc';
+import { getComponents } from '@/components/mdx';
 
 export type Metadata = {
   title: string;
-  author: string;
+  author?: string;
   publishedAt: string;
   summary: string;
-  image: string;
-  tags: string[];
-  readingTime: number;
+  image?: string;
+  tags?: string[];
+  readingTime?: number;
 };
 
-function getMDXFiles(dir: string) {
-  return fs.readdirSync(dir).filter((file) => path.extname(file) === '.mdx');
-}
-// Read data from those files
-function readMDXFile(filePath: fs.PathOrFileDescriptor) {
-  let rawContent = fs.readFileSync(filePath, 'utf-8');
-  return matter(rawContent);
-}
-// present the mdx data and metadata
-function getMDXData(dir: string) {
-  let mdxFiles = getMDXFiles(dir);
+export async function getBlogPostBySlug(slug: string) {
+  try {
+    // Make sure we have a valid slug
+    if (!slug) {
+      console.error('No slug provided to getBlogPostBySlug');
+      return null;
+    }
 
-  return mdxFiles.map((file) => {
-    let { data: metadata, content } = readMDXFile(path.join(dir, file));
-    let slug = path.basename(file, path.extname(file));
+    // Build the file path
+    const contentDir = path.join(process.cwd(), 'app', 'blog', 'content');
+    const filePath = path.join(contentDir, `${slug}.mdx`);
 
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      console.error(`File not found: ${filePath}`);
+      return null;
+    }
+
+    // Read the file content
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+
+    // Log the first 100 characters to verify content is being read
+    // console.log(`Reading file ${filePath}, first 100 chars: ${fileContent.substring(0, 100)}`);
+
+    // Get components for MDX
+    const components = await getComponents();
+
+    // Compile the MDX content
+    const { content, frontmatter } = await compileMDX<Metadata>({
+      source: fileContent,
+      options: { parseFrontmatter: true },
+      components,
+    });
+
+    // Return the compiled content and metadata
     return {
-      metadata: metadata as Metadata,
+      metadata: frontmatter,
       slug,
       content,
+      rawContent: fileContent, // Include the raw content for TableOfContents
     };
-  });
+  } catch (error) {
+    console.error(`Error getting blog post for slug "${slug}":`, error);
+    return null;
+  }
 }
 
-export function getBlogPosts() {
-  return getMDXData(path.join(process.cwd(), 'app', 'blog', 'content'));
+export async function getBlogPosts() {
+  try {
+    // Get the content directory
+    const contentDir = path.join(process.cwd(), 'app', 'blog', 'content');
+
+    // Check if directory exists
+    if (!fs.existsSync(contentDir)) {
+      console.error(`Content directory not found: ${contentDir}`);
+      return [];
+    }
+
+    // Get all MDX files
+    const mdxFiles = fs.readdirSync(contentDir).filter((file) => file.endsWith('.mdx'));
+
+    // Log found files
+    // console.log(`Found ${mdxFiles.length} MDX files in ${contentDir}`);
+
+    // Get post data for each file
+    const posts = [];
+    for (const file of mdxFiles) {
+      const slug = path.basename(file, '.mdx');
+      const post = await getBlogPostBySlug(slug);
+      if (post) posts.push(post);
+    }
+
+    return posts;
+  } catch (error) {
+    console.error('Error getting blog posts:', error);
+    return [];
+  }
 }
 
-export function getBlogPostBySlug(slug: string) {
-  const posts = getBlogPosts();
-  return posts.find((post) => post.slug === slug);
-}
-
-// Format date in Brazilian style (dd/mm/yyyy) with optional relative time in Portuguese
+// Format date function remains the same
 export function formatDate(date: string, includeRelative = false): string {
   const currentDate = new Date();
   if (!date.includes('T')) {

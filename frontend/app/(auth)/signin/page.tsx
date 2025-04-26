@@ -70,7 +70,7 @@ const SigninPage: React.FC = () => {
                 autoComplete="current-password"
                 required
                 placeholder="Senha"
-                className="focus:border-green-dark focus:ring-green-dark block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md sm:text-sm"
+                className="block w-full rounded-md border-gray-500 bg-transparent px-3 py-2 text-gray-900 shadow-md sm:text-sm"
               />
               {state?.errors?.password && (
                 <p className="mt-1 text-sm text-red-500">{state.errors.password[0]}</p>

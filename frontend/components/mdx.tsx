@@ -6,6 +6,17 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { highlight } from 'sugar-high';
 
+function slugify(str: string) {
+  return str
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-') // Replace spaces with -
+    .replace(/&/g, '-and-') // Replace & with and
+    .replace(/[^\w\s-]/g, '') // Remove all non-word chars
+    .replace(/--+/g, '-'); // Replace multiple - with single -
+}
+
 function Blockquote(props: any) {
   return (
     <blockquote
@@ -17,7 +28,6 @@ function Blockquote(props: any) {
 
 function Code({ children, ...props }: any) {
   let codeHTML = highlight(children);
-
   return <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />;
 }
 
@@ -43,42 +53,35 @@ function RoundedImage(props: any) {
   return <Image alt={props.alt} className="rounded-lg" {...props} />;
 }
 
-function slugify(str: string) {
-  return str
-    .toString()
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-') // Replace spaces with -
-    .replace(/&/g, '-and-') // Replace & with and
-    .replace(/\-\-+/g, '-'); // Replace multiple - with single -
-}
-
 function createHeading(level: number) {
-  const Heading = ({ children }: any) => {
-    let slug = slugify(children);
+  return function Heading({ children, ...props }: any) {
+    // Convert children to string for slugify if needed
+    const childrenStr =
+      typeof children === 'string' ? children : Array.isArray(children) ? children.join(' ') : '';
 
-    return React.createElement(
-      `h${level}`,
-      { id: slug },
-      [
-        React.createElement('a', {
-          href: `#${slug}`,
-          key: `link-${slug}`,
-          className: 'anchor',
-        }),
-      ],
+    // Generate ID from content
+    const id = props.id || slugify(childrenStr);
+
+    return React.createElement(`h${level}`, { id, ...props }, [
+      React.createElement('a', {
+        href: `#${id}`,
+        key: `link-${id}`,
+        className: 'anchor',
+      }),
       children,
-    );
+    ]);
   };
-
-  Heading.displayName = `Heading${level}`;
-  return Heading;
 }
 
 function Table({ data }: any) {
-  let headers = data.headers.map((header: any, index: any) => <th key={index}>{header}</th>);
-
-  let rows = data.rows.map((cell: any, cellIndex: any) => <td key={cellIndex}>{cell}</td>);
+  let headers = data.headers.map((header: any, index: number) => <th key={index}>{header}</th>);
+  let rows = data.rows.map((row: any[], rowIndex: number) => (
+    <tr key={rowIndex}>
+      {row.map((cell, cellIndex) => (
+        <td key={cellIndex}>{cell}</td>
+      ))}
+    </tr>
+  ));
 
   return (
     <table>
@@ -90,7 +93,8 @@ function Table({ data }: any) {
   );
 }
 
-let components = {
+// Don't export this object when 'use server' is active - make it a constant instead
+const mdxComponents = {
   h1: createHeading(1),
   h2: createHeading(2),
   h3: createHeading(3),
@@ -105,5 +109,10 @@ let components = {
 };
 
 export async function CustomMDX(props: any) {
-  return <MDXRemote {...props} components={{ ...components, ...(props.components || {}) }} />;
+  return <MDXRemote {...props} components={{ ...mdxComponents, ...(props.components || {}) }} />;
+}
+
+// Export a function to get the components that can be used elsewhere
+export async function getComponents() {
+  return mdxComponents;
 }

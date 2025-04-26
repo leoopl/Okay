@@ -54,6 +54,7 @@ const devSecurityHeaders = [
  */
 const nextConfig: NextConfig = {
   pageExtensions: ['js', 'jsx', 'ts', 'tsx'],
+  transpilePackages: ['next-mdx-remote'],
   async headers() {
     return [
       {
