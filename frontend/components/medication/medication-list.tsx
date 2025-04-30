@@ -134,49 +134,6 @@ export default function MedicationList() {
                       </div>
                     )} */}
                   </div>
-
-                  {/* <div className="flex justify-between bg-[#CBCFD7]/10 p-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="border-[#ABB899] text-[#7F9463] hover:bg-[#D1DBC3]/20"
-                      onClick={() => handleOpenLogDose(medication.id)}
-                    >
-                      Log Dose
-                    </Button>
-                    <div className="flex space-x-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-[#797D89] hover:bg-green-50 hover:text-green-500"
-                        onClick={() => handleQuickLog(medication.id, 'taken')}
-                        title="Mark as taken"
-                      >
-                        <CheckCircle className="h-4 w-4" />
-                        <span className="sr-only">Mark as taken</span>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-[#797D89] hover:bg-amber-50 hover:text-amber-500"
-                        onClick={() => handleQuickLog(medication.id, 'delayed')}
-                        title="Mark as delayed"
-                      >
-                        <Clock className="h-4 w-4" />
-                        <span className="sr-only">Mark as delayed</span>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-[#797D89] hover:bg-red-50 hover:text-red-500"
-                        onClick={() => handleQuickLog(medication.id, 'skipped')}
-                        title="Mark as skipped"
-                      >
-                        <XCircle className="h-4 w-4" />
-                        <span className="sr-only">Mark as skipped</span>
-                      </Button>
-                    </div>
-                  </div> */}
                 </CardContent>
                 <CardFooter className="flex justify-between bg-[#CBCFD7]/10 p-4">
                   {(medication.notes || medication.instructions) && (

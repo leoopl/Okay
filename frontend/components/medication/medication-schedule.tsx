@@ -149,29 +149,48 @@ const MedicationSchedule: React.FC<TodayScheduleProps> = ({ medications, doseLog
                         </p>
                       )}
                     </div>
-                    <div className="flex gap-2">
+
+                    <div className="flex justify-between bg-[#CBCFD7]/10 p-4">
                       <Button
-                        size="sm"
                         variant="outline"
-                        onClick={() =>
-                          handleLogDose(dose.medication.id, dose.scheduledTime, 'taken')
-                        }
-                        className="bg-green-500/10 text-green-700 hover:bg-green-500/20"
-                      >
-                        <Check className="mr-1 h-4 w-4" />
-                        Take
-                      </Button>
-                      <Button
                         size="sm"
-                        variant="outline"
-                        onClick={() =>
-                          handleLogDose(dose.medication.id, dose.scheduledTime, 'skipped')
-                        }
-                        className="bg-red-500/10 text-red-700 hover:bg-red-500/20"
+                        className="border-[#ABB899] text-[#7F9463] hover:bg-[#D1DBC3]/20"
+                        onClick={() => handleOpenLogDose(medication.id)}
                       >
-                        <X className="mr-1 h-4 w-4" />
-                        Skip
+                        Log Dose
                       </Button>
+                      <div className="flex space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-[#797D89] hover:bg-green-50 hover:text-green-500"
+                          onClick={() => handleQuickLog(medication.id, 'taken')}
+                          title="Mark as taken"
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                          <span className="sr-only">Mark as taken</span>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-[#797D89] hover:bg-amber-50 hover:text-amber-500"
+                          onClick={() => handleQuickLog(medication.id, 'delayed')}
+                          title="Mark as delayed"
+                        >
+                          <Clock className="h-4 w-4" />
+                          <span className="sr-only">Mark as delayed</span>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-[#797D89] hover:bg-red-50 hover:text-red-500"
+                          onClick={() => handleQuickLog(medication.id, 'skipped')}
+                          title="Mark as skipped"
+                        >
+                          <XCircle className="h-4 w-4" />
+                          <span className="sr-only">Mark as skipped</span>
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
