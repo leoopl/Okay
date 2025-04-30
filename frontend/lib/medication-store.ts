@@ -186,10 +186,21 @@ export const useMedicationStore = create<MedicationState>((set, get) => ({
 
       // Format dates for API
       const formattedMedication = {
-        ...medication,
+        name: medication.name,
+        dosage: medication.dosage,
+        form: medication.form,
         startDate: format(medication.startDate, 'yyyy-MM-dd'),
         endDate: medication.endDate ? format(medication.endDate, 'yyyy-MM-dd') : undefined,
+        notes: medication.notes,
+        instructions: medication.instructions,
+        // Ensure schedule is properly formatted
+        schedule: medication.schedule.map((item) => ({
+          time: item.time,
+          days: item.days, // Send days as strings that match expected enum values
+        })),
       };
+
+      console.log('Sending medication data:', JSON.stringify(formattedMedication));
 
       const newMedication = await ApiClient.post<Medication>('/medications', formattedMedication);
 
@@ -208,8 +219,8 @@ export const useMedicationStore = create<MedicationState>((set, get) => ({
       // Refresh schedule
       get().fetchTodaySchedule();
     } catch (error: any) {
-      set({ error: error.message, isLoading: false });
       console.error('Error creating medication:', error);
+      set({ error: error.message, isLoading: false });
     }
   },
 

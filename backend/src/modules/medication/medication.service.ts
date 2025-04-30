@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
-import { Medication } from './entities/medication.entity';
+import { Medication, MedicationForm } from './entities/medication.entity';
 import { DoseLog } from './entities/dose-log.entity';
 import { DayOfWeek, ScheduleTime } from './entities/schedule-time.entity';
 import { CreateMedicationDto } from './dto/create-medication.dto';
@@ -33,8 +33,16 @@ export class MedicationService {
   ): Promise<MedicationResponseDto> {
     // Create medication without schedule first
     const medication = this.medicationRepository.create({
-      ...createMedicationDto,
-      userId,
+      name: createMedicationDto.name,
+      dosage: createMedicationDto.dosage,
+      form: createMedicationDto.form as MedicationForm, // Cast to enum type
+      startDate: new Date(createMedicationDto.startDate),
+      endDate: createMedicationDto.endDate
+        ? new Date(createMedicationDto.endDate)
+        : undefined,
+      notes: createMedicationDto.notes,
+      instructions: createMedicationDto.instructions,
+      userId, // Make sure userId exists on entity
     });
 
     // Save to get an ID

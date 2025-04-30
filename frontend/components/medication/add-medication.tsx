@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,7 +29,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Medication, useMedicationStore } from '@/lib/medication-store';
+import { DayOfWeek, Medication, useMedicationStore } from '@/lib/medication-store';
 
 const medicationForms = ['Capsule', 'Tablet', 'Drops', 'Injectable', 'Ointment', 'Other'];
 
@@ -97,38 +97,50 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
           dosage: '',
           form: 'Tablet',
           startDate: new Date(),
-          schedule: [
-            {
-              time: '09:00',
-              days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-            },
-          ],
+          schedule: [],
           notes: '',
           instructions: '',
         },
   });
 
-  // Create field array for schedule times
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: 'schedule',
-  });
+  const [newTime, setNewTime] = useState('');
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
 
-  const onSubmit = async (values: MedicationFormValues) => {
-    if (isEditMode) {
-      await updateMedication(medication.id, values);
-    } else {
-      await createMedication(values);
+  // Add a new schedule time to the form's schedule field
+  const addSpecificTime = () => {
+    if (newTime && selectedDays.length > 0) {
+      const currentSchedule = form.getValues('schedule') || [];
+      form.setValue('schedule', [...currentSchedule, { time: newTime, days: selectedDays }]);
+      setNewTime('');
+      setSelectedDays([]);
     }
-    onClose();
   };
 
-  // Add a new schedule time
-  const addScheduleTime = () => {
-    append({
-      time: '09:00',
-      days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-    });
+  // Remove a schedule time from the form's schedule field
+  const removeSpecificTime = (index: number) => {
+    const currentSchedule = form.getValues('schedule') || [];
+    form.setValue(
+      'schedule',
+      currentSchedule.filter((_, i) => i !== index),
+    );
+  };
+
+  const onSubmit = async (values: MedicationFormValues) => {
+    // Convert string[] to DayOfWeek[] for each schedule item
+    const formattedValues = {
+      ...values,
+      schedule: values.schedule.map((item) => ({
+        ...item,
+        days: item.days.map((day) => day as unknown as DayOfWeek), // Cast to enum
+      })),
+    };
+
+    if (isEditMode) {
+      await updateMedication(medication.id, formattedValues as any);
+    } else {
+      await createMedication(formattedValues as any);
+    }
+    onClose();
   };
 
   return (
@@ -268,96 +280,96 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
         </div>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <FormLabel className="text-base">Schedule</FormLabel>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="text-green-dark hover:text-green-dark gap-1"
-              onClick={addScheduleTime}
-            >
-              <Plus className="size-4" />
+          <div className="rounded-md border p-4">
+            <h3 className="mb-4 text-lg font-medium">Add Specific Time</h3>
+            <div className="mb-4 flex flex-col gap-4 md:flex-row">
+              <div className="flex-1">
+                <label className="mb-1 block text-sm font-medium">Time</label>
+                <Input
+                  type="time"
+                  value={newTime}
+                  onChange={(e) => setNewTime(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+            </div>
+            <div className="mb-4">
+              <label className="mb-2 block text-sm font-medium">Days of Week</label>
+              <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+                {daysOfWeek.map((day) => (
+                  <div key={day.value} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`new-time-${day.value}`}
+                      className="cursor-pointer"
+                      checked={selectedDays.includes(day.value)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedDays([...selectedDays, day.value]);
+                        } else {
+                          setSelectedDays(selectedDays.filter((d) => d !== day.value));
+                        }
+                      }}
+                    />
+                    <label
+                      htmlFor={`new-time-${day.value}`}
+                      className="cursor-pointer text-sm font-normal"
+                    >
+                      {day.label}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <Button type="button" onClick={addSpecificTime} disabled={!newTime} className="w-full">
               Add Time
             </Button>
           </div>
 
-          <div className="space-y-4">
-            {fields.map((item, index) => (
-              <div key={item.id} className="rounded-md border p-4">
-                <div className="mb-2 flex items-center justify-between">
-                  <h4 className="font-medium">Time {index + 1}</h4>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive h-8 w-8 p-0"
-                    onClick={() => fields.length > 1 && remove(index)}
-                    disabled={fields.length <= 1}
-                  >
-                    <Trash2 className="size-4" />
-                    <span className="sr-only">Remove</span>
-                  </Button>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name={`schedule.${index}.time`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Time</FormLabel>
-                        <FormControl>
-                          <Input type="time" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div></div>
-                </div>
-
-                <div className="mt-4">
-                  <FormField
-                    control={form.control}
-                    name={`schedule.${index}.days`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Days of Week</FormLabel>
-                        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-                          {daysOfWeek.map((day) => (
-                            <div key={day.value} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`${item.id}-${day.value}`}
-                                checked={field.value?.includes(day.value)}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    field.onChange([...field.value, day.value]);
-                                  } else {
-                                    field.onChange(
-                                      field.value?.filter((value) => value !== day.value),
-                                    );
-                                  }
-                                }}
-                              />
-                              <label
-                                htmlFor={`${item.id}-${day.value}`}
-                                className="cursor-pointer text-sm font-normal"
-                              >
-                                {day.label}
-                              </label>
-                            </div>
-                          ))}
+          <FormField
+            control={form.control}
+            name="schedule"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Scheduled Times</FormLabel>
+                <FormControl>
+                  <div className="divide-y rounded-md border">
+                    {field.value && field.value.length > 0 ? (
+                      field.value.map((timeEntry, index) => (
+                        <div key={index} className="flex items-center justify-between p-4">
+                          <div>
+                            <p className="font-medium">{timeEntry.time}</p>
+                            <p className="text-muted-foreground text-sm">
+                              {timeEntry.days && timeEntry.days.length === 7
+                                ? 'Every day'
+                                : timeEntry.days
+                                    ?.map((day) => daysOfWeek.find((d) => d.value === day)?.label)
+                                    .join(', ')}
+                            </p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeSpecificTime(index)}
+                            type="button"
+                          >
+                            Remove
+                          </Button>
                         </div>
-                        <FormMessage />
-                      </FormItem>
+                      ))
+                    ) : (
+                      <div className="text-muted-foreground p-4 text-center">
+                        No times scheduled yet
+                      </div>
                     )}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+                  </div>
+                </FormControl>
+                <FormDescription>
+                  Add specific times when you need to take this medication
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         <FormField

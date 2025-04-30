@@ -41,14 +41,14 @@ export class CreateMedicationDto {
   @IsEnum(['Capsule', 'Tablet', 'Drops', 'Injectable', 'Ointment', 'Other'])
   form: string;
 
-  @ApiProperty({ description: 'Start date (YYYY-MM-DD)' })
+  @ApiProperty({ description: 'Start date' })
   @IsDateString()
-  startDate: string;
+  startDate: Date;
 
-  @ApiProperty({ description: 'End date (YYYY-MM-DD)', required: false })
+  @ApiProperty({ description: 'End date', required: false })
   @IsOptional()
   @IsDateString()
-  endDate?: string;
+  endDate?: Date;
 
   @ApiProperty({ description: 'Additional notes', required: false })
   @IsOptional()

@@ -26,10 +26,10 @@ export class MedicationResponseDto {
   form: string;
 
   @ApiProperty()
-  startDate: string;
+  startDate: Date;
 
   @ApiProperty({ required: false })
-  endDate?: string;
+  endDate?: Date;
 
   @ApiProperty({ required: false })
   notes?: string;
@@ -51,9 +51,9 @@ export class MedicationResponseDto {
     this.name = medication.name;
     this.dosage = medication.dosage;
     this.form = medication.form;
-    this.startDate = medication.startDate.toISOString().split('T')[0];
+    this.startDate = new Date(medication.startDate);
     this.endDate = medication.endDate
-      ? medication.endDate.toISOString().split('T')[0]
+      ? new Date(medication.endDate)
       : undefined;
     this.notes = medication.notes;
     this.instructions = medication.instructions;

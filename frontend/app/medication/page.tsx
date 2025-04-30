@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Toaster } from '@/components/ui/sonner';
 import { useMedicationStore } from '@/lib/medication-store';
+import { ProtectedContent } from '@/components/auth/protected-route';
 
 export default function MedicationPage() {
   const [activeTab, setActiveTab] = useState('medications');
