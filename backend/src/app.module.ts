@@ -21,6 +21,7 @@ import { AuditMiddleware } from './common/middleware/audit.middleware';
 import { DataIsolationMiddleware } from './common/middleware/data-isolation.middleware';
 import { CsrfMiddleware } from './common/middleware/csrf.middleware';
 import { TestimonialModule } from './modules/testimonial/testimonial.module';
+import { MedicationModule } from './modules/medication/medication.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { TestimonialModule } from './modules/testimonial/testimonial.module';
     JournalModule,
     InventoryModule,
     TestimonialModule,
+    MedicationModule,
   ],
   controllers: [AppController],
   providers: [

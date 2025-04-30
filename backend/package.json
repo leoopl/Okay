@@ -44,6 +44,7 @@
     "class-validator": "^0.14.1",
     "compression": "^1.8.0",
     "cookie-parser": "^1.4.7",
+    "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "helmet": "^8.1.0",

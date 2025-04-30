@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+'use client';
+
+import { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,152 +25,115 @@ import {
 } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { CalendarIcon } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { CalendarIcon, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Medication, useMedicationStore } from '@/lib/medication-store';
 
+const medicationForms = ['Capsule', 'Tablet', 'Drops', 'Injectable', 'Ointment', 'Other'];
 
-type DayOfWeek = 'segunda' | 'terça' | 'quarta' | 'quinta' | 'sexta' | 'sabado' | 'domingo';
+const daysOfWeek = [
+  { value: 'Monday', label: 'Monday' },
+  { value: 'Tuesday', label: 'Tuesday' },
+  { value: 'Wednesday', label: 'Wednesday' },
+  { value: 'Thursday', label: 'Thursday' },
+  { value: 'Friday', label: 'Friday' },
+  { value: 'Saturday', label: 'Saturday' },
+  { value: 'Sunday', label: 'Sunday' },
+];
 
-const daysOfWeek: { value: DayOfWeek; label: string }[] = [
-    { value: "segunda", label: "Segunda" },
-    { value: "terça", label: "Terça" },
-    { value: "quarta", label: "Quarta" },
-    { value: "quinta", label: "Quinta" },
-    { value: "sexta", label: "Sexta" },
-    { value: "sabado", label: "Sábado" },
-    { value: "domingo", label: "Domingo" },
-  ]
-
-const medicationForm = ['Capsula', 'Comprimido', 'Gotas', 'Injetável', 'Pomada', 'Outro'];
-
-export interface ScheduleTime {
-  time: string; // HH:MM format
-  days: DayOfWeek[]; // Days of the week this time applies to
-}
-
-export interface DoseLog {
-  medicationId: string;
-  timestamp: Date;
-  status: 'taken' | 'skipped' | 'delayed';
-  notes: string;
-}
-
-export interface Medication {
-  id: string;
-  name: string;
-  dosage: string;
-  form: string;
-  startDate: Date;
-  endDate?: Date;
-  notes?: string;
-  instructions?: string;
-  schedule: ScheduleTime[];
-  doseLogs: DoseLog[];
-}
-
-export const medicationFormSchema = z.object({
+// Schema for form validation
+const medicationFormSchema = z.object({
   name: z.string().min(1, { message: 'Medication name is required' }),
   dosage: z.string().min(1, { message: 'Dosage is required' }),
-  form: z.enum(['Capsula', 'Comprimido', 'Gotas', 'Injetável', 'Pomada', 'Outro']),
+  form: z.enum(['Capsule', 'Tablet', 'Drops', 'Injectable', 'Ointment', 'Other']),
   startDate: z.date({ required_error: 'Start date is required' }),
   endDate: z.date().optional(),
   schedule: z
     .array(
       z.object({
-        time: z.string(),
-        days: z.array(z.string()).optional(),
+        time: z
+          .string()
+          .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: 'Time format must be HH:MM' }),
+        days: z.array(z.string()).min(1, { message: 'Select at least one day' }),
       }),
-    ),
+    )
+    .min(1, { message: 'At least one schedule time is required' }),
   notes: z.string().optional(),
   instructions: z.string().optional(),
 });
 
-type MedicationFormProps = {
+type MedicationFormValues = z.infer<typeof medicationFormSchema>;
+
+interface AddMedicationFormProps {
   medication?: Medication;
-  onSubmit: (data: Medication) => void;
-};
+  onClose: () => void;
+}
 
-const MedicationForm: React.FC<MedicationFormProps> = ({ medication, onSubmit }) => {
-  // For managing specific times input
-  const [newTime, setNewTime] = useState<string>('');
-  const [selectedDays, setSelectedDays] = useState<string[]>([
-    'segunda',
-    'terça',
-    'quarta',
-    'quinta',
-    'sexta',
-    'sábado',
-    'domingo',
-  ]);
+export default function AddMedicationForm({ medication, onClose }: AddMedicationFormProps) {
+  const { createMedication, updateMedication } = useMedicationStore();
+  const isEditMode = !!medication;
 
-  const form = useForm<z.infer<typeof medicationFormSchema>>({
+  // Initialize form with default values or existing medication data
+  const form = useForm<MedicationFormValues>({
     resolver: zodResolver(medicationFormSchema),
-    defaultValues: medication
+    defaultValues: isEditMode
       ? {
           name: medication.name,
           dosage: medication.dosage,
-          form: medication.form,
-          startDate: new Date(medication.startDate),
-          endDate: medication.endDate ? new Date(medication.endDate) : undefined,
-          schedule: medication.schedule,
+          form: medication.form as any,
+          startDate: medication.startDate,
+          endDate: medication.endDate,
+          schedule: medication.schedule.map((s) => ({
+            time: s.time,
+            days: s.days,
+          })),
           notes: medication.notes || '',
           instructions: medication.instructions || '',
         }
       : {
           name: '',
           dosage: '',
-          form: 'Comprimido',
+          form: 'Tablet',
           startDate: new Date(),
-          schedule: [],
+          schedule: [
+            {
+              time: '09:00',
+              days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+            },
+          ],
           notes: '',
           instructions: '',
         },
   });
 
-  // Add a new specific time entry
-  const addSpecificTime = () => {
-    if (!newTime) return;
+  // Create field array for schedule times
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'schedule',
+  });
 
-    const currentTimes = form.getValues('schedule') || [];
-    form.setValue('schedule', [...currentTimes, { time: newTime, days: [...selectedDays] }]);
-
-    setNewTime('');
-  };
-
-  // Remove a specific time entry
-  const removeSpecificTime = (index: number) => {
-    const currentTimes = form.getValues('schedule') || [];
-    form.setValue(
-      'schedule',
-      currentTimes.filter((_, i) => i !== index),
-    );
-  };
-
-  const handleSubmit = (values: z.infer<typeof medicationFormSchema>) => {
-    // Make sure all required fields are present before submitting
-    const medicationData: Medication = {
-      name: values.name,
-      dosage: values.dosage,
-      form: values.form,
-      startDate: values.startDate,
-      endDate: values.endDate,
-      schedule: values.schedule,
-      notes: values.notes,
-      instructions: values.instructions,
-    };
-
-    onSubmit(medicationData);
-
-    if (!medication) {
-      form.reset();
+  const onSubmit = async (values: MedicationFormValues) => {
+    if (isEditMode) {
+      await updateMedication(medication.id, values);
+    } else {
+      await createMedication(values);
     }
+    onClose();
+  };
+
+  // Add a new schedule time
+  const addScheduleTime = () => {
+    append({
+      time: '09:00',
+      days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    });
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
@@ -213,7 +178,7 @@ const MedicationForm: React.FC<MedicationFormProps> = ({ medication, onSubmit })
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {medicationForm.map((form) => (
+                    {medicationForms.map((form) => (
                       <SelectItem key={form} value={form}>
                         {form}
                       </SelectItem>
@@ -225,34 +190,7 @@ const MedicationForm: React.FC<MedicationFormProps> = ({ medication, onSubmit })
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="scheduleType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Schedule Type</FormLabel>
-                <Select
-                  onValueChange={(val) => {
-                    field.onChange(val);
-                    setScheduleType(val as 'daily' | 'specific_days' | 'specific_times');
-                  }}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select schedule type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="specific_days">Specific Days</SelectItem>
-                    <SelectItem value="specific_times">Specific Times</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div></div>
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -278,13 +216,11 @@ const MedicationForm: React.FC<MedicationFormProps> = ({ medication, onSubmit })
                     </FormControl>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarComponent
+                    <Calendar
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) => date > new Date()}
                       initialFocus
-                      className={cn('pointer-events-auto p-3')}
                     />
                   </PopoverContent>
                 </Popover>
@@ -309,21 +245,18 @@ const MedicationForm: React.FC<MedicationFormProps> = ({ medication, onSubmit })
                           !field.value && 'text-muted-foreground',
                         )}
                       >
-                        {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                        {field.value ? format(field.value, 'PPP') : <span>No end date</span>}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarComponent
+                    <Calendar
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) =>
-                        date < new Date(form.getValues('startDate')) || date < new Date()
-                      }
                       initialFocus
-                      className={cn('pointer-events-auto p-3')}
+                      disabled={(date) => date < form.getValues('startDate')}
                     />
                   </PopoverContent>
                 </Popover>
@@ -334,100 +267,97 @@ const MedicationForm: React.FC<MedicationFormProps> = ({ medication, onSubmit })
           />
         </div>
 
-<FormField
         <div className="space-y-4">
-          <div className="rounded-md border p-4">
-            <h3 className="mb-4 text-lg font-medium">Add Specific Time</h3>
-
-            <div className="mb-4 flex flex-col gap-4 md:flex-row">
-              <div className="flex-1">
-                <label className="mb-1 block text-sm font-medium">Time</label>
-                <Input
-                  type="time"
-                  value={newTime}
-                  onChange={(e) => setNewTime(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-            </div>
-
-            <div className="mb-4">
-              <label className="mb-2 block text-sm font-medium">Days of Week</label>
-              <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-                {daysOfWeek.map((day) => (
-                  <div key={day.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`new-time-${day.id}`}
-                      checked={selectedDays.includes(day.id)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedDays([...selectedDays, day.id]);
-                        } else {
-                          setSelectedDays(selectedDays.filter((d) => d !== day.id));
-                        }
-                      }}
-                    />
-                    <label
-                      htmlFor={`new-time-${day.id}`}
-                      className="cursor-pointer text-sm font-normal"
-                    >
-                      {day.label}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <Button type="button" onClick={addSpecificTime} disabled={!newTime} className="w-full">
+          <div className="flex items-center justify-between">
+            <FormLabel className="text-base">Schedule</FormLabel>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="text-green-dark hover:text-green-dark gap-1"
+              onClick={addScheduleTime}
+            >
+              <Plus className="size-4" />
               Add Time
             </Button>
           </div>
 
-          <FormField
-            control={form.control}
-            name="schedule"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Scheduled Times</FormLabel>
-                <FormControl>
-                  <div className="divide-y rounded-md border">
-                    {field.value && field.value.length > 0 ? (
-                      field.value.map((timeEntry, index) => (
-                        <div key={index} className="flex items-center justify-between p-4">
-                          <div>
-                            <p className="font-medium">{timeEntry.time}</p>
-                            <p className="text-muted-foreground text-sm">
-                              {timeEntry.days && timeEntry.days.length === 7
-                                ? 'Every day'
-                                : timeEntry.days
-                                    ?.map((day) => daysOfWeek.find((d) => d.id === day)?.label)
-                                    .join(', ')}
-                            </p>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeSpecificTime(index)}
-                            type="button"
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-muted-foreground p-4 text-center">
-                        No times scheduled yet
-                      </div>
+          <div className="space-y-4">
+            {fields.map((item, index) => (
+              <div key={item.id} className="rounded-md border p-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <h4 className="font-medium">Time {index + 1}</h4>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive h-8 w-8 p-0"
+                    onClick={() => fields.length > 1 && remove(index)}
+                    disabled={fields.length <= 1}
+                  >
+                    <Trash2 className="size-4" />
+                    <span className="sr-only">Remove</span>
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name={`schedule.${index}.time`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Time</FormLabel>
+                        <FormControl>
+                          <Input type="time" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
                     )}
-                  </div>
-                </FormControl>
-                <FormDescription>
-                  Add specific times when you need to take this medication
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  />
+
+                  <div></div>
+                </div>
+
+                <div className="mt-4">
+                  <FormField
+                    control={form.control}
+                    name={`schedule.${index}.days`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Days of Week</FormLabel>
+                        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+                          {daysOfWeek.map((day) => (
+                            <div key={day.value} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`${item.id}-${day.value}`}
+                                checked={field.value?.includes(day.value)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    field.onChange([...field.value, day.value]);
+                                  } else {
+                                    field.onChange(
+                                      field.value?.filter((value) => value !== day.value),
+                                    );
+                                  }
+                                }}
+                              />
+                              <label
+                                htmlFor={`${item.id}-${day.value}`}
+                                className="cursor-pointer text-sm font-normal"
+                              >
+                                {day.label}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <FormField
@@ -466,12 +396,15 @@ const MedicationForm: React.FC<MedicationFormProps> = ({ medication, onSubmit })
           )}
         />
 
-        <Button type="submit" className="w-full">
-          {medication ? 'Update Medication' : 'Add Medication'}
-        </Button>
+        <div className="flex justify-end gap-4">
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" className="bg-green-dark hover:bg-green-medium text-white">
+            {isEditMode ? 'Update Medication' : 'Add Medication'}
+          </Button>
+        </div>
       </form>
     </Form>
   );
-};
-
-export default MedicationForm;
+}

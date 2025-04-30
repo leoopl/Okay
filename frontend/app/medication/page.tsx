@@ -1,14 +1,23 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import MedicationHistoryReports from '@/components/medication/medication-history-reports';
 import MedicationList from '@/components/medication/medication-list';
 import MedicationSchedule from '@/components/medication/medication-schedule';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useState } from 'react';
+import { Toaster } from '@/components/ui/sonner';
+import { useMedicationStore } from '@/lib/medication-store';
 
 export default function MedicationPage() {
   const [activeTab, setActiveTab] = useState('medications');
+  const { fetchMedications } = useMedicationStore();
+
+  // Initialize data
+  useEffect(() => {
+    fetchMedications();
+  }, [fetchMedications]);
+
   return (
     <main className="container mx-auto px-4 py-8 md:py-12">
       <div className="mx-auto max-w-7xl">
@@ -52,6 +61,7 @@ export default function MedicationPage() {
           </Tabs>
         </div>
       </div>
+      <Toaster position="bottom-right" />
     </main>
   );
 }

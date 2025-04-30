@@ -14,6 +14,7 @@ import * as argon2 from 'argon2';
 import { Role } from './role.entity';
 import { JournalEntry } from 'src/modules/journal/entities/journal.entity';
 import { InventoryResponse } from 'src/modules/inventory/entities/inventory-response.entity';
+import { Medication } from 'src/modules/medication/entities/medication.entity';
 
 export enum UserStatus {
   ACTIVE = 'active',
@@ -87,6 +88,9 @@ export class User {
 
   @OneToMany(() => InventoryResponse, (response) => response.user)
   inventoryResponses: InventoryResponse[];
+
+  @OneToMany(() => Medication, (medication) => medication.user)
+  medications: Medication[];
 
   @BeforeInsert()
   @BeforeUpdate()

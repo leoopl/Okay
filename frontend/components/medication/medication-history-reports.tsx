@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useMedicationStore } from '@/lib/medication-store';
+import { useState, useEffect } from 'react';
+import { useMedicationStore, AdherenceStats, DoseLog } from '@/lib/medication-store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
@@ -18,75 +18,85 @@ import { format, subDays, isWithinInterval, startOfDay, endOfDay } from 'date-fn
 import { CheckCircle, XCircle, Clock, AlertCircle, CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface MedicationHistoryReportsProps {
-  searchQuery: string;
-}
-
-export default function MedicationHistoryReports({ searchQuery }: MedicationHistoryReportsProps) {
-  const { medications, getAllDoseHistory } = useMedicationStore();
-  const [timeRange, setTimeRange] = useState('7days');
+export default function MedicationHistoryReports() {
+  const {
+    medications,
+    doseLogs,
+    adherenceStats,
+    fetchMedications,
+    fetchDoseLogs,
+    fetchAdherenceStats,
+  } = useMedicationStore();
+  const [timeRange, setTimeRange] = useState<string>('7days');
   const [selectedMedication, setSelectedMedication] = useState<string>('all');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Get all dose history
-  const allDoseHistory = getAllDoseHistory();
+  // Load data on component mount
+  useEffect(() => {
+    fetchMedications();
+    handleFilterChange();
+  }, [fetchMedications]);
 
-  // Filter by medication name if search query exists or medication is selected
-  const filteredByMedication = searchQuery
-    ? allDoseHistory.filter((entry: { medicationId: any }) => {
-        const medication = medications.find((med) => med.id === entry.medicationId);
-        return medication?.name.toLowerCase().includes(searchQuery.toLowerCase());
-      })
-    : selectedMedication === 'all'
-      ? allDoseHistory
-      : allDoseHistory.filter((entry) => entry.medicationId === selectedMedication);
+  // Handle filter changes
+  const handleFilterChange = () => {
+    // Determine date range based on selected time range
+    let startDate: Date | undefined;
+    let endDate: Date | undefined;
 
-  // Filter by time range
-  const getDateRange = () => {
     const today = new Date();
 
     switch (timeRange) {
       case 'today':
-        return { start: startOfDay(today), end: endOfDay(today) };
+        startDate = today;
+        endDate = today;
+        break;
       case '7days':
-        return { start: subDays(today, 6), end: today };
+        startDate = subDays(today, 6);
+        endDate = today;
+        break;
       case '30days':
-        return { start: subDays(today, 29), end: today };
+        startDate = subDays(today, 29);
+        endDate = today;
+        break;
       case '90days':
-        return { start: subDays(today, 89), end: today };
+        startDate = subDays(today, 89);
+        endDate = today;
+        break;
       case 'specific':
-        return selectedDate
-          ? { start: startOfDay(selectedDate), end: endOfDay(selectedDate) }
-          : { start: startOfDay(today), end: endOfDay(today) };
+        startDate = selectedDate;
+        endDate = selectedDate;
+        break;
       default:
-        return { start: subDays(today, 6), end: today };
+        startDate = subDays(today, 6);
+        endDate = today;
     }
+
+    // Fetch dose logs with selected filters
+    fetchDoseLogs(
+      selectedMedication === 'all' ? undefined : selectedMedication,
+      startDate,
+      endDate,
+    );
+
+    // Fetch adherence stats with same filters
+    fetchAdherenceStats(
+      selectedMedication === 'all' ? undefined : selectedMedication,
+      timeRange === '7days' ? 7 : timeRange === '30days' ? 30 : timeRange === '90days' ? 90 : 1,
+    );
   };
 
-  const dateRange = getDateRange();
+  useEffect(() => {
+    handleFilterChange();
+  }, [timeRange, selectedMedication, selectedDate]);
 
-  const filteredHistory = filteredByMedication.filter((entry) => {
-    const entryDate = new Date(entry.timestamp);
-    return isWithinInterval(entryDate, {
-      start: dateRange.start,
-      end: dateRange.end,
-    });
-  });
+  // Get medication name from ID
+  const getMedicationName = (medicationId: string): string => {
+    const medication = medications.find((med) => med.id === medicationId);
+    return medication ? medication.name : 'Unknown Medication';
+  };
 
-  // Sort by most recent first
-  const sortedHistory = [...filteredHistory].sort(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-  );
-
-  // Calculate summary data
-  const taken = filteredHistory.filter((entry) => entry.status === 'taken').length;
-  const skipped = filteredHistory.filter((entry) => entry.status === 'skipped').length;
-  const delayed = filteredHistory.filter((entry) => entry.status === 'delayed').length;
-  const total = taken + skipped + delayed;
-
-  // Calculate adherence rate
-  const adherenceRate = total > 0 ? Math.round((taken / total) * 100) : 0;
-
+  // Helper functions for UI
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'taken':
@@ -100,7 +110,7 @@ export default function MedicationHistoryReports({ searchQuery }: MedicationHist
     }
   };
 
-  const getStatusClass = (status: string) => {
+  const getStatusClass = (status: string): string => {
     switch (status) {
       case 'taken':
         return 'bg-green-100 text-green-800 border-green-200';
@@ -113,19 +123,14 @@ export default function MedicationHistoryReports({ searchQuery }: MedicationHist
     }
   };
 
-  const getMedicationName = (medicationId: string) => {
-    const medication = medications.find((med) => med.id === medicationId);
-    return medication ? medication.name : 'Unknown Medication';
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-        <h2 className="text-2xl font-bold text-[#7F9463]">Medication History & Reports</h2>
+        <h2 className="text-green-dark text-2xl font-bold">Medication History & Reports</h2>
 
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
           <Select value={selectedMedication} onValueChange={setSelectedMedication}>
-            <SelectTrigger className="w-full border-[#CBCFD7] focus:ring-[#039BE5] sm:w-[200px]">
+            <SelectTrigger className="focus:ring-green-dark w-full border-[#CBCFD7] sm:w-[200px]">
               <SelectValue placeholder="Select medication" />
             </SelectTrigger>
             <SelectContent>
@@ -139,7 +144,7 @@ export default function MedicationHistoryReports({ searchQuery }: MedicationHist
           </Select>
 
           <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-full border-[#CBCFD7] focus:ring-[#039BE5] sm:w-[180px]">
+            <SelectTrigger className="focus:ring-green-dark w-full border-[#CBCFD7] sm:w-[180px]">
               <SelectValue placeholder="Select time range" />
             </SelectTrigger>
             <SelectContent>
@@ -181,41 +186,49 @@ export default function MedicationHistoryReports({ searchQuery }: MedicationHist
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card className="border-[#CBCFD7]">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg text-[#7F9463]">Adherence Rate</CardTitle>
+            <CardTitle className="text-green-dark text-lg">Adherence Rate</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex h-[150px] flex-col items-center justify-center">
-              <div className="text-5xl font-bold text-[#7F9463]">{adherenceRate}%</div>
-              <p className="mt-2 text-[#91857A]">Doses taken as prescribed</p>
+              <div className="text-green-dark text-5xl font-bold">
+                {adherenceStats?.adherenceRate ?? 0}%
+              </div>
+              <p className="text-beige-dark mt-2">Doses taken as prescribed</p>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-[#CBCFD7] md:col-span-2">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg text-[#7F9463]">Dose Status Summary</CardTitle>
+            <CardTitle className="text-green-dark text-lg">Dose Status Summary</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex h-[150px] items-center justify-center gap-8">
               <div className="flex flex-col items-center">
-                <div className="text-3xl font-bold text-[#7F9463]">{taken}</div>
+                <div className="text-green-dark text-3xl font-bold">
+                  {adherenceStats?.taken ?? 0}
+                </div>
                 <div className="mt-2 flex items-center">
-                  <div className="mr-2 h-3 w-3 rounded-full bg-[#7F9463]"></div>
-                  <p className="text-[#91857A]">Taken</p>
+                  <div className="bg-green-dark mr-2 h-3 w-3 rounded-full"></div>
+                  <p className="text-beige-dark">Taken</p>
                 </div>
               </div>
               <div className="flex flex-col items-center">
-                <div className="text-3xl font-bold text-[#F4B400]">{skipped}</div>
+                <div className="text-yellow-dark text-3xl font-bold">
+                  {adherenceStats?.skipped ?? 0}
+                </div>
                 <div className="mt-2 flex items-center">
-                  <div className="mr-2 h-3 w-3 rounded-full bg-[#F4B400]"></div>
-                  <p className="text-[#91857A]">Skipped</p>
+                  <div className="bg-yellow-dark mr-2 h-3 w-3 rounded-full"></div>
+                  <p className="text-beige-dark">Skipped</p>
                 </div>
               </div>
               <div className="flex flex-col items-center">
-                <div className="text-3xl font-bold text-[#039BE5]">{delayed}</div>
+                <div className="text-blue-dark text-3xl font-bold">
+                  {adherenceStats?.delayed ?? 0}
+                </div>
                 <div className="mt-2 flex items-center">
-                  <div className="mr-2 h-3 w-3 rounded-full bg-[#039BE5]"></div>
-                  <p className="text-[#91857A]">Delayed</p>
+                  <div className="bg-blue-dark mr-2 h-3 w-3 rounded-full"></div>
+                  <p className="text-beige-dark">Delayed</p>
                 </div>
               </div>
             </div>
@@ -223,45 +236,44 @@ export default function MedicationHistoryReports({ searchQuery }: MedicationHist
         </Card>
       </div>
 
-      <h3 className="mt-6 text-xl font-medium text-[#7F9463]">Medication History</h3>
+      <h3 className="text-green-dark mt-6 text-xl font-medium">Medication History</h3>
 
-      {sortedHistory.length === 0 ? (
+      {doseLogs.length === 0 ? (
         <div className="py-12 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#F2DECC]/50">
-            <CalendarIcon className="h-8 w-8 text-[#F4B400]" />
+            <CalendarIcon className="text-yellow-dark h-8 w-8" />
           </div>
-          <h3 className="mb-2 text-xl font-medium text-[#7F9463]">No history found</h3>
-          <p className="mb-6 text-[#91857A]">
+          <h3 className="text-green-dark mb-2 text-xl font-medium">No history found</h3>
+          <p className="text-beige-dark mb-6">
             {searchQuery || selectedMedication !== 'all'
-              ? 'Try a different search term, medication, or time range'
+              ? 'Try a different medication or time range'
               : 'Start logging your medication doses to see your history'}
           </p>
         </div>
       ) : (
         <div className="space-y-4">
-          {sortedHistory.map((entry, index) => (
-            <Card key={index} className="border-[#CBCFD7]">
+          {doseLogs.map((log: DoseLog, index: number) => (
+            <Card key={log.id || index} className="border-[#CBCFD7]">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
-                  <div className="mt-1">{getStatusIcon(entry.status)}</div>
+                  <div className="mt-1">{getStatusIcon(log.status)}</div>
                   <div className="flex-1">
                     <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
                       <div>
-                        <h3 className="font-medium text-[#7F9463]">
-                          {getMedicationName(entry.medicationId)}
+                        <h3 className="text-green-dark font-medium">
+                          {getMedicationName(log.medicationId)}
                         </h3>
                         <p className="text-sm text-[#797D89]">
-                          {format(new Date(entry.timestamp), 'PPP')} at{' '}
-                          {format(new Date(entry.timestamp), 'h:mm a')}
+                          {format(log.timestamp, 'PPP')} at {format(log.timestamp, 'h:mm a')}
                         </p>
                       </div>
-                      <Badge variant="outline" className={getStatusClass(entry.status)}>
-                        {entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
+                      <Badge variant="outline" className={getStatusClass(log.status)}>
+                        {log.status.charAt(0).toUpperCase() + log.status.slice(1)}
                       </Badge>
                     </div>
-                    {entry.notes && (
-                      <p className="mt-2 rounded bg-[#CBCFD7]/10 p-2 text-sm text-[#91857A]">
-                        {entry.notes}
+                    {log.notes && (
+                      <p className="text-beige-dark mt-2 rounded bg-[#CBCFD7]/10 p-2 text-sm">
+                        {log.notes}
                       </p>
                     )}
                   </div>
