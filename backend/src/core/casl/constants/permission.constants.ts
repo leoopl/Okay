@@ -9,6 +9,7 @@ export enum Resource {
   JOURNAL = 'journal',
   INVENTORY = 'inventory',
   INVENTORY_RESPONSE = 'inventory-response',
+  TESTIMONIAL = 'testimonial',
   ALL = 'all',
 }
 
@@ -51,6 +52,13 @@ export const Permissions = {
   INVENTORY_RESPONSE_DELETE: `${Resource.INVENTORY_RESPONSE}:${PermissionAction.DELETE}`,
   INVENTORY_RESPONSE_MANAGE: `${Resource.INVENTORY_RESPONSE}:${PermissionAction.MANAGE}`,
 
+  // Testimonial permissions
+  TESTIMONIAL_CREATE: `${Resource.TESTIMONIAL}:${PermissionAction.CREATE}`,
+  TESTIMONIAL_READ: `${Resource.TESTIMONIAL}:${PermissionAction.READ}`,
+  TESTIMONIAL_UPDATE: `${Resource.TESTIMONIAL}:${PermissionAction.UPDATE}`,
+  TESTIMONIAL_DELETE: `${Resource.TESTIMONIAL}:${PermissionAction.DELETE}`,
+  TESTIMONIAL_MANAGE: `${Resource.TESTIMONIAL}:${PermissionAction.MANAGE}`,
+
   // Special permissions
   MANAGE_ALL: `${Resource.ALL}:${PermissionAction.MANAGE}`,
 };
@@ -76,6 +84,10 @@ export const RolePermissions = {
     // Inventory response
     Permissions.INVENTORY_RESPONSE_CREATE,
     Permissions.INVENTORY_RESPONSE_READ,
+
+    // Testimonial management (own entries)
+    Permissions.TESTIMONIAL_CREATE,
+    Permissions.TESTIMONIAL_READ,
   ],
 };
 

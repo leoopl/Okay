@@ -15,6 +15,9 @@ import { Form, FormControl, FormField, FormItem } from '../ui/form';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { toast, Toaster } from 'sonner';
+import { useEffect, useState } from 'react';
+import { getApprovedTestimonials, Testimonial } from '@/services/testimonials-service';
 
 const formSchema = z.object({
   message: z.string().min(2, { message: 'Message must be at least 2 characters.' }),
@@ -24,6 +27,9 @@ const formSchema = z.object({
 });
 
 const Testimonials: React.FC = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -34,52 +40,55 @@ const Testimonials: React.FC = () => {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    form.reset();
-  }
+  useEffect(() => {
+    async function loadTestimonials() {
+      try {
+        const data = await getApprovedTestimonials();
+        setTestimonials(data);
+      } catch (error) {
+        console.error('Error loading testimonials:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
 
-  const testimonials = [
-    {
-      quote:
-        'escapismo com mídia ❤️ evitar e se distrair é saudável quando minha ansiedade não tem fundamento e é quase delirante — o que acontece comigo 95% do tempo.',
-    },
-    {
-      quote:
-        'Música. Estou no exército e temos que fazer várias coisas envolvendo testes na frente de outras pessoas. Sinto que estou sob muita pressão quando não tem música nos meus ouvidos.',
-    },
-    {
-      quote:
-        'tempo diário no chão. só eu, no chão, sem pensar em nada. pontos extras se o chão estiver frio. só de deitar ali, me ajuda a relaxar e respirar.',
-    },
-    {
-      quote:
-        'Encontrei um lugar tranquilo para ficar sozinho e ouvir jazz ou música instrumental. Alguns dos meus lugares favoritos: o terraço de um prédio, um quarto silencioso ou a praia à noite.',
-    },
-    {
-      quote:
-        'Esporte (yoga, corrida). Cozinhar. Assistir alguns dos meus filmes ou séries favoritas. Escrever, ler.',
-    },
-    {
-      quote:
-        'Natureza. Às vezes, quando me sinto desconectado, me desconecto da vida. Desapareço para as montanhas, o deserto e o oceano para me reencontrar. Meu coração realmente bate e minha alma se enche de tanta alegria — e é isso que me ajuda a amar.',
-    },
-    {
-      quote:
-        'O aplicativo de saúde comportamental MI PEACE https://mipeace.com/app-in-action/ fornece ferramentas para lidar com desafios comuns como ansiedade, privação de sono, depressão, raiva, etc. Também conecta pessoas a profissionais de saúde mental. O MAIS importante é que foi desenvolvido por psicólogos clínicos reais, treinados em Yale e baseado em pesquisas científicas. Muitas vezes, empreendedores oportunistas vendem aplicativos parecidos apenas para lucrar às custas das comunidades mais vulneráveis.',
-    },
-    {
-      quote:
-        'Tenho ansiedade desde sempre. Yoga, leitura, poesia, ouvir música, escrever em diário e tricotar são coisas que me ajudam a me acalmar quando estou ansiosa. Quando tenho ataques de pânico, às vezes algo bobo como nomear todos os animais que consigo lembrar em ordem alfabética me ajuda a acalmar a mente. Em uma escala maior, as coisas mais úteis que fiz para minha ansiedade foram experimentar novos hobbies e viajar sozinha. Acho que é muito importante fazer coisas que te deixam ansioso, porque senão você nunca vai conseguir superar o que te assusta.',
-    },
-    {
-      quote:
-        'Usei o aplicativo SAM para montar uma caixa de ferramentas tanto para identificar gatilhos quanto para saber o que me ajuda. Eles também têm recursos em tempo real para lidar com ataques de ansiedade no momento em que acontecem. Isso me ajudou a não depender mais do app e percebi que a ferramenta mais útil foi me dar tempo para entender o que estava me deixando ansiosa, por quê, e se a ansiedade era justificada. Isso geralmente me ajuda a me acalmar ou a mexer meu corpo para liberar a sensação. Também me lembro de que tudo bem ter um ataque completo às vezes — especialmente no meio de um. Costumo me dizer que está tudo bem e que posso chorar. Às vezes, o único caminho é atravessar isso ♡',
-    },
-  ];
+    loadTestimonials();
+  }, []);
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/testimonials`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit testimonial');
+      }
+
+      toast.success('Thank you!', {
+        description: 'Your testimonial has been submitted and is pending approval.',
+      });
+
+      form.reset();
+    } catch (error) {
+      console.error('Error submitting testimonial:', error);
+      toast.error('Error', {
+        description: 'There was a problem submitting your testimonial. Please try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <section className="w-full py-4">
+      <Toaster position="top-center" richColors />
       <div className="mx-auto px-3 lg:max-w-6xl">
         <div className="mb-12 text-center">
           <h2 className="text-green-dark font-varela mb-4 text-3xl font-bold">
@@ -168,8 +177,12 @@ const Testimonials: React.FC = () => {
                 )}
               />
               <div>
-                <Button type="submit" className="small-caps w-full cursor-pointer px-4 py-2">
-                  Compartilhar
+                <Button
+                  type="submit"
+                  className="small-caps w-full cursor-pointer px-4 py-2"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Sending...' : 'Compartilhar'}
                 </Button>
               </div>
             </form>
@@ -177,11 +190,26 @@ const Testimonials: React.FC = () => {
         </div>
         <Carousel>
           <CarouselContent>
-            {testimonials.map((testimonial, index) => (
-              <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
-                <TestimonialCard {...testimonial} />
+            {isLoading ? (
+              // Show loading placeholders
+              Array.from({ length: 3 }).map((_, index) => (
+                <CarouselItem key={`loading-${index}`} className="md:basis-1/2 lg:basis-1/3">
+                  <div className="h-48 animate-pulse rounded-lg bg-gray-200"></div>
+                </CarouselItem>
+              ))
+            ) : testimonials.length > 0 ? (
+              // Show actual testimonials
+              testimonials.map((testimonial) => (
+                <CarouselItem key={testimonial.id} className="md:basis-1/2 lg:basis-1/3">
+                  <TestimonialCard message={testimonial.message} />
+                </CarouselItem>
+              ))
+            ) : (
+              // Show fallback or sample testimonials if none are approved yet
+              <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+                <TestimonialCard message="Share your experience and help others!" />
               </CarouselItem>
-            ))}
+            )}
           </CarouselContent>
           <CarouselPrevious className="absolute top-1/2 left-[-50px] -translate-y-1/2 cursor-pointer fill-black" />
           <CarouselNext className="absolute top-1/2 right-[-50px] -translate-y-1/2 cursor-pointer fill-black" />

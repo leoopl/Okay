@@ -13,7 +13,6 @@ import {
 
 /**
  * Seed script to create default roles and permissions
- * Run with: yarn seed:roles
  */
 async function bootstrap() {
   const logger = new Logger('RolesSeeder');

@@ -22,7 +22,8 @@
     "migration:generate": "npm run typeorm -- migration:generate -d src/database/data-source.ts src/database/migrations/$npm_config_name",
     "migration:run": "npm run typeorm -- migration:run -d src/database/data-source.ts",
     "seed:roles": "ts-node -r tsconfig-paths/register ./src/database/seeders/roles.seeder.ts",
-    "seed:all": "npm run seed:roles"
+    "seed:users": "ts-node -r tsconfig-paths/register ./src/database/seeders/users.seeder.ts",
+    "seed:all": "npm run seed:roles && npm run seed:users"
   },
   "dependencies": {
     "@casl/ability": "^6.7.3",

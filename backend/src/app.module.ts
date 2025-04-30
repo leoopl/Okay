@@ -20,6 +20,7 @@ import { MiddlewareModule } from './common/middleware/middleware.module';
 import { AuditMiddleware } from './common/middleware/audit.middleware';
 import { DataIsolationMiddleware } from './common/middleware/data-isolation.middleware';
 import { CsrfMiddleware } from './common/middleware/csrf.middleware';
+import { TestimonialModule } from './modules/testimonial/testimonial.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { CsrfMiddleware } from './common/middleware/csrf.middleware';
     // Feature modules
     JournalModule,
     InventoryModule,
+    TestimonialModule,
   ],
   controllers: [AppController],
   providers: [

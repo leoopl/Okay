@@ -4,7 +4,7 @@ import { getAccessToken, getCsrfToken } from './utils';
  * API Client for making authenticated requests
  * Handles auth tokens, CSRF tokens, and error handling
  */
-const API_URL = process.env.API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // Error types for better handling
 export enum ApiErrorType {
