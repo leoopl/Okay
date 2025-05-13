@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { formatDate, getBlogPostBySlug, getBlogPosts } from '../util';
+import { getBlogPostBySlug, getBlogPosts } from '../util';
+import { formatDate } from '@/lib/utils';
 import { Suspense } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { TableOfContents } from '@/components/blog/table-of-contents';

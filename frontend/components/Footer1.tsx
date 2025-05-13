@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import Logo from './Logo';
+import Logo from './common/Logo';
 
 const Footer: React.FC = () => {
   const footerLinks = {

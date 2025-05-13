@@ -1,9 +1,9 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 import Image from 'next/image';
-import { BlogList } from '@/components/blog/blog-list';
-import { badgeVariants } from '@/components/ui/badge';
 import { TagFilter } from '@/components/blog/tag-filter';
 import SearchInput from '@/components/search-input';
+import { BlogPageClient } from '@/components/blog/blog-page-client';
+import { getBlogPosts } from '@/app/blog/util';
 
 interface BlogPageProps {
   searchParams: { tag?: string; search?: string } | Promise<{ tag?: string; search?: string }>;
@@ -14,6 +14,17 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   const resolvedParams = await Promise.resolve(searchParams);
   const tag = resolvedParams?.tag || '';
   const search = resolvedParams?.search || '';
+
+  // Fetch and filter posts here
+  const allPosts = await getBlogPosts();
+  const filteredPosts = allPosts.filter((post) => {
+    const matchesTag = tag ? post.metadata.tags?.includes(tag) : true;
+    const matchesSearch = search
+      ? post.metadata.title.toLowerCase().includes(search.toLowerCase()) ||
+        post.metadata.summary.toLowerCase().includes(search.toLowerCase())
+      : true;
+    return matchesTag && matchesSearch;
+  });
 
   return (
     <div className="min-h-screen px-4 py-8">
@@ -45,9 +56,11 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
         </div>
 
         <div className="mt-12">
-          <Suspense fallback={<div className="py-12 text-center">Loading articles...</div>}>
+          {/* Pass filteredPosts to BlogPageClient */}
+          <BlogPageClient initialPosts={filteredPosts} />
+          {/* <Suspense fallback={<div className="py-12 text-center">Loading articles...</div>}>
             <BlogList tag={tag} search={search} />
-          </Suspense>
+          </Suspense> */}
         </div>
       </div>
     </div>

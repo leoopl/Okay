@@ -9,67 +9,6 @@ export default {
     './src/**/*.{ts,tsx}',
   ],
   theme: {
-    colors: {
-      // Core colors
-      transparent: 'transparent',
-      current: 'currentColor',
-
-      // UI theme colors (using CSS variables with HSL)
-      background: 'hsl(var(--background) / <alpha-value>)',
-      foreground: 'hsl(var(--foreground) / <alpha-value>)',
-      card: 'hsl(var(--card) / <alpha-value>)',
-      'card-foreground': 'hsl(var(--card-foreground) / <alpha-value>)',
-      popover: 'hsl(var(--popover) / <alpha-value>)',
-      'popover-foreground': 'hsl(var(--popover-foreground) / <alpha-value>)',
-      primary: 'hsl(var(--primary) / <alpha-value>)',
-      'primary-foreground': 'hsl(var(--primary-foreground) / <alpha-value>)',
-      secondary: 'hsl(var(--secondary) / <alpha-value>)',
-      'secondary-foreground': 'hsl(var(--secondary-foreground) / <alpha-value>)',
-      muted: 'hsl(var(--muted) / <alpha-value>)',
-      'muted-foreground': 'hsl(var(--muted-foreground) / <alpha-value>)',
-      accent: 'hsl(var(--accent) / <alpha-value>)',
-      'accent-foreground': 'hsl(var(--accent-foreground) / <alpha-value>)',
-      destructive: 'hsl(var(--destructive) / <alpha-value>)',
-      'destructive-foreground': 'hsl(var(--destructive-foreground) / <alpha-value>)',
-      border: 'hsl(var(--border) / <alpha-value>)',
-      input: 'hsl(var(--input) / <alpha-value>)',
-      ring: 'hsl(var(--ring) / <alpha-value>)',
-
-      // Custom okay colors with direct HSL values
-      yellow: {
-        light: '#f8e3a3',
-        medium: '#f9d56e',
-        dark: '#f9c22e',
-      },
-      blue: {
-        light: '#A5DCF6',
-        medium: '#78C7EE',
-        dark: '#039BE5',
-      },
-      green: {
-        light: '#D1DBC3',
-        medium: '#b6cfb8',
-        dark: '#7F9463',
-      },
-      beige: {
-        light: '#F2DECC',
-        medium: '#C2B2A3',
-        dark: '#91857A',
-      },
-      grey: {
-        light: '#CBCFD7',
-        medium: '#A3A6B0',
-        dark: '#797D89',
-      },
-
-      // Chart colors
-      'chart-1': 'hsl(var(--chart-1) / <alpha-value>)',
-      'chart-2': 'hsl(var(--chart-2) / <alpha-value>)',
-      'chart-3': 'hsl(var(--chart-3) / <alpha-value>)',
-      'chart-4': 'hsl(var(--chart-4) / <alpha-value>)',
-      'chart-5': 'hsl(var(--chart-5) / <alpha-value>)',
-    },
-
     container: {
       center: true,
       padding: '2rem',
@@ -125,6 +64,67 @@ export default {
         'fade-in': 'fade-in 0.5s ease-out',
         'pulse-gentle': 'pulse-gentle 3s infinite ease-in-out',
         float: 'float 6s infinite ease-in-out',
+      },
+
+      colors: {
+        // Core colors
+        transparent: 'transparent',
+        current: 'currentColor',
+
+        // UI theme colors (using CSS variables with HSL)
+        background: 'hsl(var(--background) / <alpha-value>)',
+        foreground: 'hsl(var(--foreground) / <alpha-value>)',
+        card: 'hsl(var(--card) / <alpha-value>)',
+        'card-foreground': 'hsl(var(--card-foreground) / <alpha-value>)',
+        popover: 'hsl(var(--popover) / <alpha-value>)',
+        'popover-foreground': 'hsl(var(--popover-foreground) / <alpha-value>)',
+        primary: 'hsl(var(--primary) / <alpha-value>)',
+        'primary-foreground': 'hsl(var(--primary-foreground) / <alpha-value>)',
+        secondary: 'hsl(var(--secondary) / <alpha-value>)',
+        'secondary-foreground': 'hsl(var(--secondary-foreground) / <alpha-value>)',
+        muted: 'hsl(var(--muted) / <alpha-value>)',
+        'muted-foreground': 'hsl(var(--muted-foreground) / <alpha-value>)',
+        accent: 'hsl(var(--accent) / <alpha-value>)',
+        'accent-foreground': 'hsl(var(--accent-foreground) / <alpha-value>)',
+        destructive: 'hsl(var(--destructive) / <alpha-value>)',
+        'destructive-foreground': 'hsl(var(--destructive-foreground) / <alpha-value>)',
+        border: 'hsl(var(--border) / <alpha-value>)',
+        input: 'hsl(var(--input) / <alpha-value>)',
+        ring: 'hsl(var(--ring) / <alpha-value>)',
+
+        // Custom okay colors with direct HSL values
+        yellow: {
+          light: '#f8e3a3',
+          medium: '#f9d56e',
+          dark: '#f9c22e',
+        },
+        blue: {
+          light: '#A5DCF6',
+          medium: '#78C7EE',
+          dark: '#039BE5',
+        },
+        green: {
+          light: '#D1DBC3',
+          medium: '#b6cfb8',
+          dark: '#7F9463',
+        },
+        beige: {
+          light: '#F2DECC',
+          medium: '#C2B2A3',
+          dark: '#91857A',
+        },
+        grey: {
+          light: '#CBCFD7',
+          medium: '#A3A6B0',
+          dark: '#797D89',
+        },
+
+        // Chart colors
+        'chart-1': 'hsl(var(--chart-1) / <alpha-value>)',
+        'chart-2': 'hsl(var(--chart-2) / <alpha-value>)',
+        'chart-3': 'hsl(var(--chart-3) / <alpha-value>)',
+        'chart-4': 'hsl(var(--chart-4) / <alpha-value>)',
+        'chart-5': 'hsl(var(--chart-5) / <alpha-value>)',
       },
     },
   },

@@ -23,7 +23,7 @@ interface TagFilterProps {
   selectedTag?: string;
 }
 
-export async function TagFilter({ selectedTag = '' }: TagFilterProps) {
+export function TagFilter({ selectedTag = '' }: TagFilterProps) {
   const router = useRouter();
   const pathname = usePathname();
 

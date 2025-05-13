@@ -14,7 +14,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ApiClient, ApiErrorType } from '@/lib/api-client';
 import { useRouter } from 'next/navigation';
-import { ProtectedContent } from '@/components/auth/protected-route';
+import { ProtectedContent } from '@/components/common/auth/protected-route';
 import { formatDistanceToNow } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { toast, Toaster } from 'sonner';

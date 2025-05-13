@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useActionState, useState } from 'react';
-import { signup } from '@/app/actions/server-auth';
+import { signup } from '@/lib/actions/server-auth';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';

@@ -1,4 +1,3 @@
-// components/blog/back-button.tsx
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -9,7 +8,7 @@ export function BackButton() {
   const router = useRouter();
 
   const handleBack = () => {
-    router.back();
+    router.push('/blog');
   };
 
   return (

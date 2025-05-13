@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -43,28 +43,54 @@ const daysOfWeek = [
   { value: 'Sunday', label: 'Sunday' },
 ];
 
-// Schema for form validation
+// Base schema for a single schedule item (reused)
+const scheduleItemSchema = z.object({
+  time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: 'Time format must be HH:MM' }),
+  days: z.array(z.string()).min(1, { message: 'Select at least one day' }),
+});
+
+// Single schema with conditional validation
 const medicationFormSchema = z.object({
   name: z.string().min(1, { message: 'Medication name is required' }),
   dosage: z.string().min(1, { message: 'Dosage is required' }),
   form: z.enum(['Capsule', 'Tablet', 'Drops', 'Injectable', 'Ointment', 'Other']),
   startDate: z.date({ required_error: 'Start date is required' }),
   endDate: z.date().optional(),
-  schedule: z
-    .array(
-      z.object({
-        time: z
-          .string()
-          .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: 'Time format must be HH:MM' }),
-        days: z.array(z.string()).min(1, { message: 'Select at least one day' }),
-      }),
-    )
-    .min(1, { message: 'At least one schedule time is required' }),
+  schedule: z.array(scheduleItemSchema),
   notes: z.string().optional(),
   instructions: z.string().optional(),
 });
 
 type MedicationFormValues = z.infer<typeof medicationFormSchema>;
+
+// Helper function to compare schedules robustly
+function schedulesAreEqual(schedule1: any[], schedule2: any[]): boolean {
+  if (!schedule1 && !schedule2) return true; // Both null/undefined
+  if (!schedule1 || !schedule2) return false; // One is null/undefined
+  if (schedule1.length !== schedule2.length) return false;
+
+  // Normalize and sort both schedules for comparison
+  const normalize = (schedule: any[]) =>
+    schedule
+      .map((item) => ({
+        time: item.time,
+        // Ensure days array exists and sort it for consistent order
+        days: Array.isArray(item.days) ? [...item.days].sort() : [],
+      }))
+      .sort((a, b) => {
+        // Sort schedule items by time, then by days string
+        if (a.time !== b.time) return a.time.localeCompare(b.time);
+        return a.days.join(',').localeCompare(b.days.join(','));
+      });
+
+  const normalized1 = normalize(schedule1);
+  const normalized2 = normalize(schedule2);
+
+  // Compare the stringified versions
+  const areEqual = JSON.stringify(normalized1) === JSON.stringify(normalized2);
+  console.log('Schedule Comparison:', { schedule1, schedule2, normalized1, normalized2, areEqual });
+  return areEqual;
+}
 
 interface AddMedicationFormProps {
   medication?: Medication;
@@ -74,6 +100,15 @@ interface AddMedicationFormProps {
 export default function AddMedicationForm({ medication, onClose }: AddMedicationFormProps) {
   const { createMedication, updateMedication } = useMedicationStore();
   const isEditMode = !!medication;
+  const [formSubmitAttempted, setFormSubmitAttempted] = useState(false);
+
+  // DEBUG: Log the medication passed to the form when mounted
+  useEffect(() => {
+    if (isEditMode) {
+      console.log('DEBUG: Medication data passed to edit form:', JSON.stringify(medication));
+      console.log('DEBUG: Schedule data at form load:', JSON.stringify(medication.schedule));
+    }
+  }, [isEditMode, medication]);
 
   // Initialize form with default values or existing medication data
   const form = useForm<MedicationFormValues>({
@@ -103,8 +138,32 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
         },
   });
 
+  // DEBUG: Monitor schedule changes in the form
+  const watchedSchedule = form.watch('schedule');
+  useEffect(() => {
+    if (isEditMode) {
+      console.log('DEBUG: Schedule in form changed:', JSON.stringify(watchedSchedule));
+    }
+  }, [isEditMode, watchedSchedule]);
+
   const [newTime, setNewTime] = useState('');
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const scheduleItems = form.watch('schedule');
+
+  // Check if form is valid for submission
+  const canSubmitForm = () => {
+    // Always require name, dosage, form, and startDate
+    const { name, dosage, schedule } = form.getValues();
+    if (!name || !dosage) return false;
+
+    // For new medications, always require at least one schedule
+    if (!isEditMode && (!schedule || schedule.length === 0)) {
+      return false;
+    }
+
+    // For edits, we don't require a schedule (more flexible)
+    return true;
+  };
 
   // Add a new schedule time to the form's schedule field
   const addSpecificTime = () => {
@@ -125,27 +184,153 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
     );
   };
 
-  const onSubmit = async (values: MedicationFormValues) => {
-    // Convert string[] to DayOfWeek[] for each schedule item
-    const formattedValues = {
-      ...values,
-      schedule: values.schedule.map((item) => ({
-        ...item,
-        days: item.days.map((day) => day as unknown as DayOfWeek), // Cast to enum
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormSubmitAttempted(true);
+
+    // Trigger validation manually to check form state
+    const isValid = await form.trigger();
+    if (!isValid) {
+      console.log('Form validation failed', form.formState.errors);
+      // Display a general error message or rely on individual field messages
+      return;
+    }
+
+    // Get all values from the validated form
+    const values = form.getValues();
+    console.log('Form values at submission:', values);
+
+    // Custom validation for NEW medications schedule (if Zod schema allows empty)
+    if (!isEditMode && (!values.schedule || values.schedule.length === 0)) {
+      form.setError('schedule', {
+        type: 'manual', // Use manual to distinguish from Zod
+        message: 'At least one schedule is required for new medications',
+      });
+      console.log('Manual validation failed: New medication requires schedule.');
+      return;
+    } else {
+      // Clear manual error if condition is met
+      form.clearErrors('schedule');
+    }
+
+    // Prepare the data to be sent
+    let payload: Partial<MedicationFormValues>;
+
+    if (isEditMode) {
+      console.log('[Edit Submit] Preparing PATCH payload for:', medication.id);
+      payload = {}; // Start with an empty object for PATCH
+
+      // Define original data structure matching the form values
+      const originalData = {
+        name: medication.name,
+        dosage: medication.dosage,
+        form: medication.form,
+        startDate: medication.startDate, // Keep as Date object
+        endDate: medication.endDate, // Keep as Date object or undefined/null
+        notes: medication.notes || '',
+        instructions: medication.instructions || '',
+        schedule: medication.schedule || [], // Original schedule
+      };
+
+      // Compare each field
+      (Object.keys(values) as Array<keyof MedicationFormValues>).forEach((key) => {
+        const currentValue = values[key];
+        const originalValue = originalData[key];
+
+        if (key === 'schedule') {
+          // Ensure we are comparing arrays
+          const currentScheduleArray = Array.isArray(currentValue) ? currentValue : [];
+          const originalScheduleArray = Array.isArray(originalValue) ? originalValue : [];
+          const schedulesActuallyChanged = !schedulesAreEqual(
+            originalScheduleArray as any[],
+            currentScheduleArray as any[],
+          );
+          console.log(`[Edit Submit] Comparing schedules: Changed = ${schedulesActuallyChanged}`);
+          if (schedulesActuallyChanged) {
+            payload.schedule = currentScheduleArray as any[]; // Include schedule if changed
+          }
+        } else if (key === 'startDate' || key === 'endDate') {
+          // Compare dates by converting valid dates to ISO string (or null)
+          const currentDateStr =
+            currentValue instanceof Date
+              ? currentValue.toISOString()
+              : currentValue
+                ? new Date(currentValue as string).toISOString()
+                : null;
+          const originalDateStr =
+            originalValue instanceof Date ? originalValue.toISOString() : null;
+
+          if (currentDateStr !== originalDateStr) {
+            console.log(`[Edit Submit] Field ${key} changed.`);
+            // Add changed date to payload, ensuring correct type compatibility (Date | undefined)
+            payload[key] = (currentValue instanceof Date ? currentValue : undefined) as any;
+          }
+        } else if (currentValue !== originalValue) {
+          console.log(`[Edit Submit] Field ${key} changed.`);
+          // Add changed basic field to payload, ensuring correct type
+          payload[key] = currentValue as any;
+        }
+      });
+
+      console.log('[Edit Submit] Final PATCH payload:', JSON.stringify(payload));
+
+      // Check if payload is empty (no changes detected)
+      if (Object.keys(payload).length === 0) {
+        console.log('[Edit Submit] No changes detected. Closing form.');
+        onClose(); // Close without sending request if nothing changed
+        return;
+      }
+    } else {
+      // Create Mode
+      console.log('[Create Submit] Preparing POST payload.');
+      // For create, send all values
+      payload = values;
+    }
+
+    // Format payload for API (dates to ISO string, schedule days to enum string)
+    const formattedPayload = {
+      ...payload,
+      startDate: payload.startDate ? new Date(payload.startDate).toISOString() : undefined,
+      endDate:
+        payload.endDate !== undefined
+          ? payload.endDate
+            ? new Date(payload.endDate).toISOString()
+            : null
+          : undefined,
+      // Simplify schedule handling - don't try to convert days, just send them as-is
+      schedule: payload.schedule?.map((item) => ({
+        time: item.time,
+        days: item.days, // Send days exactly as they are
       })),
     };
 
-    if (isEditMode) {
-      await updateMedication(medication.id, formattedValues as any);
-    } else {
-      await createMedication(formattedValues as any);
+    // Log the payload for debugging
+    console.log('[Submit] Final API payload:', JSON.stringify(formattedPayload));
+
+    try {
+      if (isEditMode) {
+        await updateMedication(medication.id, formattedPayload as any);
+      } else {
+        await createMedication(formattedPayload as any);
+      }
+      onClose(); // Close form on success
+    } catch (error) {
+      console.error('Error saving medication:', error);
+      // TODO: Display user-friendly error message
     }
-    onClose();
+  };
+
+  // Validation error display helper
+  const getScheduleValidationMessage = () => {
+    if (!isEditMode && formSubmitAttempted && (!scheduleItems || scheduleItems.length === 0)) {
+      return <p className="text-red-500">At least one schedule is required for new medications</p>;
+    }
+    return null;
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
@@ -325,51 +510,46 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
             </Button>
           </div>
 
-          <FormField
-            control={form.control}
-            name="schedule"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Scheduled Times</FormLabel>
-                <FormControl>
-                  <div className="divide-y rounded-md border">
-                    {field.value && field.value.length > 0 ? (
-                      field.value.map((timeEntry, index) => (
-                        <div key={index} className="flex items-center justify-between p-4">
-                          <div>
-                            <p className="font-medium">{timeEntry.time}</p>
-                            <p className="text-muted-foreground text-sm">
-                              {timeEntry.days && timeEntry.days.length === 7
-                                ? 'Every day'
-                                : timeEntry.days
-                                    ?.map((day) => daysOfWeek.find((d) => d.value === day)?.label)
-                                    .join(', ')}
-                            </p>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeSpecificTime(index)}
-                            type="button"
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-muted-foreground p-4 text-center">
-                        No times scheduled yet
-                      </div>
-                    )}
+          <div>
+            <FormLabel>Scheduled Times</FormLabel>
+            <div className="divide-y rounded-md border">
+              {scheduleItems && scheduleItems.length > 0 ? (
+                scheduleItems.map((timeEntry, index) => (
+                  <div key={index} className="flex items-center justify-between p-4">
+                    <div>
+                      <p className="font-medium">{timeEntry.time}</p>
+                      <p className="text-muted-foreground text-sm">
+                        {timeEntry.days && timeEntry.days.length === 7
+                          ? 'Every day'
+                          : timeEntry.days
+                              ?.map((day) => daysOfWeek.find((d) => d.value === day)?.label)
+                              .join(', ')}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeSpecificTime(index)}
+                      type="button"
+                    >
+                      Remove
+                    </Button>
                   </div>
-                </FormControl>
-                <FormDescription>
-                  Add specific times when you need to take this medication
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
+                ))
+              ) : (
+                <div className="text-muted-foreground p-4 text-center">No times scheduled yet</div>
+              )}
+            </div>
+            <FormDescription>
+              Add specific times when you need to take this medication
+            </FormDescription>
+            {getScheduleValidationMessage()}
+            {form.formState.errors.schedule && (
+              <div className="mt-1 text-sm text-red-500">
+                {form.formState.errors.schedule.message}
+              </div>
             )}
-          />
+          </div>
         </div>
 
         <FormField

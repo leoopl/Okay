@@ -1,7 +1,10 @@
+'use client';
+
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { formatDate, Metadata } from '@/app/blog/util';
+import { Metadata } from '@/lib/definitions';
+import { formatDate } from '@/lib/utils';
 
 interface BlogCardProps {
   slug: string;
@@ -10,8 +13,15 @@ interface BlogCardProps {
 }
 
 const BlogCard = ({ slug, metadata, reverseLayout }: BlogCardProps) => {
+  const handleLinkClick = () => {
+    sessionStorage.setItem('lastClickedBlogSlug', slug);
+  };
+
   return (
-    <div className="mt-10 flex flex-col-reverse items-center justify-between gap-8 rounded-lg bg-white/20 p-6 shadow-lg md:flex-row md:gap-6 lg:p-10">
+    <div
+      id={slug}
+      className="mt-10 flex flex-col-reverse items-center justify-between gap-8 rounded-lg bg-white/20 p-6 shadow-lg md:flex-row md:gap-6 lg:p-10"
+    >
       <div className={`flex-1 space-y-4 ${reverseLayout ? 'md:order-2' : 'md:order-1'}`}>
         <h2 className="font-varela text-green-dark text-center text-2xl font-bold">
           {metadata.title}
@@ -24,6 +34,7 @@ const BlogCard = ({ slug, metadata, reverseLayout }: BlogCardProps) => {
         <p className="text-base text-gray-700">{metadata.summary}</p>
         <Link
           href={`/blog/${slug}`}
+          onClick={handleLinkClick}
           className="small-caps bg-primary hover:bg-yellow-light focus:ring-green-dark inline-flex items-center rounded-md px-4 py-2 text-sm font-semibold text-black focus:ring-2 focus:ring-offset-2 focus:outline-none"
         >
           Saiba mais...

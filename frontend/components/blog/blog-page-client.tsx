@@ -1,27 +1,30 @@
-import BlogCard from './blog-card';
-import { getBlogPosts } from '@/app/blog/util';
+'use client';
 
-interface BlogListProps {
-  tag?: string;
-  search?: string;
+import React, { useEffect } from 'react';
+import BlogCard from './blog-card';
+import { BlogPost } from '@/lib/definitions';
+
+interface BlogPageClientProps {
+  initialPosts: BlogPost[];
 }
 
-export async function BlogList({ tag, search }: BlogListProps) {
-  // Need to await the Promise
-  const allPosts = await getBlogPosts();
+export function BlogPageClient({ initialPosts }: BlogPageClientProps) {
+  useEffect(() => {
+    const lastClickedSlug = sessionStorage.getItem('lastClickedBlogSlug');
+    if (lastClickedSlug) {
+      setTimeout(() => {
+        const element = document.getElementById(lastClickedSlug);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          sessionStorage.removeItem('lastClickedBlogSlug');
+        } else {
+          sessionStorage.removeItem('lastClickedBlogSlug');
+        }
+      }, 100);
+    }
+  }, []);
 
-  // Filter articles based on tag and search
-  const filteredPosts = allPosts.filter((post) => {
-    const matchesTag = tag ? post.metadata.tags?.includes(tag) : true;
-    const matchesSearch = search
-      ? post.metadata.title.toLowerCase().includes(search.toLowerCase()) ||
-        post.metadata.summary.toLowerCase().includes(search.toLowerCase())
-      : true;
-
-    return matchesTag && matchesSearch;
-  });
-
-  if (filteredPosts.length === 0) {
+  if (initialPosts.length === 0) {
     return (
       <div className="rounded-xl border border-[#CBCFD7] bg-white/50 py-12 text-center">
         <h3 className="mb-2 text-xl font-bold text-[#7F9463]">No articles found</h3>
@@ -34,7 +37,7 @@ export async function BlogList({ tag, search }: BlogListProps) {
 
   return (
     <div className="grid gap-8">
-      {filteredPosts
+      {initialPosts
         .sort((a, b) => {
           if (new Date(a.metadata.publishedAt) > new Date(b.metadata.publishedAt)) {
             return -1;
@@ -43,7 +46,7 @@ export async function BlogList({ tag, search }: BlogListProps) {
         })
         .map((post, index) => (
           <BlogCard
-            key={index}
+            key={post.slug}
             slug={post.slug}
             metadata={post.metadata}
             reverseLayout={index % 2 !== 0}

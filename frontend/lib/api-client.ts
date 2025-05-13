@@ -178,7 +178,10 @@ export class ApiClient {
    * PATCH request
    */
   static async patch<T>(endpoint: string, data: any = {}, options: RequestInit = {}): Promise<T> {
-    return this.request<T>(
+    console.log('API CLIENT: PATCH request to', endpoint);
+    console.log('API CLIENT: Request payload:', JSON.stringify(data));
+
+    const result = await this.request<T>(
       endpoint,
       {
         ...options,
@@ -187,6 +190,9 @@ export class ApiClient {
       },
       true,
     );
+
+    console.log('API CLIENT: PATCH response:', JSON.stringify(result));
+    return result;
   }
 
   /**

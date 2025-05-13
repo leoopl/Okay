@@ -189,8 +189,15 @@ export const useMedicationStore = create<MedicationState>((set, get) => ({
         name: medication.name,
         dosage: medication.dosage,
         form: medication.form,
-        startDate: format(medication.startDate, 'yyyy-MM-dd'),
-        endDate: medication.endDate ? format(medication.endDate, 'yyyy-MM-dd') : undefined,
+        startDate:
+          typeof medication.startDate === 'string'
+            ? medication.startDate
+            : medication.startDate.toISOString(),
+        endDate: medication.endDate
+          ? typeof medication.endDate === 'string'
+            ? medication.endDate
+            : medication.endDate.toISOString()
+          : undefined,
         notes: medication.notes,
         instructions: medication.instructions,
         // Ensure schedule is properly formatted
@@ -228,17 +235,42 @@ export const useMedicationStore = create<MedicationState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
+      console.log('STORE: Original medication update data:', JSON.stringify(medication));
+      console.log('STORE: Update includes schedule?', medication.schedule !== undefined);
+
       // Format dates for API
       const formattedMedication = {
         ...medication,
-        startDate: medication.startDate ? format(medication.startDate, 'yyyy-MM-dd') : undefined,
-        endDate: medication.endDate ? format(medication.endDate, 'yyyy-MM-dd') : undefined,
+        startDate: medication.startDate
+          ? typeof medication.startDate === 'string'
+            ? medication.startDate
+            : medication.startDate.toISOString()
+          : undefined,
+        endDate: medication.endDate
+          ? typeof medication.endDate === 'string'
+            ? medication.endDate
+            : medication.endDate.toISOString()
+          : undefined,
+        // Ensure schedule is properly formatted if present (matching createMedication logic)
+        schedule: medication.schedule
+          ? medication.schedule.map((item) => ({
+              time: item.time,
+              days: item.days, // Send days exactly as they are
+            }))
+          : undefined,
       };
+
+      console.log(
+        'STORE: Formatted medication data being sent to API:',
+        JSON.stringify(formattedMedication),
+      );
 
       const updatedMedication = await ApiClient.patch<Medication>(
         `/medications/${id}`,
         formattedMedication,
       );
+
+      console.log('STORE: Response from API after update:', JSON.stringify(updatedMedication));
 
       // Convert date strings back to Date objects
       const formattedUpdatedMedication = {

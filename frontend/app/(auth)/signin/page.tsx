@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { SetStateAction, useActionState, useState, useEffect } from 'react';
-import { signin } from '@/app/actions/server-auth';
+import { signin } from '@/lib/actions/server-auth';
 import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 

@@ -4,7 +4,7 @@ import { Varela_Round } from 'next/font/google';
 import Headers from '../components/header';
 import Footer from '@/components/footer';
 import AuthProvider from '@/providers/auth-provider';
-import { getServerSession, logout } from './actions/server-auth';
+import { getServerSession, logout } from '../lib/actions/server-auth';
 
 const varelaRound = Varela_Round({
   subsets: ['latin'],

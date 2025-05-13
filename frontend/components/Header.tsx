@@ -4,7 +4,7 @@ import { Sheet, SheetContent, SheetClose, SheetTrigger, SheetTitle } from '@/com
 import { Menu } from 'lucide-react';
 import Link from 'next/link';
 import UserButton from './user-button';
-import Logo from './Logo';
+import Logo from './common/Logo';
 import { useAuth } from '@/providers/auth-provider';
 
 interface Page {
@@ -32,7 +32,7 @@ const pages: Page[] = [
   {
     name: 'Chat de suporte',
     description: 'Converse com um voluntário',
-    href: '/chatcvv',
+    href: '/support/cvv',
   },
   {
     name: 'Como está se sentindo?',

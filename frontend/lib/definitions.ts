@@ -75,3 +75,21 @@ export type AuthActionResponse = {
   message?: string;
   token?: string; // Access token to pass to client
 };
+
+// Add Blog Post Types
+export type Metadata = {
+  title: string;
+  author?: string;
+  publishedAt: string;
+  summary: string;
+  image?: string;
+  tags?: string[];
+  readingTime?: number;
+};
+
+export type BlogPost = {
+  metadata: Metadata;
+  slug: string;
+  content: React.ReactNode; // or JSX.Element
+  rawContent: string;
+};
