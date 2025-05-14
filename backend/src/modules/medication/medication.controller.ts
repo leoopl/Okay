@@ -140,18 +140,26 @@ export class MedicationController {
     required: false,
     description: 'End date (YYYY-MM-DD)',
   })
+  @ApiQuery({
+    name: 'daysBack',
+    required: false,
+    description:
+      'Number of days to look back (defaults to 365 if no dates provided)',
+  })
   @ApiResponse({ status: 200, description: 'Medication dose logs' })
   async getDoseLogs(
     @Req() req: IAuthenticatedRequest,
     @Query('medicationId') medicationId?: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
+    @Query('daysBack') daysBack?: number,
   ): Promise<any> {
     return this.medicationService.getDoseLogs(
       req.user.userId,
       medicationId,
       startDate ? new Date(startDate) : undefined,
       endDate ? new Date(endDate) : undefined,
+      daysBack || undefined,
     );
   }
 

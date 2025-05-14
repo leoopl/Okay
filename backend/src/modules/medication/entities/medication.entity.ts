@@ -56,7 +56,7 @@ export class Medication {
   userId: string;
 
   @ManyToOne(() => User, (user) => user.medications)
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn()
   user: User;
 
   @OneToMany(() => ScheduleTime, (scheduleTime) => scheduleTime.medication, {

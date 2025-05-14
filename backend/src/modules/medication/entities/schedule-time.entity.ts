@@ -29,9 +29,6 @@ export class ScheduleTime {
   @Column('simple-array')
   days: DayOfWeek[]; // Using the enum type
 
-  @Column({ type: 'uuid' })
-  medicationId: string;
-
   @ManyToOne(() => Medication, (medication) => medication.schedule, {
     onDelete: 'CASCADE',
   })

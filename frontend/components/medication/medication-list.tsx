@@ -147,15 +147,15 @@ export default function MedicationList() {
                   </div>
 
                   <div className="mb-3 flex items-center gap-2">
-                    <Badge variant="outline" className="bg-[#F2DECC]/30 text-[#91857A]">
+                    <Badge variant="outline" className="text-beige-dark bg-beige-light/40">
                       {medication.form}
                     </Badge>
-                    <Badge variant="outline" className="bg-[#A5DCF6]/30 text-[#039BE5]">
+                    <Badge variant="outline" className="text-blue-dark bg-blue-medium/30">
                       {medication.dosage}
                     </Badge>
                   </div>
 
-                  <div className="flex flex-col text-sm text-[#91857A]">
+                  <div className="text-bei flex flex-col text-sm">
                     <div className="flex justify-between">
                       <span>Start date:</span>
                       <span>{format(medication.startDate, 'MMM d, yyyy')}</span>
@@ -170,40 +170,46 @@ export default function MedicationList() {
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col gap-4 p-4">
-                <div className="flex w-full gap-2">
-                  <Button
-                    onClick={() => handleLogDose(medication.id, 'taken')}
-                    variant="outline"
-                    size="sm"
-                    className="border-green-dark text-green-dark hover:bg-green-light/30 flex-1 gap-1"
-                  >
-                    <CheckCircle className="size-4" />
-                    Taken
-                  </Button>
-                  <Button
-                    onClick={() => handleLogDose(medication.id, 'skipped')}
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 gap-1 border-red-500 text-red-500 hover:bg-red-50"
-                  >
-                    <XCircle className="size-4" />
-                    Skip
-                  </Button>
-                  <Button
-                    onClick={() => handleLogDose(medication.id, 'delayed')}
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 gap-1 border-amber-500 text-amber-500 hover:bg-amber-50"
-                  >
-                    <Clock className="size-4" />
-                    Delay
-                  </Button>
-                </div>
+                {medication.schedule && medication.schedule.length > 0 ? (
+                  <div className="w-full space-y-2">
+                    <p className="text-sm font-semibold">Schedule:</p>
+                    {medication.schedule.map((scheduleItem, index) => (
+                      <div
+                        key={index}
+                        className="border-grey-light bg-grey-light/10 flex items-center justify-between rounded-md border p-2"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Clock className="text-beige-dark size-4" />
+                          <span className="text-beige-dark text-sm font-medium">
+                            {scheduleItem.time}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {scheduleItem.days.map((day) => (
+                            <Badge
+                              key={day}
+                              variant="outline"
+                              className="border-blue-light bg-blue-light/10 text-beige-dark px-1.5 py-0.5 text-[10px] font-normal"
+                            >
+                              {day.substring(0, 3)}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex w-full items-center justify-center rounded-md border border-dashed border-gray-300 p-3">
+                    <p className="text-sm text-gray-500">
+                      No schedule defined for this medication.
+                    </p>
+                  </div>
+                )}
 
                 {(medication.notes || medication.instructions) && (
                   <Accordion type="single" collapsible className="w-full">
                     <AccordionItem value="notes" className="border-none">
-                      <AccordionTrigger className="py-2 text-sm hover:no-underline">
+                      <AccordionTrigger className="cursor-pointer py-2 text-sm hover:no-underline">
                         Notes & Instructions
                       </AccordionTrigger>
                       <AccordionContent>

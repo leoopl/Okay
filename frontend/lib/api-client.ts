@@ -118,8 +118,18 @@ export class ApiClient {
         throw new ApiError(errorMsg, ApiErrorType.UNKNOWN, response.status);
       }
 
-      // Handle empty responses
-      return response.status === 204 ? ({} as T) : await response.json();
+      // Handle empty responses more carefully
+      if (response.status === 204 || response.headers.get('content-length') === '0') {
+        return {} as T;
+      }
+
+      // For non-empty responses, parse JSON
+      try {
+        return await response.json();
+      } catch (jsonError) {
+        console.warn('Response is not valid JSON or empty:', jsonError);
+        return {} as T;
+      }
     } catch (error) {
       // Already handled API errors
       if (error instanceof ApiError) {

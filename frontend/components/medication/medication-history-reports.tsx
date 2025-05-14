@@ -40,48 +40,51 @@ export default function MedicationHistoryReports() {
 
   // Handle filter changes
   const handleFilterChange = () => {
-    // Determine date range based on selected time range
+    // Determine approach based on selected time range
+    const selectedMedicationId = selectedMedication === 'all' ? undefined : selectedMedication;
     let startDate: Date | undefined;
     let endDate: Date | undefined;
+    let daysBackValue: number | undefined;
 
     const today = new Date();
 
     switch (timeRange) {
       case 'today':
+        // Use explicit date for today
         startDate = today;
         endDate = today;
         break;
       case '7days':
-        startDate = subDays(today, 6);
-        endDate = today;
+        // Use daysBack for predefined periods
+        daysBackValue = 7;
         break;
       case '30days':
-        startDate = subDays(today, 29);
-        endDate = today;
+        daysBackValue = 30;
         break;
       case '90days':
-        startDate = subDays(today, 89);
-        endDate = today;
+        daysBackValue = 90;
         break;
       case 'specific':
+        // Use explicit date for user-selected date
         startDate = selectedDate;
         endDate = selectedDate;
         break;
       default:
-        startDate = subDays(today, 6);
-        endDate = today;
+        daysBackValue = 7; // Default to 7 days
     }
 
     // Fetch dose logs with selected filters
-    fetchDoseLogs(
-      selectedMedication === 'all' ? undefined : selectedMedication,
-      startDate,
-      endDate,
-    );
+    if (startDate || endDate) {
+      // Use explicit dates
+      fetchDoseLogs(selectedMedicationId, startDate, endDate);
+    } else {
+      // Use daysBack parameter (simpler approach)
+      fetchDoseLogs(selectedMedicationId, undefined, undefined, daysBackValue);
+    }
 
     // Fetch adherence stats with same filters
     fetchAdherenceStats(
-      selectedMedication === 'all' ? undefined : selectedMedication,
+      selectedMedicationId,
       timeRange === '7days' ? 7 : timeRange === '30days' ? 30 : timeRange === '90days' ? 90 : 1,
     );
   };
@@ -238,22 +241,25 @@ export default function MedicationHistoryReports() {
 
       <h3 className="text-green-dark mt-6 text-xl font-medium">Medication History</h3>
 
-      {doseLogs.length === 0 ? (
+      {!doseLogs || doseLogs.length === 0 ? (
         <div className="py-12 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#F2DECC]/50">
             <CalendarIcon className="text-yellow-dark h-8 w-8" />
           </div>
           <h3 className="text-green-dark mb-2 text-xl font-medium">No history found</h3>
           <p className="text-beige-dark mb-6">
-            {searchQuery || selectedMedication !== 'all'
+            {selectedMedication !== 'all'
               ? 'Try a different medication or time range'
               : 'Start logging your medication doses to see your history'}
           </p>
         </div>
       ) : (
         <div className="space-y-4">
-          {doseLogs.map((log: DoseLog, index: number) => (
-            <Card key={log.id || index} className="border-[#CBCFD7]">
+          {/* Debug info - remove in production */}
+          <div className="mb-2 text-xs text-gray-500">Found {doseLogs.length} logs</div>
+
+          {doseLogs.map((log, index) => (
+            <Card key={log.id || `log-${index}`} className="border-[#CBCFD7]">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <div className="mt-1">{getStatusIcon(log.status)}</div>
@@ -264,7 +270,8 @@ export default function MedicationHistoryReports() {
                           {getMedicationName(log.medicationId)}
                         </h3>
                         <p className="text-sm text-[#797D89]">
-                          {format(log.timestamp, 'PPP')} at {format(log.timestamp, 'h:mm a')}
+                          {format(new Date(log.timestamp), 'PPP')} at{' '}
+                          {format(new Date(log.timestamp), 'h:mm a')}
                         </p>
                       </div>
                       <Badge variant="outline" className={getStatusClass(log.status)}>

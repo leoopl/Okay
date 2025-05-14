@@ -40,10 +40,7 @@ export class MedicationService {
     userId: string,
     createMedicationDto: CreateMedicationDto,
   ): Promise<MedicationResponseDto> {
-    this.logger.log(
-      `[Create] Attempting to create medication for user ${userId}`,
-    );
-    this.logger.debug(`[Create] DTO: ${JSON.stringify(createMedicationDto)}`);
+    this.logger.log(`Creating medication for user ${userId}`);
 
     // First, create the basic medication entity
     const medication = this.medicationRepository.create({
@@ -61,9 +58,7 @@ export class MedicationService {
 
     // Save the medication first to get its ID
     const savedMedication = await this.medicationRepository.save(medication);
-    this.logger.log(
-      `[Create] Basic medication saved with ID: ${savedMedication.id}`,
-    );
+    this.logger.log(`Basic medication saved with ID: ${savedMedication.id}`);
 
     // Then handle schedules separately if provided
     if (
@@ -71,13 +66,13 @@ export class MedicationService {
       createMedicationDto.schedule.length > 0
     ) {
       this.logger.log(
-        `[Create] Adding ${createMedicationDto.schedule.length} schedule items`,
+        `Adding ${createMedicationDto.schedule.length} schedule items`,
       );
 
-      // Create schedule entities and set the medicationId
+      // Create schedule entities and set the medication
       const scheduleItems = createMedicationDto.schedule.map((item) => {
         return this.scheduleTimeRepository.create({
-          medicationId: savedMedication.id,
+          medication: savedMedication, // Set relationship directly
           time: item.time,
           days: item.days as DayOfWeek[], // Trust the DTO's days format
         });
@@ -85,7 +80,7 @@ export class MedicationService {
 
       // Save the schedule items
       await this.scheduleTimeRepository.save(scheduleItems);
-      this.logger.log(`[Create] All schedule items saved`);
+      this.logger.log(`All schedule items saved`);
 
       // Set the schedule property for the response
       savedMedication.schedule = scheduleItems;
@@ -130,26 +125,20 @@ export class MedicationService {
     });
 
     if (!medication) {
-      this.logger.warn(
-        `[FindOne] Medication ID ${id} not found for user ${userId}`,
-      );
       throw new NotFoundException(`Medication with ID ${id} not found`);
     }
     return new MedicationResponseDto(medication);
   }
 
   /**
-   * Update a medication - Revised Logic
+   * Update a medication
    */
   async update(
     id: string,
     userId: string,
     updateMedicationDto: UpdateMedicationDto,
   ): Promise<MedicationResponseDto> {
-    this.logger.log(
-      `[Update] Attempting update for medication ID: ${id}, User: ${userId}`,
-    );
-    this.logger.debug(`[Update] DTO: ${JSON.stringify(updateMedicationDto)}`);
+    this.logger.log(`Updating medication ID: ${id}, User: ${userId}`);
 
     // First check if medication exists
     const existingMedication = await this.medicationRepository.findOne({
@@ -158,9 +147,6 @@ export class MedicationService {
     });
 
     if (!existingMedication) {
-      this.logger.warn(
-        `[Update] Medication ID ${id} not found for user ${userId}`,
-      );
       throw new NotFoundException(`Medication with ID ${id} not found`);
     }
 
@@ -188,10 +174,6 @@ export class MedicationService {
 
     // Only update the medication if there are fields to update
     if (Object.keys(medicationUpdate).length > 0) {
-      this.logger.log(
-        `[Update] Updating base medication fields: ${Object.keys(medicationUpdate).join(', ')}`,
-      );
-
       // Cast form to MedicationForm if it exists
       if (medicationUpdate.form) {
         medicationUpdate.form = medicationUpdate.form as MedicationForm;
@@ -203,65 +185,40 @@ export class MedicationService {
         medicationUpdate as any, // Use type assertion to bypass TypeORM's strict typing
       );
 
-      this.logger.log(`[Update] Successfully updated medication fields`);
-    } else {
-      this.logger.log(`[Update] No medication fields to update`);
+      this.logger.log(`Updated medication fields`);
     }
 
     // STEP 2: Handle schedules separately if provided
     if (schedule !== undefined) {
-      this.logger.log(
-        `[Update] Schedule array provided with ${schedule.length} items`,
-      );
+      this.logger.log(`Schedule array provided with ${schedule.length} items`);
 
       // Delete existing schedules first
-      this.logger.log(
-        `[Update] Attempting to delete schedules for medicationId: ${id}`,
-      );
-      const deleteResult = await this.scheduleTimeRepository.delete({
-        medicationId: id,
+      await this.scheduleTimeRepository.delete({
+        medication: { id },
       });
-      this.logger.log(
-        `[Update] Deleted ${deleteResult.affected || 0} existing schedule items`,
-      );
+
+      this.logger.log(`Deleted existing schedule items`);
 
       // Create new schedules if any are provided
       if (schedule.length > 0) {
-        this.logger.log(
-          `[Update] Preparing to create ${schedule.length} new schedule items.`,
-        );
         const createdSchedules = [];
+
         for (const item of schedule) {
           const scheduleEntity = this.scheduleTimeRepository.create({
-            medicationId: id,
+            medication: { id }, // Reference by id
             time: item.time,
-            days: item.days.map(
-              (day) =>
-                DayOfWeek[day.toUpperCase() as keyof typeof DayOfWeek] || day,
-            ) as DayOfWeek[],
+            days: item.days as DayOfWeek[],
           });
-          this.logger.debug(
-            `[Update] Saving new schedule item: ${JSON.stringify(scheduleEntity)}`,
-          );
+
           const savedItem =
             await this.scheduleTimeRepository.save(scheduleEntity);
-          this.logger.debug(
-            `[Update] Saved schedule item with ID: ${savedItem.id}`,
-          );
           createdSchedules.push(savedItem);
         }
+
         this.logger.log(
-          `[Update] Successfully created ${createdSchedules.length} new schedule items.`,
-        );
-      } else {
-        this.logger.log(
-          `[Update] Provided schedule array was empty. No new schedules created.`,
+          `Created ${createdSchedules.length} new schedule items`,
         );
       }
-    } else {
-      this.logger.log(
-        `[Update] Schedule not included in update, leaving existing schedules untouched`,
-      );
     }
 
     // STEP 3: Fetch the final updated medication with all relations for the response
@@ -271,16 +228,8 @@ export class MedicationService {
     });
 
     if (!updatedMedication) {
-      this.logger.error(
-        `[Update] Failed to fetch updated medication after save`,
-      );
       throw new Error('Failed to retrieve updated medication details');
     }
-
-    // Log the final state for debugging
-    this.logger.debug(
-      `[Update] Final medication state: ${JSON.stringify(updatedMedication)}`,
-    );
 
     // Log the action
     await this.auditService.logAction({
@@ -298,23 +247,19 @@ export class MedicationService {
    * Delete a medication
    */
   async remove(id: string, userId: string): Promise<void> {
-    this.logger.log(
-      `[Delete] Attempting delete for medication ID: ${id}, User: ${userId}`,
-    );
+    this.logger.log(`Deleting medication ID: ${id}, User: ${userId}`);
+
     const medication = await this.medicationRepository.findOneBy({
       id,
       userId,
     });
 
     if (!medication) {
-      this.logger.warn(
-        `[Delete] Medication ID ${id} not found for user ${userId}`,
-      );
       throw new NotFoundException(`Medication with ID ${id} not found`);
     }
 
     await this.medicationRepository.remove(medication);
-    this.logger.log(`[Delete] Deleted medication ID: ${id}`);
+    this.logger.log(`Deleted medication ID: ${id}`);
 
     await this.auditService.logAction({
       userId,
@@ -370,16 +315,31 @@ export class MedicationService {
     medicationId?: string,
     startDate?: Date,
     endDate?: Date,
+    daysBack: number = 365, // Default to 1 year if no explicit dates
   ): Promise<DoseLog[]> {
     const query: FindOptionsWhere<DoseLog> = { userId };
     if (medicationId) query.medicationId = medicationId;
 
-    if (startDate && endDate) {
-      query.timestamp = Between(startOfDay(startDate), endOfDay(endDate));
-    } else if (startDate) {
-      query.timestamp = MoreThanOrEqual(startOfDay(startDate));
-    } else if (endDate) {
-      query.timestamp = LessThanOrEqual(endOfDay(endDate));
+    this.logger.log(`[Logs] Fetching dose logs for user ${userId}`);
+
+    // If explicit dates are provided, use them
+    if (startDate || endDate) {
+      this.logger.log(`[Logs] Using explicit date range filters`);
+      if (startDate && endDate) {
+        query.timestamp = Between(startOfDay(startDate), endOfDay(endDate));
+      } else if (startDate) {
+        query.timestamp = MoreThanOrEqual(startOfDay(startDate));
+      } else if (endDate) {
+        query.timestamp = LessThanOrEqual(endOfDay(endDate));
+      }
+    } else {
+      // Otherwise use daysBack parameter
+      const endDateValue = new Date();
+      const startDateValue = subDays(startOfDay(endDateValue), daysBack - 1);
+      this.logger.log(
+        `[Logs] Using daysBack=${daysBack}, period: ${startDateValue.toISOString()} to ${endDateValue.toISOString()}`,
+      );
+      query.timestamp = Between(startDateValue, endOfDay(endDateValue));
     }
 
     return this.doseLogRepository.find({
@@ -390,13 +350,13 @@ export class MedicationService {
   }
 
   /**
-   * Get today's schedule - Revised Logic
+   * Get today's schedule
    */
   async getTodaySchedule(userId: string): Promise<any[]> {
     const today = new Date();
     const todayStart = startOfDay(today);
     this.logger.log(
-      `[Schedule] Getting schedule for user ${userId} on ${todayStart.toISOString()}`,
+      `Getting schedule for user ${userId} on ${todayStart.toISOString()}`,
     );
 
     // Find all active medications (started before/on today, and either ongoing or ending in the future)
@@ -413,18 +373,12 @@ export class MedicationService {
     });
 
     this.logger.log(
-      `[Schedule] Found ${activeMedications.length} potentially active medications.`,
+      `Found ${activeMedications.length} potentially active medications.`,
     );
-    activeMedications.forEach((med) => {
-      this.logger.debug(
-        `[Schedule] - ${med.name}: ${med.schedule?.length || 0} schedules, Start: ${med.startDate}, End: ${med.endDate || 'ongoing'}`,
-      );
-    });
 
     // Get current day of week in a case-insensitive way
     const todayDayName = format(today, 'EEEE'); // e.g., "Monday"
     const todayLowercase = todayDayName.toLowerCase();
-    this.logger.log(`[Schedule] Current day of week: ${todayDayName}`);
 
     // Get logs ONLY for today to check against
     const todayLogs = await this.doseLogRepository.find({
@@ -433,17 +387,11 @@ export class MedicationService {
         timestamp: Between(startOfDay(today), endOfDay(today)),
       },
     });
-    this.logger.log(
-      `[Schedule] Found ${todayLogs.length} dose logs for today.`,
-    );
 
     const scheduleTasks = [];
 
     for (const med of activeMedications) {
       if (!med.schedule || med.schedule.length === 0) {
-        this.logger.debug(
-          `[Schedule] Skipping ${med.name}: no schedules defined.`,
-        );
         continue;
       }
 
@@ -456,21 +404,12 @@ export class MedicationService {
         // Check if scheduled for today
         const isScheduledToday = daysList.includes(todayLowercase);
 
-        // Log the matching
-        this.logger.debug(
-          `[Schedule] Checking ${med.name} at ${timeSlot.time}: days=${daysList.join(',')}, today=${todayLowercase}, match=${isScheduledToday}`,
-        );
-
         if (isScheduledToday) {
           // Check if already logged for this specific time slot
           const alreadyLogged = todayLogs.some(
             (log) =>
               log.medicationId === med.id &&
               log.scheduledTime === timeSlot.time,
-          );
-
-          this.logger.debug(
-            `[Schedule] ${med.name} at ${timeSlot.time} is for today. Already logged: ${alreadyLogged}`,
           );
 
           if (!alreadyLogged) {
@@ -483,9 +422,6 @@ export class MedicationService {
               time: timeSlot.time,
               scheduledTime: timeSlot.time, // For potential logging use
             });
-            this.logger.debug(
-              `[Schedule] Added to schedule: ${med.name} at ${timeSlot.time}`,
-            );
           }
         }
       }
@@ -493,9 +429,7 @@ export class MedicationService {
 
     // Sort by time
     scheduleTasks.sort((a, b) => a.time.localeCompare(b.time));
-    this.logger.log(
-      `[Schedule] Final schedule has ${scheduleTasks.length} items`,
-    );
+    this.logger.log(`Final schedule has ${scheduleTasks.length} items`);
 
     return scheduleTasks;
   }
@@ -511,7 +445,7 @@ export class MedicationService {
     const endDate = new Date();
     const startDate = subDays(startOfDay(endDate), daysBack - 1);
     this.logger.log(
-      `[Stats] Calculating adherence for user ${userId}, period: ${startDate.toISOString()} to ${endDate.toISOString()}`,
+      `Calculating adherence for user ${userId}, period: ${daysBack} days`,
     );
 
     const logs = await this.getDoseLogs(
@@ -528,9 +462,6 @@ export class MedicationService {
 
     const adherenceRate =
       totalLogged > 0 ? Math.round((taken / totalLogged) * 100) : 0;
-    this.logger.log(
-      `[Stats] Adherence based on logs: ${adherenceRate}% (T:${taken}, S:${skipped}, D:${delayed}, Total:${totalLogged})`,
-    );
 
     return {
       adherenceRate,

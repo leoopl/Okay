@@ -42,11 +42,11 @@ export class DoseLog {
   @ManyToOne(() => Medication, (medication) => medication.doseLogs, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'medicationId' })
+  @JoinColumn()
   medication: Medication;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn()
   user: User;
 
   @CreateDateColumn({ type: 'timestamp with time zone' })

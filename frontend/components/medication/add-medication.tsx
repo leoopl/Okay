@@ -30,6 +30,7 @@ import { CalendarIcon, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DayOfWeek, Medication, useMedicationStore } from '@/lib/medication-store';
+import { Toaster } from 'sonner';
 
 const medicationForms = ['Capsule', 'Tablet', 'Drops', 'Injectable', 'Ointment', 'Other'];
 
@@ -102,14 +103,6 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
   const isEditMode = !!medication;
   const [formSubmitAttempted, setFormSubmitAttempted] = useState(false);
 
-  // DEBUG: Log the medication passed to the form when mounted
-  useEffect(() => {
-    if (isEditMode) {
-      console.log('DEBUG: Medication data passed to edit form:', JSON.stringify(medication));
-      console.log('DEBUG: Schedule data at form load:', JSON.stringify(medication.schedule));
-    }
-  }, [isEditMode, medication]);
-
   // Initialize form with default values or existing medication data
   const form = useForm<MedicationFormValues>({
     resolver: zodResolver(medicationFormSchema),
@@ -137,14 +130,6 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
           instructions: '',
         },
   });
-
-  // DEBUG: Monitor schedule changes in the form
-  const watchedSchedule = form.watch('schedule');
-  useEffect(() => {
-    if (isEditMode) {
-      console.log('DEBUG: Schedule in form changed:', JSON.stringify(watchedSchedule));
-    }
-  }, [isEditMode, watchedSchedule]);
 
   const [newTime, setNewTime] = useState('');
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
@@ -331,6 +316,7 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
   return (
     <Form {...form}>
       <form onSubmit={handleSubmit} className="space-y-6">
+        <Toaster richColors position="top-center" />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
