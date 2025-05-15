@@ -128,7 +128,7 @@ export async function signin(prevState: AuthActionResponse | undefined, formData
   }
 
   console.log('Redirecting to dashboard');
-  redirect('/dashboard');
+  redirect('/profile');
 }
 
 /**
@@ -288,17 +288,51 @@ export async function getServerSession(): Promise<UserProfile | null> {
       return getServerSession();
     }
 
-    // Create user profile from token data
-    const userProfile: UserProfile = {
-      id: decoded.sub,
-      email: decoded.email,
-      name: decoded.name || '',
-      surname: decoded.surname || '',
-      roles: decoded.roles || [],
-      permissions: decoded.permissions || [],
-    };
+    // Get full user profile data from API
+    const apiUrl = process.env.API_URL;
+    const userId = decoded.sub;
 
-    return userProfile;
+    // Fetch the user profile data
+    const response = await fetch(`${apiUrl}/users/${userId}`, {
+      headers: {
+        Cookie: cookieStore
+          .getAll()
+          .map((cookie) => `${cookie.name}=${cookie.value}`)
+          .join('; '),
+        Authorization: `Bearer ${accessToken}`,
+      },
+      next: { tags: ['user-profile'] },
+    });
+
+    if (!response.ok) {
+      // If API call fails, create a basic profile from the token
+      return {
+        id: decoded.sub,
+        email: decoded.email,
+        name: decoded.name || '',
+        surname: decoded.surname || '',
+        roles: decoded.roles || [],
+        permissions: decoded.permissions || [],
+      };
+    }
+
+    // Return the full user profile
+    const userData = await response.json();
+    return {
+      id: userData.id,
+      email: userData.email,
+      name: userData.name,
+      surname: userData.surname,
+      gender: userData.gender,
+      birthdate: userData.birthdate,
+      roles: userData.roles || decoded.roles || [],
+      permissions: decoded.permissions || [],
+      consentToDataProcessing: userData.consentToDataProcessing,
+      consentToResearch: userData.consentToResearch,
+      consentToMarketing: userData.consentToMarketing,
+      createdAt: userData.createdAt,
+      updatedAt: userData.updatedAt,
+    };
   } catch (error) {
     console.error('Error validating token:', error);
     return null;
@@ -311,12 +345,16 @@ export async function getServerSession(): Promise<UserProfile | null> {
  */
 export async function refreshServerToken(): Promise<boolean> {
   try {
+    const cookieStore = await cookies();
     // Make server-to-server request to refresh token
     const response = await fetch(`${API_URL}/auth/refresh`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Cookie: cookies().toString(),
+        Cookie: cookieStore
+          .getAll()
+          .map((cookie) => `${cookie.name}=${cookie.value}`)
+          .join('; '),
       },
       credentials: 'include',
     });

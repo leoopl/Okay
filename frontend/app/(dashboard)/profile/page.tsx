@@ -7,15 +7,41 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Book, ClipboardList, LogOut, Pill, Settings, Shield, Star, User } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
+import { useAuth } from '@/providers/auth-provider';
+import { formatDate } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 export default function Profile() {
   const [activeTab, setActiveTab] = useState('profile');
+  const { user, isAuth, logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/');
+  };
+
+  // Get user initials for avatar fallback
+  const getUserInitials = () => {
+    if (!user) return 'U';
+
+    const nameInitial = user.name?.charAt(0) || '';
+    const surnameInitial = user.surname?.charAt(0) || '';
+
+    return (nameInitial + surnameInitial).toUpperCase();
+  };
+
+  // Format member since date
+  const memberSince = user?.createdAt
+    ? formatDate(user.createdAt, false).split('/')[1] +
+      '/' +
+      formatDate(user.createdAt, false).split('/')[2]
+    : 'Jan 2024';
+
   return (
     <div className="mx-auto max-w-7xl pb-5">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
@@ -24,35 +50,47 @@ export default function Profile() {
           <CardContent className="pt-6">
             <div className="flex flex-col items-center space-y-4">
               <Avatar className="h-24 w-24">
-                <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback>JD</AvatarFallback>
+                <AvatarImage
+                  src={`https://ui-avatars.com/api/?name=${user?.name}+${user?.surname || ''}&background=7F9463&color=fff`}
+                />
+                <AvatarFallback>{getUserInitials()}</AvatarFallback>
               </Avatar>
               <div className="space-y-2 text-center">
-                <h2 className="text-xl font-semibold">John Doe</h2>
-                <Badge variant="outline" className="text-yellow-dark">
-                  Pro Member
-                  <Star />
-                </Badge>
+                <h2 className="text-xl font-semibold">
+                  {user?.name} {user?.surname}
+                </h2>
+                {user?.roles?.includes('admin') && (
+                  <Badge variant="outline" className="text-yellow-dark">
+                    Administrador
+                    <Star className="ml-1 h-3 w-3" />
+                  </Badge>
+                )}
+                {user?.roles?.includes('patient') && !user?.roles?.includes('admin') && (
+                  <Badge variant="outline" className="text-green-dark">
+                    Paciente
+                  </Badge>
+                )}
               </div>
               <div className="w-full space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-okay-grey-dark">Member since</span>
-                  <span>Jan 2024</span>
+                  <span className="text-okay-grey-dark">Membro desde</span>
+                  <span>{memberSince}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-okay-grey-dark">Last active</span>
-                  <span>2 hours ago</span>
+                  <span className="text-okay-grey-dark">E-mail</span>
+                  <span className="max-w-[150px] truncate">{user?.email}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-okay-grey-dark">Role</span>
-                  <span>Admin</span>
+                  <span className="text-okay-grey-dark">Função</span>
+                  <span>{user?.roles?.includes('admin') ? 'Admin' : 'Paciente'}</span>
                 </div>
                 <Button
                   variant="outline"
                   className="text-destructive border-destructive hover:bg-destructive mt-8 w-full"
+                  onClick={handleLogout}
                 >
-                  Log out
-                  <LogOut />
+                  Sair
+                  <LogOut className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -73,21 +111,21 @@ export default function Profile() {
                   value="profile"
                   className="data-[state=active]:text-blue-dark data-[state=active]:bg-beige-light/40"
                 >
-                  <User />
+                  <User className="mr-2 h-4 w-4" />
                   Perfil
                 </TabsTrigger>
                 <TabsTrigger
                   value="security"
                   className="data-[state=active]:text-blue-dark data-[state=active]:bg-beige-light/40"
                 >
-                  <Shield />
+                  <Shield className="mr-2 h-4 w-4" />
                   Segurança
                 </TabsTrigger>
                 <TabsTrigger
                   value="notifications"
                   className="data-[state=active]:text-blue-dark data-[state=active]:bg-beige-light/40"
                 >
-                  <Settings />
+                  <Settings className="mr-2 h-4 w-4" />
                   Configurações
                 </TabsTrigger>
               </TabsList>
@@ -110,12 +148,12 @@ export default function Profile() {
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#7F9463]/20">
                   <Book className="h-6 w-6 text-[#7F9463]" />
                 </div>
-                <h3 className="mb-2 text-lg font-bold text-[#7F9463]">Journal</h3>
+                <h3 className="mb-2 text-lg font-bold text-[#7F9463]">Diário</h3>
                 <p className="mb-4 text-[#91857A]">
-                  Record your thoughts and track your mood over time.
+                  Registre seus pensamentos e acompanhe seu humor ao longo do tempo.
                 </p>
                 <Button asChild className="bg-[#7F9463] text-white hover:bg-[#7F9463]/90">
-                  <Link href="/journal">Open Journal</Link>
+                  <Link href="/journal">Abrir Diário</Link>
                 </Button>
               </div>
             </Card>
@@ -125,12 +163,12 @@ export default function Profile() {
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#F4B400]/20">
                   <Pill className="h-6 w-6 text-[#F4B400]" />
                 </div>
-                <h3 className="mb-2 text-lg font-bold text-[#7F9463]">Medication</h3>
+                <h3 className="mb-2 text-lg font-bold text-[#7F9463]">Medicamentos</h3>
                 <p className="mb-4 text-[#91857A]">
-                  Manage your medication schedule and reminders.
+                  Gerencie sua agenda de medicamentos e lembretes.
                 </p>
                 <Button asChild className="bg-[#F4B400] text-white hover:bg-[#F4B400]/90">
-                  <Link href="/medication">Medication Settings</Link>
+                  <Link href="/medication">Configurações de Medicamentos</Link>
                 </Button>
               </div>
             </Card>
@@ -140,12 +178,12 @@ export default function Profile() {
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#039BE5]/20">
                   <ClipboardList className="h-6 w-6 text-[#039BE5]" />
                 </div>
-                <h3 className="mb-2 text-lg font-bold text-[#7F9463]">Questionnaires</h3>
+                <h3 className="mb-2 text-lg font-bold text-[#7F9463]">Questionários</h3>
                 <p className="mb-4 text-[#91857A]">
-                  Complete assessments to track your mental health progress.
+                  Complete avaliações para acompanhar seu progresso em saúde mental.
                 </p>
                 <Button asChild className="bg-[#039BE5] text-white hover:bg-[#039BE5]/90">
-                  <Link href="/questionnaires">View Questionnaires</Link>
+                  <Link href="/questionnaires">Ver Questionários</Link>
                 </Button>
               </div>
             </Card>

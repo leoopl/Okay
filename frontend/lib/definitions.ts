@@ -35,6 +35,42 @@ export const SigninFormSchema = z.object({
   password: z.string().min(1, { message: 'Password is required.' }).trim(),
 });
 
+// Validation schema for profile updates (moved from server-profile.ts)
+export const ProfileFormSchema = z.object({
+  name: z.string().min(2, { message: 'Nome deve ter pelo menos 2 caracteres' }).max(50),
+  surname: z
+    .string()
+    .min(2, { message: 'Sobrenome deve ter pelo menos 2 caracteres' })
+    .max(50)
+    .optional(),
+  email: z.string().email({ message: 'Email inválido' }),
+  gender: z.string().optional(),
+  birthdate: z.string().optional(), // Assuming birthdate is submitted as string, handle conversion in action
+});
+
+// Validation schema for password change (moved from server-profile.ts)
+export const PasswordChangeSchema = z
+  .object({
+    currentPassword: z.string().min(1, { message: 'Senha atual é obrigatória' }),
+    newPassword: z
+      .string()
+      .min(8, { message: 'Senha deve ter pelo menos 8 caracteres' })
+      .regex(/[a-z]/, { message: 'Deve conter pelo menos uma letra minúscula' })
+      .regex(/[A-Z]/, { message: 'Deve conter pelo menos uma letra maiúscula' })
+      .regex(/[0-9]/, { message: 'Deve conter pelo menos um número' })
+      .regex(/[^a-zA-Z0-9]/, { message: 'Deve conter pelo menos um caractere especial' }),
+    confirmPassword: z.string(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.newPassword !== data.confirmPassword) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'As senhas não coincidem',
+        path: ['confirmPassword'],
+      });
+    }
+  });
+
 // Form state type for handling errors and messages
 export type FormState =
   | {
@@ -57,8 +93,15 @@ export type UserProfile = {
   email: string;
   name: string;
   surname?: string;
+  gender?: string;
+  birthdate?: string;
   roles: string[];
   permissions?: string[];
+  consentToDataProcessing?: boolean;
+  consentToResearch?: boolean;
+  consentToMarketing?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
   tokenFingerprint?: string;
 };
 

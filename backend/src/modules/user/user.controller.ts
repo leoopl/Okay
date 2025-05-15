@@ -13,6 +13,7 @@ import {
   HttpCode,
   HttpStatus,
   ForbiddenException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -29,13 +30,18 @@ import { RolesGuard } from '../../core/auth/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { Public } from '../../common/decorators/is-public.decorator';
 import { IAuthenticatedRequest } from '../../common/interfaces/auth-request.interface';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { AuthService } from 'src/core/auth/auth.service';
 
 @ApiTags('users')
 @Controller('users')
 @UseInterceptors(ClassSerializerInterceptor)
 @ApiBearerAuth('JWT')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly authService: AuthService,
+  ) {}
 
   @Public()
   @ApiOperation({ summary: 'Create a new user' })
@@ -127,6 +133,32 @@ export class UserController {
       req.user.userId,
     );
     return new UserProfile(user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Update user password' })
+  @ApiResponse({ status: 200, description: 'Password changed successfully' })
+  @ApiResponse({ status: 401, description: 'Current password is incorrect' })
+  @Post('update-password')
+  @HttpCode(HttpStatus.OK)
+  async changePassword(
+    @Body() passwordData: ChangePasswordDto,
+    @Req() req: IAuthenticatedRequest,
+  ) {
+    // Verify current password first
+    const user = await this.authService.validateUser(
+      req.user.email,
+      passwordData.currentPassword,
+    );
+
+    if (!user) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    // Change to new password
+    await this.userService.updatePassword(user.id, passwordData.newPassword);
+
+    return { message: 'Password updated successfully' };
   }
 
   @ApiOperation({ summary: 'Update user consent settings' })
