@@ -1,0 +1,541 @@
+{
+  "name": "dass21_ptbr",
+  "title": "Escala de Depressão, Ansiedade e Estresse – 21 Itens (DASS-21)",
+  "description": "A DASS-21 é um questionário de autorrelato de 21 itens projetado para medir a gravidade dos sintomas relacionados à depressão, ansiedade e estresse experimentados na última semana.",
+  "disclaimer": "Este questionário destina-se apenas a fins informativos e de automonitoramento e não constitui um diagnóstico de nenhuma condição de saúde mental. Apenas um profissional de saúde mental qualificado pode fornecer um diagnóstico.",
+  "version": "1.0.0",
+  "source": "Desenvolvido por S.H. Lovibond e P.F. Lovibond. Disponível em psy.unsw.edu.au/dass",
+  "createdAt": "2025-05-19T17:47:15-03:00",
+  "updatedAt": "2025-05-19T17:47:15-03:00",
+  "questions": [
+    {
+      "id": "dass_q1",
+      "title": "Achei difícil relaxar",
+      "subscale": "stress",
+      "options": [
+        { "label": "Não se aplicou a mim em nada", "value": 0 },
+        {
+          "label": "Aplicou-se a mim em algum grau, ou em parte do tempo",
+          "value": 1
+        },
+        {
+          "label": "Aplicou-se a mim em grau considerável ou na maior parte do tempo",
+          "value": 2
+        },
+        {
+          "label": "Aplicou-se a mim em grau muito acentuado ou na maioria do tempo",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "dass_q2",
+      "title": "Estava ciente de secura na minha boca",
+      "subscale": "anxiety",
+      "options": [
+        { "label": "Não se aplicou a mim em nada", "value": 0 },
+        {
+          "label": "Aplicou-se a mim em algum grau, ou em parte do tempo",
+          "value": 1
+        },
+        {
+          "label": "Aplicou-se a mim em grau considerável ou na maior parte do tempo",
+          "value": 2
+        },
+        {
+          "label": "Aplicou-se a mim em grau muito acentuado ou na maioria do tempo",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "dass_q3",
+      "title": "Não conseguia sentir nenhum sentimento positivo",
+      "subscale": "depression",
+      "options": [
+        { "label": "Não se aplicou a mim em nada", "value": 0 },
+        {
+          "label": "Aplicou-se a mim em algum grau, ou em parte do tempo",
+          "value": 1
+        },
+        {
+          "label": "Aplicou-se a mim em grau considerável ou na maior parte do tempo",
+          "value": 2
+        },
+        {
+          "label": "Aplicou-se a mim em grau muito acentuado ou na maioria do tempo",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "dass_q4",
+      "title": "Experimentei dificuldade em respirar (e.g., respiração excessivamente rápida, falta de ar na ausência de esforço físico)",
+      "subscale": "anxiety",
+      "options": [
+        { "label": "Não se aplicou a mim em nada", "value": 0 },
+        {
+          "label": "Aplicou-se a mim em algum grau, ou em parte do tempo",
+          "value": 1
+        },
+        {
+          "label": "Aplicou-se a mim em grau considerável ou na maior parte do tempo",
+          "value": 2
+        },
+        {
+          "label": "Aplicou-se a mim em grau muito acentuado ou na maioria do tempo",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "dass_q5",
+      "title": "Achei difícil ter iniciativa para fazer as coisas",
+      "subscale": "depression",
+      "options": [
+        { "label": "Não se aplicou a mim em nada", "value": 0 },
+        {
+          "label": "Aplicou-se a mim em algum grau, ou em parte do tempo",
+          "value": 1
+        },
+        {
+          "label": "Aplicou-se a mim em grau considerável ou na maior parte do tempo",
+          "value": 2
+        },
+        {
+          "label": "Aplicou-se a mim em grau muito acentuado ou na maioria do tempo",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "dass_q6",
+      "title": "Tendi a reagir exageradamente às situações",
+      "subscale": "stress",
+      "options": [
+        { "label": "Não se aplicou a mim em nada", "value": 0 },
+        {
+          "label": "Aplicou-se a mim em algum grau, ou em parte do tempo",
+          "value": 1
+        },
+        {
+          "label": "Aplicou-se a mim em grau considerável ou na maior parte do tempo",
+          "value": 2
+        },
+        {
+          "label": "Aplicou-se a mim em grau muito acentuado ou na maioria do tempo",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "dass_q7",
+      "title": "Experimentei tremores (e.g. nas mãos)",
+      "subscale": "anxiety",
+      "options": [
+        { "label": "Não se aplicou a mim em nada", "value": 0 },
+        {
+          "label": "Aplicou-se a mim em algum grau, ou em parte do tempo",
+          "value": 1
+        },
+        {
+          "label": "Aplicou-se a mim em grau considerável ou na maior parte do tempo",
+          "value": 2
+        },
+        {
+          "label": "Aplicou-se a mim em grau muito acentuado ou na maioria do tempo",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "dass_q8",
+      "title": "Senti que estava bastante sensível/irritável",
+      "subscale": "stress",
+      "options": [
+        { "label": "Não se aplicou a mim em nada", "value": 0 },
+        {
+          "label": "Aplicou-se a mim em algum grau, ou em parte do tempo",
+          "value": 1
+        },
+        {
+          "label": "Aplicou-se a mim em grau considerável ou na maior parte do tempo",
+          "value": 2
+        },
+        {
+          "label": "Aplicou-se a mim em grau muito acentuado ou na maioria do tempo",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "dass_q9",
+      "title": "Preocupei-me com situações nas quais eu poderia entrar em pânico e me envergonhar",
+      "subscale": "anxiety",
+      "options": [
+        { "label": "Não se aplicou a mim em nada", "value": 0 },
+        {
+          "label": "Aplicou-se a mim em algum grau, ou em parte do tempo",
+          "value": 1
+        },
+        {
+          "label": "Aplicou-se a mim em grau considerável ou na maior parte do tempo",
+          "value": 2
+        },
+        {
+          "label": "Aplicou-se a mim em grau muito acentuado ou na maioria do tempo",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "dass_q10",
+      "title": "Senti que não tinha nada a esperar",
+      "subscale": "depression",
+      "options": [
+        { "label": "Não se aplicou a mim em nada", "value": 0 },
+        {
+          "label": "Aplicou-se a mim em algum grau, ou em parte do tempo",
+          "value": 1
+        },
+        {
+          "label": "Aplicou-se a mim em grau considerável ou na maior parte do tempo",
+          "value": 2
+        },
+        {
+          "label": "Aplicou-se a mim em grau muito acentuado ou na maioria do tempo",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "dass_q11",
+      "title": "Comecei a me sentir agitado(a)",
+      "subscale": "stress",
+      "options": [
+        { "label": "Não se aplicou a mim em nada", "value": 0 },
+        {
+          "label": "Aplicou-se a mim em algum grau, ou em parte do tempo",
+          "value": 1
+        },
+        {
+          "label": "Aplicou-se a mim em grau considerável ou na maior parte do tempo",
+          "value": 2
+        },
+        {
+          "label": "Aplicou-se a mim em grau muito acentuado ou na maioria do tempo",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "dass_q12",
+      "title": "Achei difícil relaxar",
+      "subscale": "stress",
+      "options": [
+        { "label": "Não se aplicou a mim em nada", "value": 0 },
+        {
+          "label": "Aplicou-se a mim em algum grau, ou em parte do tempo",
+          "value": 1
+        },
+        {
+          "label": "Aplicou-se a mim em grau considerável ou na maior parte do tempo",
+          "value": 2
+        },
+        {
+          "label": "Aplicou-se a mim em grau muito acentuado ou na maioria do tempo",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "dass_q13",
+      "title": "Senti-me desanimado(a) e triste",
+      "subscale": "depression",
+      "options": [
+        { "label": "Não se aplicou a mim em nada", "value": 0 },
+        {
+          "label": "Aplicou-se a mim em algum grau, ou em parte do tempo",
+          "value": 1
+        },
+        {
+          "label": "Aplicou-se a mim em grau considerável ou na maior parte do tempo",
+          "value": 2
+        },
+        {
+          "label": "Aplicou-se a mim em grau muito acentuado ou na maioria do tempo",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "dass_q14",
+      "title": "Fui intolerante com qualquer coisa que me impedia de fazer o que eu estava fazendo",
+      "subscale": "stress",
+      "options": [
+        { "label": "Não se aplicou a mim em nada", "value": 0 },
+        {
+          "label": "Aplicou-se a mim em algum grau, ou em parte do tempo",
+          "value": 1
+        },
+        {
+          "label": "Aplicou-se a mim em grau considerável ou na maior parte do tempo",
+          "value": 2
+        },
+        {
+          "label": "Aplicou-se a mim em grau muito acentuado ou na maioria do tempo",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "dass_q15",
+      "title": "Senti que estava perto do pânico",
+      "subscale": "anxiety",
+      "options": [
+        { "label": "Não se aplicou a mim em nada", "value": 0 },
+        {
+          "label": "Aplicou-se a mim em algum grau, ou em parte do tempo",
+          "value": 1
+        },
+        {
+          "label": "Aplicou-se a mim em grau considerável ou na maior parte do tempo",
+          "value": 2
+        },
+        {
+          "label": "Aplicou-se a mim em grau muito acentuado ou na maioria do tempo",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "dass_q16",
+      "title": "Não conseguia sentir nenhum prazer nas coisas que estava fazendo",
+      "subscale": "depression",
+      "options": [
+        { "label": "Não se aplicou a mim em nada", "value": 0 },
+        {
+          "label": "Aplicou-se a mim em algum grau, ou em parte do tempo",
+          "value": 1
+        },
+        {
+          "label": "Aplicou-se a mim em grau considerável ou na maior parte do tempo",
+          "value": 2
+        },
+        {
+          "label": "Aplicou-se a mim em grau muito acentuado ou na maioria do tempo",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "dass_q17",
+      "title": "Senti que não valia muito como pessoa",
+      "subscale": "depression",
+      "options": [
+        { "label": "Não se aplicou a mim em nada", "value": 0 },
+        {
+          "label": "Aplicou-se a mim em algum grau, ou em parte do tempo",
+          "value": 1
+        },
+        {
+          "label": "Aplicou-se a mim em grau considerável ou na maior parte do tempo",
+          "value": 2
+        },
+        {
+          "label": "Aplicou-se a mim em grau muito acentuado ou na maioria do tempo",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "dass_q18",
+      "title": "Senti que estava bastante irritável",
+      "subscale": "stress",
+      "options": [
+        { "label": "Não se aplicou a mim em nada", "value": 0 },
+        {
+          "label": "Aplicou-se a mim em algum grau, ou em parte do tempo",
+          "value": 1
+        },
+        {
+          "label": "Aplicou-se a mim em grau considerável ou na maior parte do tempo",
+          "value": 2
+        },
+        {
+          "label": "Aplicou-se a mim em grau muito acentuado ou na maioria do tempo",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "dass_q19",
+      "title": "Estava ciente da ação do meu coração na ausência de esforço físico (e.g., sensação de aumento da frequência cardíaca, coração pulando uma batida)",
+      "subscale": "anxiety",
+      "options": [
+        { "label": "Não se aplicou a mim em nada", "value": 0 },
+        {
+          "label": "Aplicou-se a mim em algum grau, ou em parte do tempo",
+          "value": 1
+        },
+        {
+          "label": "Aplicou-se a mim em grau considerável ou na maior parte do tempo",
+          "value": 2
+        },
+        {
+          "label": "Aplicou-se a mim em grau muito acentuado ou na maioria do tempo",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "dass_q20",
+      "title": "Senti medo sem uma boa razão",
+      "subscale": "anxiety",
+      "options": [
+        { "label": "Não se aplicou a mim em nada", "value": 0 },
+        {
+          "label": "Aplicou-se a mim em algum grau, ou em parte do tempo",
+          "value": 1
+        },
+        {
+          "label": "Aplicou-se a mim em grau considerável ou na maior parte do tempo",
+          "value": 2
+        },
+        {
+          "label": "Aplicou-se a mim em grau muito acentuado ou na maioria do tempo",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "dass_q21",
+      "title": "Senti que a vida não tinha sentido",
+      "subscale": "depression",
+      "options": [
+        { "label": "Não se aplicou a mim em nada", "value": 0 },
+        {
+          "label": "Aplicou-se a mim em algum grau, ou em parte do tempo",
+          "value": 1
+        },
+        {
+          "label": "Aplicou-se a mim em grau considerável ou na maior parte do tempo",
+          "value": 2
+        },
+        {
+          "label": "Aplicou-se a mim em grau muito acentuado ou na maioria do tempo",
+          "value": 3
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "subscales": {
+      "depression": {
+        "maxRawScore": 21,
+        "interpretation": [
+          {
+            "min": 0,
+            "max": 4,
+            "label": "Nível normal de sintomas de depressão",
+            "recommendation": "Suas respostas sugerem um nível normal de sintomas de depressão. Continue monitorando seu bem-estar."
+          },
+          {
+            "min": 5,
+            "max": 6,
+            "label": "Nível leve de sintomas de depressão",
+            "recommendation": "Suas respostas sugerem um nível leve de sintomas de depressão. Considere engajar-se em atividades de autocuidado e continue com o automonitoramento."
+          },
+          {
+            "min": 7,
+            "max": 10,
+            "label": "Nível moderado de sintomas de depressão",
+            "recommendation": "Suas respostas sugerem um nível moderado de sintomas de depressão. Você pode se beneficiar de buscar apoio profissional."
+          },
+          {
+            "min": 11,
+            "max": 13,
+            "label": "Nível grave de sintomas de depressão",
+            "recommendation": "Suas respostas sugerem um nível grave de sintomas de depressão. É fortemente recomendado que você considere consultar um profissional de saúde mental."
+          },
+          {
+            "min": 14,
+            "max": 21,
+            "label": "Nível extremamente grave de sintomas de depressão",
+            "recommendation": "Suas respostas sugerem um nível extremamente grave de sintomas de depressão. É altamente recomendado que você procure consulta imediata com um profissional de saúde mental."
+          }
+        ]
+      },
+      "anxiety": {
+        "maxRawScore": 21,
+        "interpretation": [
+          {
+            "min": 0,
+            "max": 3,
+            "label": "Nível normal de sintomas de ansiedade",
+            "recommendation": "Suas respostas sugerem um nível normal de sintomas de ansiedade. Continue monitorando seu bem-estar."
+          },
+          {
+            "min": 4,
+            "max": 5,
+            "label": "Nível leve de sintomas de ansiedade",
+            "recommendation": "Suas respostas sugerem um nível leve de sintomas de ansiedade. Considere engajar-se em atividades de autocuidado e continue com o automonitoramento."
+          },
+          {
+            "min": 6,
+            "max": 7,
+            "label": "Nível moderado de sintomas de ansiedade",
+            "recommendation": "Suas respostas sugerem um nível moderado de sintomas de ansiedade. Você pode se beneficiar de buscar apoio profissional."
+          },
+          {
+            "min": 8,
+            "max": 9,
+            "label": "Nível grave de sintomas de ansiedade",
+            "recommendation": "Suas respostas sugerem um nível grave de sintomas de ansiedade. É fortemente recomendado que você considere consultar um profissional de saúde mental."
+          },
+          {
+            "min": 10,
+            "max": 21,
+            "label": "Nível extremamente grave de sintomas de ansiedade",
+            "recommendation": "Suas respostas sugerem um nível extremamente grave de sintomas de ansiedade. É altamente recomendado que você procure consulta imediata com um profissional de saúde mental."
+          }
+        ]
+      },
+      "stress": {
+        "maxRawScore": 21,
+        "interpretation": [
+          {
+            "min": 0,
+            "max": 7,
+            "label": "Nível normal de sintomas de estresse",
+            "recommendation": "Suas respostas sugerem um nível normal de sintomas de estresse. Continue monitorando seu bem-estar."
+          },
+          {
+            "min": 8,
+            "max": 9,
+            "label": "Nível leve de sintomas de estresse",
+            "recommendation": "Suas respostas sugerem um nível leve de sintomas de estresse. Considere engajar-se em atividades de autocuidado e continue com o automonitoramento."
+          },
+          {
+            "min": 10,
+            "max": 12,
+            "label": "Nível moderado de sintomas de estresse",
+            "recommendation": "Suas respostas sugerem um nível moderado de sintomas de estresse. Você pode se beneficiar de explorar técnicas de gerenciamento de estresse e possivelmente apoio profissional."
+          },
+          {
+            "min": 13,
+            "max": 16,
+            "label": "Nível grave de sintomas de estresse",
+            "recommendation": "Suas respostas sugerem um nível grave de sintomas de estresse. É fortemente recomendado que você considere consultar um profissional de saúde mental."
+          },
+          {
+            "min": 17,
+            "max": 21,
+            "label": "Nível extremamente grave de sintomas de estresse",
+            "recommendation": "Suas respostas sugerem um nível extremamente grave de sintomas de estresse. É altamente recomendado que você procure consulta imediata com um profissional de saúde mental."
+          }
+        ]
+      }
+    }
+  }
+}

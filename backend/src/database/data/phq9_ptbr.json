@@ -1,0 +1,137 @@
+{
+  "name": "phq9_ptbr",
+  "title": "Questionário de Saúde do Paciente-9 (PHQ-9)",
+  "description": "O PHQ-9 é uma medida de autorrelato de 9 itens usada para rastrear a depressão e monitorar a gravidade dos sintomas nas últimas duas semanas. Baseia-se nos critérios do DSM-IV para transtorno depressivo maior.",
+  "disclaimer": "Este questionário destina-se apenas a fins informativos e de automonitoramento e não constitui um diagnóstico de depressão. Apenas um profissional de saúde mental qualificado pode fornecer um diagnóstico.",
+  "version": "1.0.0",
+  "source": "Desenvolvido pelos Drs. Robert L. Spitzer, Janet B.W. Williams, Kurt Kroenke e colegas. Disponível em phqscreeners.com",
+  "createdAt": "2025-05-19T17:47:15-03:00",
+  "updatedAt": "2025-05-19T17:47:15-03:00",
+  "questions": [
+    {
+      "id": "phq9_q1",
+      "title": "Pouco interesse ou prazer em fazer as coisas?",
+      "options": [
+        { "label": "De jeito nenhum", "value": 0 },
+        { "label": "Vários dias", "value": 1 },
+        { "label": "Mais da metade dos dias", "value": 2 },
+        { "label": "Quase todos os dias", "value": 3 }
+      ]
+    },
+    {
+      "id": "phq9_q2",
+      "title": "Sentir-se para baixo, deprimido(a) ou sem esperança?",
+      "options": [
+        { "label": "De jeito nenhum", "value": 0 },
+        { "label": "Vários dias", "value": 1 },
+        { "label": "Mais da metade dos dias", "value": 2 },
+        { "label": "Quase todos os dias", "value": 3 }
+      ]
+    },
+    {
+      "id": "phq9_q3",
+      "title": "Ter problemas para adormecer ou permanecer dormindo, ou dormir demais?",
+      "options": [
+        { "label": "De jeito nenhum", "value": 0 },
+        { "label": "Vários dias", "value": 1 },
+        { "label": "Mais da metade dos dias", "value": 2 },
+        { "label": "Quase todos os dias", "value": 3 }
+      ]
+    },
+    {
+      "id": "phq9_q4",
+      "title": "Sentir-se cansado(a) ou com pouca energia?",
+      "options": [
+        { "label": "De jeito nenhum", "value": 0 },
+        { "label": "Vários dias", "value": 1 },
+        { "label": "Mais da metade dos dias", "value": 2 },
+        { "label": "Quase todos os dias", "value": 3 }
+      ]
+    },
+    {
+      "id": "phq9_q5",
+      "title": "Falta de apetite ou comer demais?",
+      "options": [
+        { "label": "De jeito nenhum", "value": 0 },
+        { "label": "Vários dias", "value": 1 },
+        { "label": "Mais da metade dos dias", "value": 2 },
+        { "label": "Quase todos os dias", "value": 3 }
+      ]
+    },
+    {
+      "id": "phq9_q6",
+      "title": "Sentir-se mal consigo mesmo(a) — ou que você é um(a) fracasso ou que decepcionou a si mesmo(a) ou a sua família?",
+      "options": [
+        { "label": "De jeito nenhum", "value": 0 },
+        { "label": "Vários dias", "value": 1 },
+        { "label": "Mais da metade dos dias", "value": 2 },
+        { "label": "Quase todos os dias", "value": 3 }
+      ]
+    },
+    {
+      "id": "phq9_q7",
+      "title": "Dificuldade para se concentrar nas coisas, como ler o jornal ou assistir à televisão?",
+      "options": [
+        { "label": "De jeito nenhum", "value": 0 },
+        { "label": "Vários dias", "value": 1 },
+        { "label": "Mais da metade dos dias", "value": 2 },
+        { "label": "Quase todos os dias", "value": 3 }
+      ]
+    },
+    {
+      "id": "phq9_q8",
+      "title": "Movimentar-se ou falar tão devagar que outras pessoas poderiam ter notado? Ou o oposto — estar tão agitado(a) ou inquieto(a) que você se moveu muito mais que o normal?",
+      "options": [
+        { "label": "De jeito nenhum", "value": 0 },
+        { "label": "Vários dias", "value": 1 },
+        { "label": "Mais da metade dos dias", "value": 2 },
+        { "label": "Quase todos os dias", "value": 3 }
+      ]
+    },
+    {
+      "id": "phq9_q9",
+      "title": "Pensamentos de que você estaria melhor morto(a) ou de se machucar de alguma forma?",
+      "options": [
+        { "label": "De jeito nenhum", "value": 0 },
+        { "label": "Vários dias", "value": 1 },
+        { "label": "Mais da metade dos dias", "value": 2 },
+        { "label": "Quase todos os dias", "value": 3 }
+      ]
+    }
+  ],
+  "scoring": {
+    "totalScoreRange": [0, 27],
+    "interpretation": [
+      {
+        "min": 0,
+        "max": 4,
+        "label": "Sintomas mínimos ou inexistentes de depressão",
+        "recommendation": "Suas respostas sugerem um baixo nível de sintomas depressivos. Continue monitorando seu bem-estar."
+      },
+      {
+        "min": 5,
+        "max": 9,
+        "label": "Sintomas leves de depressão",
+        "recommendation": "Suas respostas sugerem um nível leve de sintomas depressivos. Considere engajar-se em atividades de autocuidado e continue com o automonitoramento."
+      },
+      {
+        "min": 10,
+        "max": 14,
+        "label": "Sintomas moderados de depressão",
+        "recommendation": "Suas respostas sugerem um nível moderado de sintomas depressivos. Você pode se beneficiar de buscar apoio profissional."
+      },
+      {
+        "min": 15,
+        "max": 19,
+        "label": "Sintomas moderadamente graves de depressão",
+        "recommendation": "Suas respostas sugerem um nível moderadamente grave de sintomas depressivos. É fortemente recomendado que você considere consultar um profissional de saúde mental."
+      },
+      {
+        "min": 20,
+        "max": 27,
+        "label": "Sintomas graves de depressão",
+        "recommendation": "Suas respostas sugerem um nível grave de sintomas depressivos. É altamente recomendado que você procure consulta imediata com um profissional de saúde mental."
+      }
+    ]
+  }
+}

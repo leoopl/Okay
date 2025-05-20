@@ -73,35 +73,14 @@ export function SecurityTab() {
 
   return (
     <div>
-      <Toaster />
-      <h2 className="mb-6 text-2xl font-bold text-[#7F9463]">Configurações de Segurança</h2>
+      <Toaster richColors position="top-center" />
+      <h2 className="text-green-dark font-varela mb-6 text-2xl font-bold">
+        Configurações de Segurança
+      </h2>
 
       <div className="space-y-8">
         <div>
-          <h3 className="mb-4 text-lg font-medium text-[#7F9463]">Alterar Senha</h3>
-
-          {/* Success/Error Notification for Password */}
-          {passwordState?.success && (
-            <div className="mb-4 rounded-md bg-green-50 p-4 text-green-800">
-              <div className="flex">
-                <CheckCircle className="h-5 w-5 text-green-400" />
-                <div className="ml-3">
-                  <p className="text-sm font-medium">Senha alterada com sucesso!</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {passwordState && !passwordState.success && passwordState.message && (
-            <div className="mb-4 rounded-md bg-red-50 p-4 text-red-800">
-              <div className="flex">
-                <AlertCircle className="h-5 w-5 text-red-400" />
-                <div className="ml-3">
-                  <p className="text-sm font-medium">{passwordState.message}</p>
-                </div>
-              </div>
-            </div>
-          )}
+          <h3 className="text-green-dark mb-4 text-lg font-medium">Alterar Senha</h3>
 
           <Form {...passwordForm}>
             <form onSubmit={passwordForm.handleSubmit(onSubmit)} className="space-y-4">
@@ -160,11 +139,7 @@ export function SecurityTab() {
               />
 
               <div className="mt-4 flex justify-end">
-                <Button
-                  type="submit"
-                  className="bg-[#7F9463] text-white hover:bg-[#7F9463]/90"
-                  disabled={isPasswordPending}
-                >
+                <Button type="submit" className="small-caps" disabled={isPasswordPending}>
                   {isPasswordPending ? 'Atualizando...' : 'Atualizar Senha'}
                 </Button>
               </div>
@@ -173,19 +148,9 @@ export function SecurityTab() {
         </div>
 
         <div>
-          <h3 className="mb-4 text-lg font-medium text-[#7F9463]">Preferências de Consentimento</h3>
-
-          {/* Success Notification for Consent */}
-          {consentState?.success && (
-            <div className="mb-4 rounded-md bg-green-50 p-4 text-green-800">
-              <div className="flex">
-                <CheckCircle className="h-5 w-5 text-green-400" />
-                <div className="ml-3">
-                  <p className="text-sm font-medium">Preferências atualizadas com sucesso!</p>
-                </div>
-              </div>
-            </div>
-          )}
+          <h3 className="text-green-dark mb-4 text-lg font-medium">
+            Preferências de Consentimento
+          </h3>
 
           <form action={consentAction} className="space-y-4">
             <div className="flex items-center justify-between rounded-lg border p-4">
@@ -241,11 +206,7 @@ export function SecurityTab() {
             </div>
 
             <div className="mt-4 flex justify-end">
-              <Button
-                type="submit"
-                className="bg-[#7F9463] text-white hover:bg-[#7F9463]/90"
-                disabled={isConsentPending}
-              >
+              <Button type="submit" className="small-caps" disabled={isConsentPending}>
                 {isConsentPending ? 'Atualizando...' : 'Atualizar Preferências'}
               </Button>
             </div>

@@ -305,7 +305,7 @@ export class UserService {
     // Audit password update
     await this.auditService.logAction({
       userId: userId,
-      action: 'PASSWORD_UPDATED' as any,
+      action: AuditAction.PASSWORD_UPDATED,
       resource: 'user',
       resourceId: userId,
       details: {

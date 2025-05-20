@@ -8,6 +8,11 @@ import {
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Inventory } from './inventory.entity';
+import {
+  UserResponseOption,
+  InterpretationResult,
+  CalculatedScores,
+} from '../interfaces/inventory.interface';
 
 @Entity('inventory_responses')
 export class InventoryResponse {
@@ -28,18 +33,20 @@ export class InventoryResponse {
   @JoinColumn({ name: 'inventoryId' })
   inventory: Inventory;
 
-  @Column({ type: 'jsonb' })
-  answers: {
-    questionId: number;
-    optionId: number;
-    value: number;
-  }[];
+  @Column('jsonb') // Stores the user's selected responses
+  responses: UserResponseOption[];
 
-  @Column()
-  totalScore: number;
+  @Column('jsonb', { nullable: true }) // Stores the calculated scores
+  calculatedScores: CalculatedScores;
 
-  @Column({ nullable: true })
-  interpretation: string;
+  @Column('jsonb', { nullable: true }) // Stores the system's generated interpretation
+  interpretationResults: InterpretationResult;
+
+  @Column('boolean', { default: false })
+  consentGiven: boolean; // Explicit flag for consent for THIS assessment
+
+  @Column('inet', { nullable: true })
+  ipAddress: string; // Store IP for consent audit
 
   @CreateDateColumn({ type: 'timestamp with time zone' })
   completedAt: Date;

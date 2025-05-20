@@ -1,0 +1,137 @@
+{
+  "name": "phq9_en",
+  "title": "Patient Health Questionnaire-9",
+  "description": "The PHQ-9 is a 9-item self-report measure used to screen for depression and monitor the severity of symptoms over the past two weeks. It's based on the DSM-IV criteria for major depressive disorder.",
+  "disclaimer": "This questionnaire is for informational and self-monitoring purposes only and does not constitute a diagnosis of depression. Only a qualified mental health professional can provide a diagnosis.",
+  "version": "1.0.0",
+  "source": "Developed by Drs. Robert L. Spitzer, Janet B.W. Williams, Kurt Kroenke and colleagues. Available at phqscreeners.com",
+  "createdAt": "2025-05-19T17:47:15-03:00",
+  "updatedAt": "2025-05-19T17:47:15-03:00",
+  "questions": [
+    {
+      "id": "phq9_q1",
+      "title": "Little interest or pleasure in doing things?",
+      "options": [
+        { "label": "Not at all", "value": 0 },
+        { "label": "Several days", "value": 1 },
+        { "label": "More than half the days", "value": 2 },
+        { "label": "Nearly every day", "value": 3 }
+      ]
+    },
+    {
+      "id": "phq9_q2",
+      "title": "Feeling down, depressed, or hopeless?",
+      "options": [
+        { "label": "Not at all", "value": 0 },
+        { "label": "Several days", "value": 1 },
+        { "label": "More than half the days", "value": 2 },
+        { "label": "Nearly every day", "value": 3 }
+      ]
+    },
+    {
+      "id": "phq9_q3",
+      "title": "Trouble falling or staying asleep, or sleeping too much?",
+      "options": [
+        { "label": "Not at all", "value": 0 },
+        { "label": "Several days", "value": 1 },
+        { "label": "More than half the days", "value": 2 },
+        { "label": "Nearly every day", "value": 3 }
+      ]
+    },
+    {
+      "id": "phq9_q4",
+      "title": "Feeling tired or having little energy?",
+      "options": [
+        { "label": "Not at all", "value": 0 },
+        { "label": "Several days", "value": 1 },
+        { "label": "More than half the days", "value": 2 },
+        { "label": "Nearly every day", "value": 3 }
+      ]
+    },
+    {
+      "id": "phq9_q5",
+      "title": "Poor appetite or overeating?",
+      "options": [
+        { "label": "Not at all", "value": 0 },
+        { "label": "Several days", "value": 1 },
+        { "label": "More than half the days", "value": 2 },
+        { "label": "Nearly every day", "value": 3 }
+      ]
+    },
+    {
+      "id": "phq9_q6",
+      "title": "Feeling bad about yourself—or that you are a failure or have let yourself or your family down?",
+      "options": [
+        { "label": "Not at all", "value": 0 },
+        { "label": "Several days", "value": 1 },
+        { "label": "More than half the days", "value": 2 },
+        { "label": "Nearly every day", "value": 3 }
+      ]
+    },
+    {
+      "id": "phq9_q7",
+      "title": "Trouble concentrating on things, such as reading the newspaper or watching television?",
+      "options": [
+        { "label": "Not at all", "value": 0 },
+        { "label": "Several days", "value": 1 },
+        { "label": "More than half the days", "value": 2 },
+        { "label": "Nearly every day", "value": 3 }
+      ]
+    },
+    {
+      "id": "phq9_q8",
+      "title": "Moving or speaking so slowly that other people could have noticed? Or the opposite—being so fidgety or restless that you have been moving a lot more than usual?",
+      "options": [
+        { "label": "Not at all", "value": 0 },
+        { "label": "Several days", "value": 1 },
+        { "label": "More than half the days", "value": 2 },
+        { "label": "Nearly every day", "value": 3 }
+      ]
+    },
+    {
+      "id": "phq9_q9",
+      "title": "Thoughts that you would be better off dead or of hurting yourself in some way?",
+      "options": [
+        { "label": "Not at all", "value": 0 },
+        { "label": "Several days", "value": 1 },
+        { "label": "More than half the days", "value": 2 },
+        { "label": "Nearly every day", "value": 3 }
+      ]
+    }
+  ],
+  "scoring": {
+    "totalScoreRange": [0, 27],
+    "interpretation": [
+      {
+        "min": 0,
+        "max": 4,
+        "label": "Minimal or no symptoms of depression reported",
+        "recommendation": "Your responses suggest a low level of reported depressive symptoms. Continue monitoring your well-being."
+      },
+      {
+        "min": 5,
+        "max": 9,
+        "label": "Mild symptoms of depression reported",
+        "recommendation": "Your responses suggest a mild level of reported depressive symptoms. Consider engaging in self-care activities and continued self-monitoring."
+      },
+      {
+        "min": 10,
+        "max": 14,
+        "label": "Moderate symptoms of depression reported",
+        "recommendation": "Your responses suggest a moderate level of reported depressive symptoms. You may find benefit in exploring professional support."
+      },
+      {
+        "min": 15,
+        "max": 19,
+        "label": "Moderately severe symptoms of depression reported",
+        "recommendation": "Your responses suggest a moderately severe level of reported depressive symptoms. It is strongly recommended that you consider consulting a mental health professional."
+      },
+      {
+        "min": 20,
+        "max": 27,
+        "label": "Severe symptoms of depression reported",
+        "recommendation": "Your responses suggest a severe level of reported depressive symptoms. It is highly recommended that you seek immediate consultation with a mental health professional."
+      }
+    ]
+  }
+}

@@ -3,7 +3,6 @@
 import { useEffect, useState, startTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Form,
   FormControl,
@@ -18,7 +17,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { ProfileFormSchema } from '@/lib/definitions';
 import { updateProfile } from '@/lib/actions/server-profile';
-import { AlertCircle, CheckCircle } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -104,37 +102,16 @@ export function ProfileTab() {
 
   return (
     <div className="space-y-6">
-      <Toaster />
+      <Toaster richColors position="top-center" />
       <div>
-        <h3 className="mb-4 text-xl font-semibold text-[#7F9463]">Informações Pessoais</h3>
+        <h3 className="text-green-dark font-varela mb-1 text-2xl font-semibold">
+          Informações Pessoais
+        </h3>
         <p className="mb-4 text-sm text-[#91857A]">
           Mantenha seus dados pessoais atualizados. As informações aqui serão usadas para
           personalizar sua experiência.
         </p>
       </div>
-
-      {/* Success/Error Notification */}
-      {state?.success && (
-        <div className="mb-4 rounded-md bg-green-50 p-4 text-green-800">
-          <div className="flex">
-            <CheckCircle className="h-5 w-5 text-green-400" />
-            <div className="ml-3">
-              <p className="text-sm font-medium">Perfil atualizado com sucesso!</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {state && !state.success && state.message && (
-        <div className="mb-4 rounded-md bg-red-50 p-4 text-red-800">
-          <div className="flex">
-            <AlertCircle className="h-5 w-5 text-red-400" />
-            <div className="ml-3">
-              <p className="text-sm font-medium">{state.message}</p>
-            </div>
-          </div>
-        </div>
-      )}
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -237,11 +214,7 @@ export function ProfileTab() {
           </div>
 
           <div className="mt-4 flex justify-end">
-            <Button
-              type="submit"
-              className="bg-[#7F9463] text-white hover:bg-[#7F9463]/90"
-              disabled={isPending}
-            >
+            <Button type="submit" className="small-caps" disabled={isPending}>
               {isPending ? 'Salvando...' : 'Salvar Alterações'}
             </Button>
           </div>

@@ -1,0 +1,111 @@
+{
+  "name": "gad7_ptbr",
+  "title": "Escala de Ansiedade Generalizada de 7 Itens (GAD-7)",
+  "description": "O GAD-7 é uma medida de autorrelato de 7 itens projetada para rastrear o Transtorno de Ansiedade Generalizada (TAG) e medir sua gravidade nas últimas duas semanas.",
+  "disclaimer": "Este questionário destina-se apenas a fins informativos e de automonitoramento e não constitui um diagnóstico de transtorno de ansiedade. Apenas um profissional de saúde mental qualificado pode fornecer um diagnóstico.",
+  "version": "1.0.0",
+  "source": "Desenvolvido pelos Drs. Robert L. Spitzer, Janet B.W. Williams, Kurt Kroenke e colegas. Disponível em phqscreeners.com",
+  "createdAt": "2025-05-19T17:47:15-03:00",
+  "updatedAt": "2025-05-19T17:47:15-03:00",
+  "questions": [
+    {
+      "id": "gad7_q1",
+      "title": "Sentir-se nervoso(a), ansioso(a) ou 'no limite'?",
+      "options": [
+        { "label": "De jeito nenhum", "value": 0 },
+        { "label": "Vários dias", "value": 1 },
+        { "label": "Mais da metade dos dias", "value": 2 },
+        { "label": "Quase todos os dias", "value": 3 }
+      ]
+    },
+    {
+      "id": "gad7_q2",
+      "title": "Não conseguir parar ou controlar as preocupações?",
+      "options": [
+        { "label": "De jeito nenhum", "value": 0 },
+        { "label": "Vários dias", "value": 1 },
+        { "label": "Mais da metade dos dias", "value": 2 },
+        { "label": "Quase todos os dias", "value": 3 }
+      ]
+    },
+    {
+      "id": "gad7_q3",
+      "title": "Preocupar-se demais com diferentes coisas?",
+      "options": [
+        { "label": "De jeito nenhum", "value": 0 },
+        { "label": "Vários dias", "value": 1 },
+        { "label": "Mais da metade dos dias", "value": 2 },
+        { "label": "Quase todos os dias", "value": 3 }
+      ]
+    },
+    {
+      "id": "gad7_q4",
+      "title": "Dificuldade para relaxar?",
+      "options": [
+        { "label": "De jeito nenhum", "value": 0 },
+        { "label": "Vários dias", "value": 1 },
+        { "label": "Mais da metade dos dias", "value": 2 },
+        { "label": "Quase todos os dias", "value": 3 }
+      ]
+    },
+    {
+      "id": "gad7_q5",
+      "title": "Estar tão inquieto(a) que é difícil ficar parado(a)?",
+      "options": [
+        { "label": "De jeito nenhum", "value": 0 },
+        { "label": "Vários dias", "value": 1 },
+        { "label": "Mais da metade dos dias", "value": 2 },
+        { "label": "Quase todos os dias", "value": 3 }
+      ]
+    },
+    {
+      "id": "gad7_q6",
+      "title": "Irritar-se ou ficar irritadiço(a) facilmente?",
+      "options": [
+        { "label": "De jeito nenhum", "value": 0 },
+        { "label": "Vários dias", "value": 1 },
+        { "label": "Mais da metade dos dias", "value": 2 },
+        { "label": "Quase todos os dias", "value": 3 }
+      ]
+    },
+    {
+      "id": "gad7_q7",
+      "title": "Sentir medo como se algo horrível pudesse acontecer?",
+      "options": [
+        { "label": "De jeito nenhum", "value": 0 },
+        { "label": "Vários dias", "value": 1 },
+        { "label": "Mais da metade dos dias", "value": 2 },
+        { "label": "Quase todos os dias", "value": 3 }
+      ]
+    }
+  ],
+  "scoring": {
+    "totalScoreRange": [0, 21],
+    "interpretation": [
+      {
+        "min": 0,
+        "max": 4,
+        "label": "Sintomas mínimos ou inexistentes de ansiedade",
+        "recommendation": "Suas respostas sugerem um baixo nível de sintomas de ansiedade. Continue monitorando seu bem-estar."
+      },
+      {
+        "min": 5,
+        "max": 9,
+        "label": "Sintomas leves de ansiedade",
+        "recommendation": "Suas respostas sugerem um nível leve de sintomas de ansiedade. Considere engajar-se em atividades de autocuidado e continue com o automonitoramento."
+      },
+      {
+        "min": 10,
+        "max": 14,
+        "label": "Sintomas moderados de ansiedade",
+        "recommendation": "Suas respostas sugerem um nível moderado de sintomas de ansiedade. Você pode se beneficiar de buscar apoio profissional."
+      },
+      {
+        "min": 15,
+        "max": 21,
+        "label": "Sintomas graves de ansiedade",
+        "recommendation": "Suas respostas sugerem um nível grave de sintomas de ansiedade. É fortemente recomendado que você considere consultar um profissional de saúde mental."
+      }
+    ]
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "name": "pss10_ptbr",
+  "title": "Escala de Estresse Percebido-10 (PSS-10)",
+  "description": "A PSS-10 mede o grau em que os indivíduos percebem as situações de sua vida como estressantes no último mês. Ela foca na avaliação subjetiva do estresse em vez dos estressores objetivos em si.",
+  "disclaimer": "Este questionário destina-se apenas a fins informativos e de automonitoramento e não diagnostica um transtorno de estresse. Apenas um profissional de saúde mental qualificado pode fornecer um diagnóstico.",
+  "version": "1.0.0",
+  "source": "Desenvolvido por Sheldon Cohen. Disponível em pss.stress.info",
+  "createdAt": "2025-05-19T17:47:15-03:00",
+  "updatedAt": "2025-05-19T17:47:15-03:00",
+  "questions": [
+    {
+      "id": "pss10_q1",
+      "title": "No último mês, com que frequência você se sentiu incomodado(a) por coisas que aconteceram inesperadamente?",
+      "reverseScore": false,
+      "options": [
+        { "label": "Nunca", "value": 0 },
+        { "label": "Quase nunca", "value": 1 },
+        { "label": "Às vezes", "value": 2 },
+        { "label": "Com bastante frequência", "value": 3 },
+        { "label": "Com muita frequência", "value": 4 }
+      ]
+    },
+    {
+      "id": "pss10_q2",
+      "title": "No último mês, com que frequência você sentiu que não conseguia controlar as coisas importantes em sua vida?",
+      "reverseScore": false,
+      "options": [
+        { "label": "Nunca", "value": 0 },
+        { "label": "Quase nunca", "value": 1 },
+        { "label": "Às vezes", "value": 2 },
+        { "label": "Com bastante frequência", "value": 3 },
+        { "label": "Com muita frequência", "value": 4 }
+      ]
+    },
+    {
+      "id": "pss10_q3",
+      "title": "No último mês, com que frequência você se sentiu nervoso(a) e 'estressado(a)'?",
+      "reverseScore": false,
+      "options": [
+        { "label": "Nunca", "value": 0 },
+        { "label": "Quase nunca", "value": 1 },
+        { "label": "Às vezes", "value": 2 },
+        { "label": "Com bastante frequência", "value": 3 },
+        { "label": "Com muita frequência", "value": 4 }
+      ]
+    },
+    {
+      "id": "pss10_q4",
+      "title": "No último mês, com que frequência você se sentiu confiante em sua capacidade de lidar com seus problemas pessoais?",
+      "reverseScore": true,
+      "options": [
+        { "label": "Nunca", "value": 0 },
+        { "label": "Quase nunca", "value": 1 },
+        { "label": "Às vezes", "value": 2 },
+        { "label": "Com bastante frequência", "value": 3 },
+        { "label": "Com muita frequência", "value": 4 }
+      ]
+    },
+    {
+      "id": "pss10_q5",
+      "title": "No último mês, com que frequência você sentiu que as coisas estavam indo do seu jeito?",
+      "reverseScore": true,
+      "options": [
+        { "label": "Nunca", "value": 0 },
+        { "label": "Quase nunca", "value": 1 },
+        { "label": "Às vezes", "value": 2 },
+        { "label": "Com bastante frequência", "value": 3 },
+        { "label": "Com muita frequência", "value": 4 }
+      ]
+    },
+    {
+      "id": "pss10_q6",
+      "title": "No último mês, com que frequência você percebeu que não conseguia lidar com todas as coisas que tinha que fazer?",
+      "reverseScore": false,
+      "options": [
+        { "label": "Nunca", "value": 0 },
+        { "label": "Quase nunca", "value": 1 },
+        { "label": "Às vezes", "value": 2 },
+        { "label": "Com bastante frequência", "value": 3 },
+        { "label": "Com muita frequência", "value": 4 }
+      ]
+    },
+    {
+      "id": "pss10_q7",
+      "title": "No último mês, com que frequência você conseguiu controlar as irritações em sua vida?",
+      "reverseScore": true,
+      "options": [
+        { "label": "Nunca", "value": 0 },
+        { "label": "Quase nunca", "value": 1 },
+        { "label": "Às vezes", "value": 2 },
+        { "label": "Com bastante frequência", "value": 3 },
+        { "label": "Com muita frequência", "value": 4 }
+      ]
+    },
+    {
+      "id": "pss10_q8",
+      "title": "No último mês, com que frequência você sentiu que estava 'por cima' das coisas?",
+      "reverseScore": true,
+      "options": [
+        { "label": "Nunca", "value": 0 },
+        { "label": "Quase nunca", "value": 1 },
+        { "label": "Às vezes", "value": 2 },
+        { "label": "Com bastante frequência", "value": 3 },
+        { "label": "Com muita frequência", "value": 4 }
+      ]
+    },
+    {
+      "id": "pss10_q9",
+      "title": "No último mês, com que frequência você se irritou por coisas que aconteceram fora de seu controle?",
+      "reverseScore": false,
+      "options": [
+        { "label": "Nunca", "value": 0 },
+        { "label": "Quase nunca", "value": 1 },
+        { "label": "Às vezes", "value": 2 },
+        { "label": "Com bastante frequência", "value": 3 },
+        { "label": "Com muita frequência", "value": 4 }
+      ]
+    },
+    {
+      "id": "pss10_q10",
+      "title": "No último mês, com que frequência você sentiu que as dificuldades estavam se acumulando tão alto que você não conseguia superá-las?",
+      "reverseScore": false,
+      "options": [
+        { "label": "Nunca", "value": 0 },
+        { "label": "Quase nunca", "value": 1 },
+        { "label": "Às vezes", "value": 2 },
+        { "label": "Com bastante frequência", "value": 3 },
+        { "label": "Com muita frequência", "value": 4 }
+      ]
+    }
+  ],
+  "scoring": {
+    "totalScoreRange": [0, 40],
+    "interpretation": [
+      {
+        "min": 0,
+        "max": 13,
+        "label": "Baixo estresse percebido",
+        "recommendation": "Suas respostas sugerem um baixo nível de estresse percebido. Você parece estar gerenciando os estressores diários de forma eficaz."
+      },
+      {
+        "min": 14,
+        "max": 26,
+        "label": "Estresse percebido moderado",
+        "recommendation": "Suas respostas sugerem um nível moderado de estresse percebido. Explorar técnicas de gerenciamento de estresse ou estratégias de autocuidado pode ser benéfico."
+      },
+      {
+        "min": 27,
+        "max": 40,
+        "label": "Alto estresse percebido",
+        "recommendation": "Suas respostas sugerem um alto nível de estresse percebido. É recomendado explorar técnicas de redução de estresse e considerar apoio profissional se o estresse estiver impactando significativamente seu bem-estar."
+      }
+    ]
+  }
+}

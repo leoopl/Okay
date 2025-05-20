@@ -5,6 +5,7 @@ import Headers from '../components/header';
 import Footer from '@/components/footer';
 import AuthProvider from '@/providers/auth-provider';
 import { getServerSession, logout } from '../lib/actions/server-auth';
+import SessionProvider from '@/providers/session-provider';
 
 const varelaRound = Varela_Round({
   subsets: ['latin'],
@@ -74,9 +75,19 @@ export default async function RootLayout({
       <head />
       <body className={`${varelaRound.variable} gradient-background min-h-screen antialiased`}>
         <AuthProvider initialUser={user} isAuthenticated={isAuth} logoutFunction={logout}>
-          <Headers />
-          {children}
-          <Footer />
+          {isAuth ? (
+            <SessionProvider>
+              <Headers />
+              {children}
+              <Footer />
+            </SessionProvider>
+          ) : (
+            <>
+              <Headers />
+              {children}
+              <Footer />
+            </>
+          )}
         </AuthProvider>
       </body>
     </html>

@@ -1,0 +1,478 @@
+{
+  "name": "dass21_en",
+  "title": "Depression, Anxiety, and Stress Scale – 21 Items (DASS-21)",
+  "description": "The DASS-21 is a 21-item self-report questionnaire designed to measure the severity of symptoms related to depression, anxiety, and stress experienced over the past week.",
+  "disclaimer": "This questionnaire is for informational and self-monitoring purposes only and does not constitute a diagnosis of any mental health condition. Only a qualified mental health professional can provide a diagnosis.",
+  "version": "1.0.0",
+  "source": "Developed by S.H. Lovibond and P.F. Lovibond. Available at psy.unsw.edu.au/dass",
+  "createdAt": "2025-05-19T17:47:15-03:00",
+  "updatedAt": "2025-05-19T17:47:15-03:00",
+  "questions": [
+    {
+      "id": "dass_q1",
+      "title": "I found it hard to wind down",
+      "subscale": "stress",
+      "options": [
+        { "label": "Did not apply to me at all", "value": 0 },
+        {
+          "label": "Applied to me to some degree, or some of the time",
+          "value": 1
+        },
+        {
+          "label": "Applied to me to a considerable degree or a good part of the time",
+          "value": 2
+        },
+        { "label": "Applied to me very much or most of the time", "value": 3 }
+      ]
+    },
+    {
+      "id": "dass_q2",
+      "title": "I was aware of dryness of my mouth",
+      "subscale": "anxiety",
+      "options": [
+        { "label": "Did not apply to me at all", "value": 0 },
+        {
+          "label": "Applied to me to some degree, or some of the time",
+          "value": 1
+        },
+        {
+          "label": "Applied to me to a considerable degree or a good part of the time",
+          "value": 2
+        },
+        { "label": "Applied to me very much or most of the time", "value": 3 }
+      ]
+    },
+    {
+      "id": "dass_q3",
+      "title": "I couldn't seem to experience any positive feeling at all",
+      "subscale": "depression",
+      "options": [
+        { "label": "Did not apply to me at all", "value": 0 },
+        {
+          "label": "Applied to me to some degree, or some of the time",
+          "value": 1
+        },
+        {
+          "label": "Applied to me to a considerable degree or a good part of the time",
+          "value": 2
+        },
+        { "label": "Applied to me very much or most of the time", "value": 3 }
+      ]
+    },
+    {
+      "id": "dass_q4",
+      "title": "I experienced breathing difficulty (e.g. excessively rapid breathing, shortness of breath without physical exertion)",
+      "subscale": "anxiety",
+      "options": [
+        { "label": "Did not apply to me at all", "value": 0 },
+        {
+          "label": "Applied to me to some degree, or some of the time",
+          "value": 1
+        },
+        {
+          "label": "Applied to me to a considerable degree or a good part of the time",
+          "value": 2
+        },
+        { "label": "Applied to me very much or most of the time", "value": 3 }
+      ]
+    },
+    {
+      "id": "dass_q5",
+      "title": "I found it difficult to work up the initiative to do things",
+      "subscale": "depression",
+      "options": [
+        { "label": "Did not apply to me at all", "value": 0 },
+        {
+          "label": "Applied to me to some degree, or some of the time",
+          "value": 1
+        },
+        {
+          "label": "Applied to me to a considerable degree or a good part of the time",
+          "value": 2
+        },
+        { "label": "Applied to me very much or most of the time", "value": 3 }
+      ]
+    },
+    {
+      "id": "dass_q6",
+      "title": "I tended to over-react to situations",
+      "subscale": "stress",
+      "options": [
+        { "label": "Did not apply to me at all", "value": 0 },
+        {
+          "label": "Applied to me to some degree, or some of the time",
+          "value": 1
+        },
+        {
+          "label": "Applied to me to a considerable degree or a good part of the time",
+          "value": 2
+        },
+        { "label": "Applied to me very much or most of the time", "value": 3 }
+      ]
+    },
+    {
+      "id": "dass_q7",
+      "title": "I experienced trembling (e.g. in the hands)",
+      "subscale": "anxiety",
+      "options": [
+        { "label": "Did not apply to me at all", "value": 0 },
+        {
+          "label": "Applied to me to some degree, or some of the time",
+          "value": 1
+        },
+        {
+          "label": "Applied to me to a considerable degree or a good part of the time",
+          "value": 2
+        },
+        { "label": "Applied to me very much or most of the time", "value": 3 }
+      ]
+    },
+    {
+      "id": "dass_q8",
+      "title": "I felt that I was rather touchy",
+      "subscale": "stress",
+      "options": [
+        { "label": "Did not apply to me at all", "value": 0 },
+        {
+          "label": "Applied to me to some degree, or some of the time",
+          "value": 1
+        },
+        {
+          "label": "Applied to me to a considerable degree or a good part of the time",
+          "value": 2
+        },
+        { "label": "Applied to me very much or most of the time", "value": 3 }
+      ]
+    },
+    {
+      "id": "dass_q9",
+      "title": "I was worried about situations in which I might panic and make a fool of myself",
+      "subscale": "anxiety",
+      "options": [
+        { "label": "Did not apply to me at all", "value": 0 },
+        {
+          "label": "Applied to me to some degree, or some of the time",
+          "value": 1
+        },
+        {
+          "label": "Applied to me to a considerable degree or a good part of the time",
+          "value": 2
+        },
+        { "label": "Applied to me very much or most of the time", "value": 3 }
+      ]
+    },
+    {
+      "id": "dass_q10",
+      "title": "I felt that I had nothing to look forward to",
+      "subscale": "depression",
+      "options": [
+        { "label": "Did not apply to me at all", "value": 0 },
+        {
+          "label": "Applied to me to some degree, or some of the time",
+          "value": 1
+        },
+        {
+          "label": "Applied to me to a considerable degree or a good part of the time",
+          "value": 2
+        },
+        { "label": "Applied to me very much or most of the time", "value": 3 }
+      ]
+    },
+    {
+      "id": "dass_q11",
+      "title": "I found myself getting agitated",
+      "subscale": "stress",
+      "options": [
+        { "label": "Did not apply to me at all", "value": 0 },
+        {
+          "label": "Applied to me to some degree, or some of the time",
+          "value": 1
+        },
+        {
+          "label": "Applied to me to a considerable degree or a good part of the time",
+          "value": 2
+        },
+        { "label": "Applied to me very much or most of the time", "value": 3 }
+      ]
+    },
+    {
+      "id": "dass_q12",
+      "title": "I found it difficult to relax",
+      "subscale": "stress",
+      "options": [
+        { "label": "Did not apply to me at all", "value": 0 },
+        {
+          "label": "Applied to me to some degree, or some of the time",
+          "value": 1
+        },
+        {
+          "label": "Applied to me to a considerable degree or a good part of the time",
+          "value": 2
+        },
+        { "label": "Applied to me very much or most of the time", "value": 3 }
+      ]
+    },
+    {
+      "id": "dass_q13",
+      "title": "I felt down-hearted and blue",
+      "subscale": "depression",
+      "options": [
+        { "label": "Did not apply to me at all", "value": 0 },
+        {
+          "label": "Applied to me to some degree, or some of the time",
+          "value": 1
+        },
+        {
+          "label": "Applied to me to a considerable degree or a good part of the time",
+          "value": 2
+        },
+        { "label": "Applied to me very much or most of the time", "value": 3 }
+      ]
+    },
+    {
+      "id": "dass_q14",
+      "title": "I was intolerant of anything that kept me from getting on with what I was doing",
+      "subscale": "stress",
+      "options": [
+        { "label": "Did not apply to me at all", "value": 0 },
+        {
+          "label": "Applied to me to some degree, or some of the time",
+          "value": 1
+        },
+        {
+          "label": "Applied to me to a considerable degree or a good part of the time",
+          "value": 2
+        },
+        { "label": "Applied to me very much or most of the time", "value": 3 }
+      ]
+    },
+    {
+      "id": "dass_q15",
+      "title": "I felt I was close to panic",
+      "subscale": "anxiety",
+      "options": [
+        { "label": "Did not apply to me at all", "value": 0 },
+        {
+          "label": "Applied to me to some degree, or some of the time",
+          "value": 1
+        },
+        {
+          "label": "Applied to me to a considerable degree or a good part of the time",
+          "value": 2
+        },
+        { "label": "Applied to me very much or most of the time", "value": 3 }
+      ]
+    },
+    {
+      "id": "dass_q16",
+      "title": "I was unable to experience any enjoyment in the things I was doing",
+      "subscale": "depression",
+      "options": [
+        { "label": "Did not apply to me at all", "value": 0 },
+        {
+          "label": "Applied to me to some degree, or some of the time",
+          "value": 1
+        },
+        {
+          "label": "Applied to me to a considerable degree or a good part of the time",
+          "value": 2
+        },
+        { "label": "Applied to me very much or most of the time", "value": 3 }
+      ]
+    },
+    {
+      "id": "dass_q17",
+      "title": "I felt that I was not worth much as a person",
+      "subscale": "depression",
+      "options": [
+        { "label": "Did not apply to me at all", "value": 0 },
+        {
+          "label": "Applied to me to some degree, or some of the time",
+          "value": 1
+        },
+        {
+          "label": "Applied to me to a considerable degree or a good part of the time",
+          "value": 2
+        },
+        { "label": "Applied to me very much or most of the time", "value": 3 }
+      ]
+    },
+    {
+      "id": "dass_q18",
+      "title": "I felt that I was rather irritable",
+      "subscale": "stress",
+      "options": [
+        { "label": "Did not apply to me at all", "value": 0 },
+        {
+          "label": "Applied to me to some degree, or some of the time",
+          "value": 1
+        },
+        {
+          "label": "Applied to me to a considerable degree or a good part of the time",
+          "value": 2
+        },
+        { "label": "Applied to me very much or most of the time", "value": 3 }
+      ]
+    },
+    {
+      "id": "dass_q19",
+      "title": "I was aware of the action of my heart in the absence of physical exertion (e.g. sense of heart rate increase, heart missing a beat)",
+      "subscale": "anxiety",
+      "options": [
+        { "label": "Did not apply to me at all", "value": 0 },
+        {
+          "label": "Applied to me to some degree, or some of the time",
+          "value": 1
+        },
+        {
+          "label": "Applied to me to a considerable degree or a good part of the time",
+          "value": 2
+        },
+        { "label": "Applied to me very much or most of the time", "value": 3 }
+      ]
+    },
+    {
+      "id": "dass_q20",
+      "title": "I felt scared without any good reason",
+      "subscale": "anxiety",
+      "options": [
+        { "label": "Did not apply to me at all", "value": 0 },
+        {
+          "label": "Applied to me to some degree, or some of the time",
+          "value": 1
+        },
+        {
+          "label": "Applied to me to a considerable degree or a good part of the time",
+          "value": 2
+        },
+        { "label": "Applied to me very much or most of the time", "value": 3 }
+      ]
+    },
+    {
+      "id": "dass_q21",
+      "title": "I felt that life was meaningless",
+      "subscale": "depression",
+      "options": [
+        { "label": "Did not apply to me at all", "value": 0 },
+        {
+          "label": "Applied to me to some degree, or some of the time",
+          "value": 1
+        },
+        {
+          "label": "Applied to me to a considerable degree or a good part of the time",
+          "value": 2
+        },
+        { "label": "Applied to me very much or most of the time", "value": 3 }
+      ]
+    }
+  ],
+  "scoring": {
+    "subscales": {
+      "depression": {
+        "maxRawScore": 21,
+        "interpretation": [
+          {
+            "min": 0,
+            "max": 4,
+            "label": "Normal level of depression symptoms reported",
+            "recommendation": "Your responses suggest a normal level of reported depression symptoms. Continue monitoring your well-being."
+          },
+          {
+            "min": 5,
+            "max": 6,
+            "label": "Mild level of depression symptoms reported",
+            "recommendation": "Your responses suggest a mild level of reported depression symptoms. Consider engaging in self-care activities and continued self-monitoring."
+          },
+          {
+            "min": 7,
+            "max": 10,
+            "label": "Moderate level of depression symptoms reported",
+            "recommendation": "Your responses suggest a moderate level of reported depression symptoms. You may find benefit in exploring professional support."
+          },
+          {
+            "min": 11,
+            "max": 13,
+            "label": "Severe level of depression symptoms reported",
+            "recommendation": "Your responses suggest a severe level of reported depression symptoms. It is strongly recommended that you consider consulting a mental health professional."
+          },
+          {
+            "min": 14,
+            "max": 21,
+            "label": "Extremely severe level of depression symptoms reported",
+            "recommendation": "Your responses suggest an extremely severe level of reported depression symptoms. It is highly recommended that you seek immediate consultation with a mental health professional."
+          }
+        ]
+      },
+      "anxiety": {
+        "maxRawScore": 21,
+        "interpretation": [
+          {
+            "min": 0,
+            "max": 3,
+            "label": "Normal level of anxiety symptoms reported",
+            "recommendation": "Your responses suggest a normal level of reported anxiety symptoms. Continue monitoring your well-being."
+          },
+          {
+            "min": 4,
+            "max": 5,
+            "label": "Mild level of anxiety symptoms reported",
+            "recommendation": "Your responses suggest a mild level of reported anxiety symptoms. Consider engaging in self-care activities and continued self-monitoring."
+          },
+          {
+            "min": 6,
+            "max": 7,
+            "label": "Moderate level of anxiety symptoms reported",
+            "recommendation": "Your responses suggest a moderate level of reported anxiety symptoms. You may find benefit in exploring professional support."
+          },
+          {
+            "min": 8,
+            "max": 9,
+            "label": "Severe level of anxiety symptoms reported",
+            "recommendation": "Your responses suggest a severe level of reported anxiety symptoms. It is strongly recommended that you consider consulting a mental health professional."
+          },
+          {
+            "min": 10,
+            "max": 21,
+            "label": "Extremely severe level of anxiety symptoms reported",
+            "recommendation": "Your responses suggest an extremely severe level of reported anxiety symptoms. It is highly recommended that you seek immediate consultation with a mental health professional."
+          }
+        ]
+      },
+      "stress": {
+        "maxRawScore": 21,
+        "interpretation": [
+          {
+            "min": 0,
+            "max": 7,
+            "label": "Normal level of stress symptoms reported",
+            "recommendation": "Your responses suggest a normal level of reported stress symptoms. Continue monitoring your well-being."
+          },
+          {
+            "min": 8,
+            "max": 9,
+            "label": "Mild level of stress symptoms reported",
+            "recommendation": "Your responses suggest a mild level of reported stress symptoms. Consider engaging in self-care activities and continued self-monitoring."
+          },
+          {
+            "min": 10,
+            "max": 12,
+            "label": "Moderate level of stress symptoms reported",
+            "recommendation": "Your responses suggest a moderate level of reported stress symptoms. You may find benefit in exploring stress management techniques and potentially professional support."
+          },
+          {
+            "min": 13,
+            "max": 16,
+            "label": "Severe level of stress symptoms reported",
+            "recommendation": "Your responses suggest a severe level of reported stress symptoms. It is strongly recommended that you consider consulting a mental health professional."
+          },
+          {
+            "min": 17,
+            "max": 21,
+            "label": "Extremely severe level of stress symptoms reported",
+            "recommendation": "Your responses suggest an extremely severe level of reported stress symptoms. It is highly recommended that you seek immediate consultation with a mental health professional."
+          }
+        ]
+      }
+    }
+  }
+}

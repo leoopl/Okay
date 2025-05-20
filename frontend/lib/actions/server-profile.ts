@@ -48,21 +48,41 @@ export async function updateProfile(
     const userId = session.id;
     const cookieStore = await cookies();
     const csrfToken = cookieStore.get('csrf_token')?.value || '';
+    const accessToken = cookieStore.get('access_token')?.value;
+
+    // Check if we have an access token
+    if (!accessToken) {
+      // Try to refresh the token
+      const refreshed = await refreshServerToken();
+      if (!refreshed) {
+        return { success: false, message: 'Sua sessão expirou. Por favor, faça login novamente.' };
+      }
+    }
+
+    // Get the potentially refreshed token
+    const currentToken = cookieStore.get('access_token')?.value;
 
     const response = await fetch(`${apiUrl}/users/${userId}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        Cookie: cookieStore
-          .getAll()
-          .map((cookie) => `${cookie.name}=${cookie.value}`)
-          .join('; '),
         'X-CSRF-Token': csrfToken,
+        // Add Authorization header with the Bearer token
+        Authorization: `Bearer ${currentToken}`,
       },
+      credentials: 'include', // This sends cookies automatically
       body: JSON.stringify(validatedFields.data),
     });
 
     if (!response.ok) {
+      // Check if it's an authentication error
+      if (response.status === 401) {
+        return {
+          success: false,
+          message: 'Sua sessão expirou. Por favor, faça login novamente.',
+        };
+      }
+
       const errorData = await response.json();
       return {
         success: false,
@@ -118,17 +138,29 @@ export async function changePassword(
     const apiUrl = process.env.API_URL;
     const cookieStore = await cookies();
     const csrfToken = cookieStore.get('csrf_token')?.value || '';
+    const accessToken = cookieStore.get('access_token')?.value;
 
-    const response = await fetch(`${apiUrl}/auth/change-password`, {
+    // Check if we have an access token
+    if (!accessToken) {
+      // Try to refresh the token
+      const refreshed = await refreshServerToken();
+      if (!refreshed) {
+        return { success: false, message: 'Sua sessão expirou. Por favor, faça login novamente.' };
+      }
+    }
+
+    // Get the potentially refreshed token
+    const currentToken = cookieStore.get('access_token')?.value;
+
+    const response = await fetch(`${apiUrl}/users/update-password`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Cookie: cookieStore
-          .getAll()
-          .map((cookie) => `${cookie.name}=${cookie.value}`)
-          .join('; '),
         'X-CSRF-Token': csrfToken,
+        // Add Authorization header with the Bearer token
+        Authorization: `Bearer ${currentToken}`,
       },
+      credentials: 'include', // This sends cookies automatically
       body: JSON.stringify({
         currentPassword: validatedFields.data.currentPassword,
         newPassword: validatedFields.data.newPassword,
@@ -136,6 +168,14 @@ export async function changePassword(
     });
 
     if (!response.ok) {
+      // Check if it's an authentication error
+      if (response.status === 401) {
+        return {
+          success: false,
+          message: 'Senha atual incorreta ou sessão expirada.',
+        };
+      }
+
       const errorData = await response.json();
       return {
         success: false,
@@ -178,17 +218,29 @@ export async function updateConsent(
     const userId = session.id;
     const cookieStore = await cookies();
     const csrfToken = cookieStore.get('csrf_token')?.value || '';
+    const accessToken = cookieStore.get('access_token')?.value;
+
+    // Check if we have an access token
+    if (!accessToken) {
+      // Try to refresh the token
+      const refreshed = await refreshServerToken();
+      if (!refreshed) {
+        return { success: false, message: 'Sua sessão expirou. Por favor, faça login novamente.' };
+      }
+    }
+
+    // Get the potentially refreshed token
+    const currentToken = cookieStore.get('access_token')?.value;
 
     const response = await fetch(`${apiUrl}/users/${userId}/consent`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        Cookie: cookieStore
-          .getAll()
-          .map((cookie) => `${cookie.name}=${cookie.value}`)
-          .join('; '),
         'X-CSRF-Token': csrfToken,
+        // Add Authorization header with the Bearer token
+        Authorization: `Bearer ${currentToken}`,
       },
+      credentials: 'include', // This sends cookies automatically
       body: JSON.stringify({
         consentToDataProcessing: formData.get('consentToDataProcessing') === 'on',
         consentToResearch: formData.get('consentToResearch') === 'on',
@@ -197,6 +249,14 @@ export async function updateConsent(
     });
 
     if (!response.ok) {
+      // Check if it's an authentication error
+      if (response.status === 401) {
+        return {
+          success: false,
+          message: 'Sua sessão expirou. Por favor, faça login novamente.',
+        };
+      }
+
       const errorData = await response.json();
       return {
         success: false,
@@ -234,14 +294,17 @@ export async function getUserProfile() {
     const apiUrl = process.env.API_URL;
     const userId = session.id;
     const cookieStore = await cookies();
+    const accessToken = cookieStore.get('access_token')?.value;
+
+    if (!accessToken) {
+      return null;
+    }
 
     const response = await fetch(`${apiUrl}/users/${userId}`, {
       headers: {
-        Cookie: cookieStore
-          .getAll()
-          .map((cookie) => `${cookie.name}=${cookie.value}`)
-          .join('; '),
+        Authorization: `Bearer ${accessToken}`,
       },
+      credentials: 'include',
       next: { tags: ['user-profile'] },
     });
 

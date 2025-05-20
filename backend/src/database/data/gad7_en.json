@@ -1,0 +1,111 @@
+{
+  "name": "gad7_en",
+  "title": "Generalized Anxiety Disorder 7-item Scale (GAD-7)",
+  "description": "The GAD-7 is a 7-item self-report measure designed to screen for Generalized Anxiety Disorder (GAD) and measure its severity over the past two weeks.",
+  "disclaimer": "This questionnaire is for informational and self-monitoring purposes only and does not constitute a diagnosis of an anxiety disorder. Only a qualified mental health professional can provide a diagnosis.",
+  "version": "1.0.0",
+  "source": "Developed by Drs. Robert L. Spitzer, Janet B.W. Williams, Kurt Kroenke and colleagues. Available at phqscreeners.com",
+  "createdAt": "2025-05-19T17:47:15-03:00",
+  "updatedAt": "2025-05-19T17:47:15-03:00",
+  "questions": [
+    {
+      "id": "gad7_q1",
+      "title": "Feeling nervous, anxious, or on edge?",
+      "options": [
+        { "label": "Not at all", "value": 0 },
+        { "label": "Several days", "value": 1 },
+        { "label": "More than half the days", "value": 2 },
+        { "label": "Nearly every day", "value": 3 }
+      ]
+    },
+    {
+      "id": "gad7_q2",
+      "title": "Not being able to stop or control worrying?",
+      "options": [
+        { "label": "Not at all", "value": 0 },
+        { "label": "Several days", "value": 1 },
+        { "label": "More than half the days", "value": 2 },
+        { "label": "Nearly every day", "value": 3 }
+      ]
+    },
+    {
+      "id": "gad7_q3",
+      "title": "Worrying too much about different things?",
+      "options": [
+        { "label": "Not at all", "value": 0 },
+        { "label": "Several days", "value": 1 },
+        { "label": "More than half the days", "value": 2 },
+        { "label": "Nearly every day", "value": 3 }
+      ]
+    },
+    {
+      "id": "gad7_q4",
+      "title": "Trouble relaxing?",
+      "options": [
+        { "label": "Not at all", "value": 0 },
+        { "label": "Several days", "value": 1 },
+        { "label": "More than half the days", "value": 2 },
+        { "label": "Nearly every day", "value": 3 }
+      ]
+    },
+    {
+      "id": "gad7_q5",
+      "title": "Being so restless that it's hard to sit still?",
+      "options": [
+        { "label": "Not at all", "value": 0 },
+        { "label": "Several days", "value": 1 },
+        { "label": "More than half the days", "value": 2 },
+        { "label": "Nearly every day", "value": 3 }
+      ]
+    },
+    {
+      "id": "gad7_q6",
+      "title": "Becoming easily annoyed or irritable?",
+      "options": [
+        { "label": "Not at all", "value": 0 },
+        { "label": "Several days", "value": 1 },
+        { "label": "More than half the days", "value": 2 },
+        { "label": "Nearly every day", "value": 3 }
+      ]
+    },
+    {
+      "id": "gad7_q7",
+      "title": "Feeling afraid as if something awful might happen?",
+      "options": [
+        { "label": "Not at all", "value": 0 },
+        { "label": "Several days", "value": 1 },
+        { "label": "More than half the days", "value": 2 },
+        { "label": "Nearly every day", "value": 3 }
+      ]
+    }
+  ],
+  "scoring": {
+    "totalScoreRange": [0, 21],
+    "interpretation": [
+      {
+        "min": 0,
+        "max": 4,
+        "label": "Minimal or no symptoms of anxiety reported",
+        "recommendation": "Your responses suggest a low level of reported anxiety symptoms. Continue monitoring your well-being."
+      },
+      {
+        "min": 5,
+        "max": 9,
+        "label": "Mild symptoms of anxiety reported",
+        "recommendation": "Your responses suggest a mild level of reported anxiety symptoms. Consider engaging in self-care activities and continued self-monitoring."
+      },
+      {
+        "min": 10,
+        "max": 14,
+        "label": "Moderate symptoms of anxiety reported",
+        "recommendation": "Your responses suggest a moderate level of reported anxiety symptoms. You may find benefit in exploring professional support."
+      },
+      {
+        "min": 15,
+        "max": 21,
+        "label": "Severe symptoms of anxiety reported",
+        "recommendation": "Your responses suggest a severe level of reported anxiety symptoms. It is strongly recommended that you consider consulting a mental health professional."
+      }
+    ]
+  }
+}

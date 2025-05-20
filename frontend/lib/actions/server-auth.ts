@@ -346,6 +346,20 @@ export async function getServerSession(): Promise<UserProfile | null> {
 export async function refreshServerToken(): Promise<boolean> {
   try {
     const cookieStore = await cookies();
+
+    // Check if we already have an access token
+    const currentToken = cookieStore.get('access_token');
+    if (currentToken) {
+      // Decode token to check expiration
+      const decoded: any = jwtDecode(currentToken.value);
+      const now = Math.floor(Date.now() / 1000);
+
+      // If token is not expired and has more than 5 minutes left, don't refresh
+      if (decoded.exp && decoded.exp > now + 300) {
+        return true;
+      }
+    }
+
     // Make server-to-server request to refresh token
     const response = await fetch(`${API_URL}/auth/refresh`, {
       method: 'POST',
@@ -360,29 +374,31 @@ export async function refreshServerToken(): Promise<boolean> {
     });
 
     if (!response.ok) {
+      console.error('Token refresh failed:', response.status, response.statusText);
       return false;
     }
 
     const data = await response.json();
 
     if (!data.accessToken) {
+      console.error('No access token in refresh response');
       return false;
     }
 
     // Set the new access token in a cookie
-    (await cookies()).set({
+    cookieStore.set({
       name: 'access_token',
       value: data.accessToken,
       httpOnly: false, // Must be false to be accessible by client JS
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: data.expiresIn || 900, // Default 15 min in seconds
+      maxAge: data.expiresIn || 1800, // Default 30 min in seconds
     });
 
     // Set the new CSRF token if provided
     if (data.csrfToken) {
-      (await cookies()).set({
+      cookieStore.set({
         name: 'csrf_token',
         value: data.csrfToken,
         httpOnly: false, // Must be accessible by client JS

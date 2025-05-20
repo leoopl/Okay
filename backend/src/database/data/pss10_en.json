@@ -1,0 +1,155 @@
+{
+  "name": "pss10_en",
+  "title": "Perceived Stress Scale-10 (PSS-10)",
+  "description": "The PSS-10 measures the degree to which individuals perceive their life situations as stressful over the past month. It focuses on the subjective appraisal of stress rather than the objective stressors themselves.",
+  "disclaimer": "This questionnaire is for informational and self-monitoring purposes only and does not diagnose a stress disorder. Only a qualified mental health professional can provide a diagnosis.",
+  "version": "1.0.0",
+  "source": "Developed by Sheldon Cohen. Available at pss.stress.info",
+  "createdAt": "2025-05-19T17:47:15-03:00",
+  "updatedAt": "2025-05-19T17:47:15-03:00",
+  "questions": [
+    {
+      "id": "pss10_q1",
+      "title": "In the last month, how often have you been bothered by the things that happened unexpectedly?",
+      "reverseScore": false,
+      "options": [
+        { "label": "Never", "value": 0 },
+        { "label": "Almost Never", "value": 1 },
+        { "label": "Sometimes", "value": 2 },
+        { "label": "Fairly Often", "value": 3 },
+        { "label": "Very Often", "value": 4 }
+      ]
+    },
+    {
+      "id": "pss10_q2",
+      "title": "In the last month, how often have you felt that you were unable to control the important things in your life?",
+      "reverseScore": false,
+      "options": [
+        { "label": "Never", "value": 0 },
+        { "label": "Almost Never", "value": 1 },
+        { "label": "Sometimes", "value": 2 },
+        { "label": "Fairly Often", "value": 3 },
+        { "label": "Very Often", "value": 4 }
+      ]
+    },
+    {
+      "id": "pss10_q3",
+      "title": "In the last month, how often have you felt nervous and 'stressed'?",
+      "reverseScore": false,
+      "options": [
+        { "label": "Never", "value": 0 },
+        { "label": "Almost Never", "value": 1 },
+        { "label": "Sometimes", "value": 2 },
+        { "label": "Fairly Often", "value": 3 },
+        { "label": "Very Often", "value": 4 }
+      ]
+    },
+    {
+      "id": "pss10_q4",
+      "title": "In the last month, how often have you felt confident about your ability to handle your personal problems?",
+      "reverseScore": true,
+      "options": [
+        { "label": "Never", "value": 0 },
+        { "label": "Almost Never", "value": 1 },
+        { "label": "Sometimes", "value": 2 },
+        { "label": "Fairly Often", "value": 3 },
+        { "label": "Very Often", "value": 4 }
+      ]
+    },
+    {
+      "id": "pss10_q5",
+      "title": "In the last month, how often have you felt that things were going your way?",
+      "reverseScore": true,
+      "options": [
+        { "label": "Never", "value": 0 },
+        { "label": "Almost Never", "value": 1 },
+        { "label": "Sometimes", "value": 2 },
+        { "label": "Fairly Often", "value": 3 },
+        { "label": "Very Often", "value": 4 }
+      ]
+    },
+    {
+      "id": "pss10_q6",
+      "title": "In the last month, how often have you found that you could not cope with all the things you had to do?",
+      "reverseScore": false,
+      "options": [
+        { "label": "Never", "value": 0 },
+        { "label": "Almost Never", "value": 1 },
+        { "label": "Sometimes", "value": 2 },
+        { "label": "Fairly Often", "value": 3 },
+        { "label": "Very Often", "value": 4 }
+      ]
+    },
+    {
+      "id": "pss10_q7",
+      "title": "In the last month, how often have you been able to control irritations in your life?",
+      "reverseScore": true,
+      "options": [
+        { "label": "Never", "value": 0 },
+        { "label": "Almost Never", "value": 1 },
+        { "label": "Sometimes", "value": 2 },
+        { "label": "Fairly Often", "value": 3 },
+        { "label": "Very Often", "value": 4 }
+      ]
+    },
+    {
+      "id": "pss10_q8",
+      "title": "In the last month, how often have you felt that you were on top of things?",
+      "reverseScore": true,
+      "options": [
+        { "label": "Never", "value": 0 },
+        { "label": "Almost Never", "value": 1 },
+        { "label": "Sometimes", "value": 2 },
+        { "label": "Fairly Often", "value": 3 },
+        { "label": "Very Often", "value": 4 }
+      ]
+    },
+    {
+      "id": "pss10_q9",
+      "title": "In the last month, how often have you been angered because of things that happened that were outside of your control?",
+      "reverseScore": false,
+      "options": [
+        { "label": "Never", "value": 0 },
+        { "label": "Almost Never", "value": 1 },
+        { "label": "Sometimes", "value": 2 },
+        { "label": "Fairly Often", "value": 3 },
+        { "label": "Very Often", "value": 4 }
+      ]
+    },
+    {
+      "id": "pss10_q10",
+      "title": "In the last month, how often have you felt difficulties were piling up so high that you could not overcome them?",
+      "reverseScore": false,
+      "options": [
+        { "label": "Never", "value": 0 },
+        { "label": "Almost Never", "value": 1 },
+        { "label": "Sometimes", "value": 2 },
+        { "label": "Fairly Often", "value": 3 },
+        { "label": "Very Often", "value": 4 }
+      ]
+    }
+  ],
+  "scoring": {
+    "totalScoreRange": [0, 40],
+    "interpretation": [
+      {
+        "min": 0,
+        "max": 13,
+        "label": "Low perceived stress",
+        "recommendation": "Your responses suggest a low level of perceived stress. You appear to be managing daily stressors effectively."
+      },
+      {
+        "min": 14,
+        "max": 26,
+        "label": "Moderate perceived stress",
+        "recommendation": "Your responses suggest a moderate level of perceived stress. Exploring stress management techniques or self-care strategies could be beneficial."
+      },
+      {
+        "min": 27,
+        "max": 40,
+        "label": "High perceived stress",
+        "recommendation": "Your responses suggest a high level of perceived stress. It is recommended to explore stress reduction techniques and consider professional support if stress is significantly impacting your well-being."
+      }
+    ]
+  }
+}

@@ -23,7 +23,8 @@
     "migration:run": "npm run typeorm -- migration:run -d src/database/data-source.ts",
     "seed:roles": "ts-node -r tsconfig-paths/register ./src/database/seeders/roles.seeder.ts",
     "seed:users": "ts-node -r tsconfig-paths/register ./src/database/seeders/users.seeder.ts",
-    "seed:all": "npm run seed:roles && npm run seed:users"
+    "seed:inventories": "ts-node -r tsconfig-paths/register ./src/database/seeders/inventory.seeder.ts",
+    "seed:all": "npm run seed:roles && npm run seed:users && npm run seed:inventories"
   },
   "dependencies": {
     "@casl/ability": "^6.7.3",
@@ -66,6 +67,7 @@
     "@nestjs/testing": "^10.0.0",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.2",
+    "@types/multer": "^1.4.12",
     "@types/node": "^20.3.1",
     "@types/supertest": "^6.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
