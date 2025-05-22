@@ -47,7 +47,7 @@ async function bootstrap() {
 
         // Check if inventory already exists
         const existingInventory = await inventoryRepository.findOne({
-          where: { name: assessmentData.id },
+          where: { name: assessmentData.name },
         });
 
         if (existingInventory) {

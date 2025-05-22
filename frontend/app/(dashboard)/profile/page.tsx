@@ -183,7 +183,7 @@ export default function Profile() {
                   Complete avaliações para acompanhar seu progresso em saúde mental.
                 </p>
                 <Button asChild className="bg-[#039BE5] text-white hover:bg-[#039BE5]/90">
-                  <Link href="/questionnaires">Ver Questionários</Link>
+                  <Link href="/inventory">Ver Questionários</Link>
                 </Button>
               </div>
             </Card>

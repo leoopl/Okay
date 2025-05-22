@@ -34,11 +34,6 @@ const pages: Page[] = [
     description: 'Converse com um voluntário',
     href: '/support/cvv',
   },
-  {
-    name: 'Como está se sentindo?',
-    description: 'Avalie seu estado emocional',
-    href: '/questionnaire/beck',
-  },
 ];
 
 const Header: React.FC = () => {

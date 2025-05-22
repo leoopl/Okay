@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -26,72 +26,63 @@ import {
 import { format } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon, Plus, Trash2 } from 'lucide-react';
+import { CalendarIcon, Plus, Trash2, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DayOfWeek, Medication, useMedicationStore } from '@/lib/medication-store';
-import { Toaster } from 'sonner';
+import {
+  DayOfWeek,
+  type Medication,
+  type MedicationForm,
+  useMedicationStore,
+} from '@/store/medication-store';
+import { Label } from '../ui/label';
 
-const medicationForms = ['Capsule', 'Tablet', 'Drops', 'Injectable', 'Ointment', 'Other'];
+// Constants
+const MEDICATION_FORMS = ['Capsule', 'Tablet', 'Drops', 'Injectable', 'Ointment', 'Other'] as const;
 
-const daysOfWeek = [
-  { value: 'Monday', label: 'Monday' },
-  { value: 'Tuesday', label: 'Tuesday' },
-  { value: 'Wednesday', label: 'Wednesday' },
-  { value: 'Thursday', label: 'Thursday' },
-  { value: 'Friday', label: 'Friday' },
-  { value: 'Saturday', label: 'Saturday' },
-  { value: 'Sunday', label: 'Sunday' },
+const DAYS_OF_WEEK: Array<{ value: DayOfWeek; label: string }> = [
+  { value: DayOfWeek.MONDAY, label: 'Monday' },
+  { value: DayOfWeek.TUESDAY, label: 'Tuesday' },
+  { value: DayOfWeek.WEDNESDAY, label: 'Wednesday' },
+  { value: DayOfWeek.THURSDAY, label: 'Thursday' },
+  { value: DayOfWeek.FRIDAY, label: 'Friday' },
+  { value: DayOfWeek.SATURDAY, label: 'Saturday' },
+  { value: DayOfWeek.SUNDAY, label: 'Sunday' },
 ];
 
-// Base schema for a single schedule item (reused)
+// Validation schema
 const scheduleItemSchema = z.object({
-  time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: 'Time format must be HH:MM' }),
-  days: z.array(z.string()).min(1, { message: 'Select at least one day' }),
+  time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+    message: 'Time format must be HH:MM',
+  }),
+  days: z.array(z.nativeEnum(DayOfWeek)).min(1, {
+    message: 'Select at least one day',
+  }),
 });
 
-// Single schema with conditional validation
-const medicationFormSchema = z.object({
-  name: z.string().min(1, { message: 'Medication name is required' }),
-  dosage: z.string().min(1, { message: 'Dosage is required' }),
-  form: z.enum(['Capsule', 'Tablet', 'Drops', 'Injectable', 'Ointment', 'Other']),
-  startDate: z.date({ required_error: 'Start date is required' }),
-  endDate: z.date().optional(),
-  schedule: z.array(scheduleItemSchema),
-  notes: z.string().optional(),
-  instructions: z.string().optional(),
-});
+const medicationFormSchema = z
+  .object({
+    name: z.string().min(1, { message: 'Medication name is required' }),
+    dosage: z.string().min(1, { message: 'Dosage is required' }),
+    form: z.enum(MEDICATION_FORMS),
+    startDate: z.date({ required_error: 'Start date is required' }),
+    endDate: z
+      .date()
+      .optional()
+      .nullable()
+      .transform((val) => val || undefined), // Handle null values
+    schedule: z.array(scheduleItemSchema).min(1, {
+      message: 'At least one schedule is required',
+    }),
+    notes: z.string().optional(),
+    instructions: z.string().optional(),
+  })
+  .refine((data) => !data.endDate || data.endDate >= data.startDate, {
+    message: 'End date must be after start date',
+    path: ['endDate'],
+  });
 
 type MedicationFormValues = z.infer<typeof medicationFormSchema>;
-
-// Helper function to compare schedules robustly
-function schedulesAreEqual(schedule1: any[], schedule2: any[]): boolean {
-  if (!schedule1 && !schedule2) return true; // Both null/undefined
-  if (!schedule1 || !schedule2) return false; // One is null/undefined
-  if (schedule1.length !== schedule2.length) return false;
-
-  // Normalize and sort both schedules for comparison
-  const normalize = (schedule: any[]) =>
-    schedule
-      .map((item) => ({
-        time: item.time,
-        // Ensure days array exists and sort it for consistent order
-        days: Array.isArray(item.days) ? [...item.days].sort() : [],
-      }))
-      .sort((a, b) => {
-        // Sort schedule items by time, then by days string
-        if (a.time !== b.time) return a.time.localeCompare(b.time);
-        return a.days.join(',').localeCompare(b.days.join(','));
-      });
-
-  const normalized1 = normalize(schedule1);
-  const normalized2 = normalize(schedule2);
-
-  // Compare the stringified versions
-  const areEqual = JSON.stringify(normalized1) === JSON.stringify(normalized2);
-  console.log('Schedule Comparison:', { schedule1, schedule2, normalized1, normalized2, areEqual });
-  return areEqual;
-}
 
 interface AddMedicationFormProps {
   medication?: Medication;
@@ -99,233 +90,194 @@ interface AddMedicationFormProps {
 }
 
 export default function AddMedicationForm({ medication, onClose }: AddMedicationFormProps) {
-  const { createMedication, updateMedication } = useMedicationStore();
+  const { createMedication, updateMedication, loadingStates } = useMedicationStore();
   const isEditMode = !!medication;
-  const [formSubmitAttempted, setFormSubmitAttempted] = useState(false);
+  const isLoading = loadingStates.creating || loadingStates.updating;
 
-  // Initialize form with default values or existing medication data
+  // New schedule state
+  const [newTime, setNewTime] = useState('');
+  const [selectedDays, setSelectedDays] = useState<DayOfWeek[]>([]);
+
+  // Form setup with proper default values
   const form = useForm<MedicationFormValues>({
     resolver: zodResolver(medicationFormSchema),
-    defaultValues: isEditMode
-      ? {
+    defaultValues: useMemo(() => {
+      if (isEditMode && medication) {
+        return {
           name: medication.name,
           dosage: medication.dosage,
-          form: medication.form as any,
+          form: medication.form,
           startDate: medication.startDate,
-          endDate: medication.endDate,
+          endDate: medication.endDate || undefined, // Ensure undefined instead of null
           schedule: medication.schedule.map((s) => ({
             time: s.time,
-            days: s.days,
+            days: s.days as DayOfWeek[],
           })),
           notes: medication.notes || '',
           instructions: medication.instructions || '',
-        }
-      : {
-          name: '',
-          dosage: '',
-          form: 'Tablet',
-          startDate: new Date(),
-          schedule: [],
-          notes: '',
-          instructions: '',
-        },
+        };
+      }
+      return {
+        name: '',
+        dosage: '',
+        form: 'Tablet' as const,
+        startDate: new Date(),
+        endDate: undefined,
+        schedule: [],
+        notes: '',
+        instructions: '',
+      };
+    }, [isEditMode, medication]),
   });
 
-  const [newTime, setNewTime] = useState('');
-  const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const scheduleItems = form.watch('schedule');
 
-  // Check if form is valid for submission
-  const canSubmitForm = () => {
-    // Always require name, dosage, form, and startDate
-    const { name, dosage, schedule } = form.getValues();
-    if (!name || !dosage) return false;
+  // Optimized schedule management
+  const addScheduleTime = useCallback(() => {
+    if (!newTime || selectedDays.length === 0) return;
 
-    // For new medications, always require at least one schedule
-    if (!isEditMode && (!schedule || schedule.length === 0)) {
-      return false;
-    }
-
-    // For edits, we don't require a schedule (more flexible)
-    return true;
-  };
-
-  // Add a new schedule time to the form's schedule field
-  const addSpecificTime = () => {
-    if (newTime && selectedDays.length > 0) {
-      const currentSchedule = form.getValues('schedule') || [];
-      form.setValue('schedule', [...currentSchedule, { time: newTime, days: selectedDays }]);
-      setNewTime('');
-      setSelectedDays([]);
-    }
-  };
-
-  // Remove a schedule time from the form's schedule field
-  const removeSpecificTime = (index: number) => {
     const currentSchedule = form.getValues('schedule') || [];
-    form.setValue(
-      'schedule',
-      currentSchedule.filter((_, i) => i !== index),
+
+    // Check for duplicate times on same days
+    const hasConflict = currentSchedule.some(
+      (item) => item.time === newTime && item.days.some((day) => selectedDays.includes(day)),
     );
-  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormSubmitAttempted(true);
-
-    // Trigger validation manually to check form state
-    const isValid = await form.trigger();
-    if (!isValid) {
-      console.log('Form validation failed', form.formState.errors);
-      // Display a general error message or rely on individual field messages
-      return;
-    }
-
-    // Get all values from the validated form
-    const values = form.getValues();
-    console.log('Form values at submission:', values);
-
-    // Custom validation for NEW medications schedule (if Zod schema allows empty)
-    if (!isEditMode && (!values.schedule || values.schedule.length === 0)) {
+    if (hasConflict) {
       form.setError('schedule', {
-        type: 'manual', // Use manual to distinguish from Zod
-        message: 'At least one schedule is required for new medications',
+        type: 'manual',
+        message: 'This time already exists for one or more selected days',
       });
-      console.log('Manual validation failed: New medication requires schedule.');
       return;
-    } else {
-      // Clear manual error if condition is met
-      form.clearErrors('schedule');
     }
 
-    // Prepare the data to be sent
-    let payload: Partial<MedicationFormValues>;
+    form.setValue('schedule', [...currentSchedule, { time: newTime, days: selectedDays }]);
+    form.clearErrors('schedule');
 
-    if (isEditMode) {
-      console.log('[Edit Submit] Preparing PATCH payload for:', medication.id);
-      payload = {}; // Start with an empty object for PATCH
+    // Reset inputs
+    setNewTime('');
+    setSelectedDays([]);
+  }, [newTime, selectedDays, form]);
 
-      // Define original data structure matching the form values
-      const originalData = {
-        name: medication.name,
-        dosage: medication.dosage,
-        form: medication.form,
-        startDate: medication.startDate, // Keep as Date object
-        endDate: medication.endDate, // Keep as Date object or undefined/null
-        notes: medication.notes || '',
-        instructions: medication.instructions || '',
-        schedule: medication.schedule || [], // Original schedule
-      };
+  const removeScheduleTime = useCallback(
+    (index: number) => {
+      const currentSchedule = form.getValues('schedule') || [];
+      form.setValue(
+        'schedule',
+        currentSchedule.filter((_, i) => i !== index),
+      );
+    },
+    [form],
+  );
 
-      // Compare each field
-      (Object.keys(values) as Array<keyof MedicationFormValues>).forEach((key) => {
-        const currentValue = values[key];
-        const originalValue = originalData[key];
+  // Simplified form submission
+  const onSubmit = useCallback(
+    async (values: MedicationFormValues) => {
+      try {
+        console.log('Form submission - raw values:', values); // Debug log
 
-        if (key === 'schedule') {
-          // Ensure we are comparing arrays
-          const currentScheduleArray = Array.isArray(currentValue) ? currentValue : [];
-          const originalScheduleArray = Array.isArray(originalValue) ? originalValue : [];
-          const schedulesActuallyChanged = !schedulesAreEqual(
-            originalScheduleArray as any[],
-            currentScheduleArray as any[],
-          );
-          console.log(`[Edit Submit] Comparing schedules: Changed = ${schedulesActuallyChanged}`);
-          if (schedulesActuallyChanged) {
-            payload.schedule = currentScheduleArray as any[]; // Include schedule if changed
+        const payload = {
+          ...values,
+          form: values.form as MedicationForm, // Type assertion for proper typing
+          // Ensure proper date formatting
+          startDate: values.startDate,
+          endDate: values.endDate || undefined, // Ensure undefined instead of null
+          // Clean up empty strings
+          notes: values.notes?.trim() || undefined,
+          instructions: values.instructions?.trim() || undefined,
+        };
+
+        console.log('Form submission payload:', payload); // Debug log
+
+        if (isEditMode && medication) {
+          console.log('Edit mode - original medication:', {
+            endDate: medication.endDate,
+            endDateType: typeof medication.endDate,
+          }); // Debug log
+
+          // For edit mode, only send changed fields
+          const changes: Partial<typeof payload> = {};
+
+          // Compare each field and only include if changed
+          Object.keys(payload).forEach((key) => {
+            const currentValue = payload[key as keyof typeof payload];
+            const originalValue = medication[key as keyof Medication];
+
+            if (key === 'schedule') {
+              // Simple schedule comparison
+              const scheduleChanged =
+                JSON.stringify(currentValue) !== JSON.stringify(originalValue);
+              if (scheduleChanged) {
+                changes.schedule = currentValue as any;
+              }
+            } else if (key === 'startDate' || key === 'endDate') {
+              // Date comparison
+              const current = currentValue as Date | undefined;
+              const original = originalValue as Date | undefined;
+              const currentTime = current?.getTime();
+              const originalTime = original?.getTime();
+
+              console.log(`Date comparison for ${key}:`, {
+                current: current?.toISOString(),
+                original: original?.toISOString(),
+                currentTime,
+                originalTime,
+                changed: currentTime !== originalTime,
+              }); // Debug log
+
+              if (currentTime !== originalTime) {
+                changes[key as keyof typeof changes] = current as any;
+              }
+            } else if (currentValue !== originalValue) {
+              console.log(`Field ${key} changed:`, { currentValue, originalValue }); // Debug log
+              changes[key as keyof typeof changes] = currentValue as any;
+            }
+          });
+
+          console.log('Edit mode changes:', changes); // Debug log
+
+          // Only update if there are changes
+          if (Object.keys(changes).length > 0) {
+            await updateMedication(medication.id, changes as any);
+          } else {
+            console.log('No changes detected, closing form'); // Debug log
           }
-        } else if (key === 'startDate' || key === 'endDate') {
-          // Compare dates by converting valid dates to ISO string (or null)
-          const currentDateStr =
-            currentValue instanceof Date
-              ? currentValue.toISOString()
-              : currentValue
-                ? new Date(currentValue as string).toISOString()
-                : null;
-          const originalDateStr =
-            originalValue instanceof Date ? originalValue.toISOString() : null;
-
-          if (currentDateStr !== originalDateStr) {
-            console.log(`[Edit Submit] Field ${key} changed.`);
-            // Add changed date to payload, ensuring correct type compatibility (Date | undefined)
-            payload[key] = (currentValue instanceof Date ? currentValue : undefined) as any;
-          }
-        } else if (currentValue !== originalValue) {
-          console.log(`[Edit Submit] Field ${key} changed.`);
-          // Add changed basic field to payload, ensuring correct type
-          payload[key] = currentValue as any;
+        } else {
+          console.log('Creating new medication with payload:', payload); // Debug log
+          await createMedication(payload as any);
         }
-      });
 
-      console.log('[Edit Submit] Final PATCH payload:', JSON.stringify(payload));
-
-      // Check if payload is empty (no changes detected)
-      if (Object.keys(payload).length === 0) {
-        console.log('[Edit Submit] No changes detected. Closing form.');
-        onClose(); // Close without sending request if nothing changed
-        return;
+        onClose();
+      } catch (error) {
+        console.error('Error saving medication:', error);
+        // Error handling is done in the store with toast notifications
       }
-    } else {
-      // Create Mode
-      console.log('[Create Submit] Preparing POST payload.');
-      // For create, send all values
-      payload = values;
-    }
+    },
+    [isEditMode, medication, createMedication, updateMedication, onClose],
+  );
 
-    // Format payload for API (dates to ISO string, schedule days to enum string)
-    const formattedPayload = {
-      ...payload,
-      startDate: payload.startDate ? new Date(payload.startDate).toISOString() : undefined,
-      endDate:
-        payload.endDate !== undefined
-          ? payload.endDate
-            ? new Date(payload.endDate).toISOString()
-            : null
-          : undefined,
-      // Simplify schedule handling - don't try to convert days, just send them as-is
-      schedule: payload.schedule?.map((item) => ({
-        time: item.time,
-        days: item.days, // Send days exactly as they are
-      })),
-    };
+  // Day selection handler
+  const handleDayToggle = useCallback((day: DayOfWeek, checked: boolean) => {
+    setSelectedDays((prev) => (checked ? [...prev, day] : prev.filter((d) => d !== day)));
+  }, []);
 
-    // Log the payload for debugging
-    console.log('[Submit] Final API payload:', JSON.stringify(formattedPayload));
-
-    try {
-      if (isEditMode) {
-        await updateMedication(medication.id, formattedPayload as any);
-      } else {
-        await createMedication(formattedPayload as any);
-      }
-      onClose(); // Close form on success
-    } catch (error) {
-      console.error('Error saving medication:', error);
-      // TODO: Display user-friendly error message
-    }
-  };
-
-  // Validation error display helper
-  const getScheduleValidationMessage = () => {
-    if (!isEditMode && formSubmitAttempted && (!scheduleItems || scheduleItems.length === 0)) {
-      return <p className="text-red-500">At least one schedule is required for new medications</p>;
-    }
-    return null;
-  };
+  // Validation helpers
+  const canAddSchedule = newTime && selectedDays.length > 0;
+  const hasScheduleError = form.formState.errors.schedule;
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <Toaster richColors position="top-center" />
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Basic Information */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Medication Name</FormLabel>
+                <FormLabel>Medication Name *</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Sertraline" {...field} />
+                  <Input placeholder="e.g., Sertraline" {...field} disabled={isLoading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -337,9 +289,9 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
             name="dosage"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Dosage</FormLabel>
+                <FormLabel>Dosage *</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., 50mg" {...field} />
+                  <Input placeholder="e.g., 50mg" {...field} disabled={isLoading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -347,47 +299,50 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="form"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Form</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select form" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {medicationForms.map((form) => (
-                      <SelectItem key={form} value={form}>
-                        {form}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        {/* Form Selection */}
+        <FormField
+          control={form.control}
+          name="form"
+          render={({ field }) => (
+            <FormItem className="md:w-1/2">
+              <FormLabel>Form *</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                disabled={isLoading}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select form" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {MEDICATION_FORMS.map((form) => (
+                    <SelectItem key={form} value={form}>
+                      {form.charAt(0).toUpperCase() + form.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <div></div>
-        </div>
-
+        {/* Date Fields */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
             name="startDate"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Start Date</FormLabel>
+                <FormLabel>Start Date *</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
                         variant="outline"
+                        disabled={isLoading}
                         className={cn(
                           'w-full pl-3 text-left font-normal',
                           !field.value && 'text-muted-foreground',
@@ -398,12 +353,14 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent className="z-[1000] w-auto p-0" align="start" sideOffset={4}>
                     <Calendar
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
                       initialFocus
+                      locale={undefined} // Use default locale instead of ptBR
+                      disabled={(date) => date < new Date('1900-01-01')}
                     />
                   </PopoverContent>
                 </Popover>
@@ -423,6 +380,7 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
                     <FormControl>
                       <Button
                         variant="outline"
+                        disabled={isLoading}
                         className={cn(
                           'w-full pl-3 text-left font-normal',
                           !field.value && 'text-muted-foreground',
@@ -433,13 +391,17 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent className="z-[1000] w-auto p-0" align="start" sideOffset={4}>
                     <Calendar
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
                       initialFocus
-                      disabled={(date) => date < form.getValues('startDate')}
+                      locale={undefined} // Use default locale instead of ptBR
+                      disabled={(date) => {
+                        const startDate = form.getValues('startDate');
+                        return startDate ? date < startDate : date < new Date('1900-01-01');
+                      }}
                     />
                   </PopoverContent>
                 </Popover>
@@ -450,75 +412,86 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
           />
         </div>
 
+        {/* Schedule Section */}
         <div className="space-y-4">
           <div className="rounded-md border p-4">
-            <h3 className="mb-4 text-lg font-medium">Add Specific Time</h3>
-            <div className="mb-4 flex flex-col gap-4 md:flex-row">
-              <div className="flex-1">
-                <label className="mb-1 block text-sm font-medium">Time</label>
+            <h3 className="mb-4 text-lg font-medium">Add Schedule Time</h3>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <Label htmlFor="schedule-time">Time *</Label>
                 <Input
+                  id="schedule-time"
                   type="time"
                   value={newTime}
                   onChange={(e) => setNewTime(e.target.value)}
-                  className="w-full"
+                  disabled={isLoading}
+                  className="mt-1"
                 />
               </div>
-            </div>
-            <div className="mb-4">
-              <label className="mb-2 block text-sm font-medium">Days of Week</label>
-              <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-                {daysOfWeek.map((day) => (
-                  <div key={day.value} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`new-time-${day.value}`}
-                      className="cursor-pointer"
-                      checked={selectedDays.includes(day.value)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedDays([...selectedDays, day.value]);
-                        } else {
-                          setSelectedDays(selectedDays.filter((d) => d !== day.value));
+
+              <div>
+                <Label>Days of Week *</Label>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  {DAYS_OF_WEEK.map((day) => (
+                    <div key={day.value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`day-${day.value}`}
+                        checked={selectedDays.includes(day.value)}
+                        onCheckedChange={(checked) =>
+                          handleDayToggle(day.value, checked as boolean)
                         }
-                      }}
-                    />
-                    <label
-                      htmlFor={`new-time-${day.value}`}
-                      className="cursor-pointer text-sm font-normal"
-                    >
-                      {day.label}
-                    </label>
-                  </div>
-                ))}
+                        disabled={isLoading}
+                      />
+                      <Label
+                        htmlFor={`day-${day.value}`}
+                        className="cursor-pointer text-sm font-normal"
+                      >
+                        {day.label}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-            <Button type="button" onClick={addSpecificTime} disabled={!newTime} className="w-full">
+
+            <Button
+              type="button"
+              onClick={addScheduleTime}
+              disabled={!canAddSchedule || isLoading}
+              className="mt-4 w-full"
+            >
+              <Plus className="mr-2 h-4 w-4" />
               Add Time
             </Button>
           </div>
 
+          {/* Schedule Display */}
           <div>
-            <FormLabel>Scheduled Times</FormLabel>
-            <div className="divide-y rounded-md border">
+            <FormLabel>Scheduled Times *</FormLabel>
+            <div className="mt-2 divide-y rounded-md border">
               {scheduleItems && scheduleItems.length > 0 ? (
                 scheduleItems.map((timeEntry, index) => (
                   <div key={index} className="flex items-center justify-between p-4">
                     <div>
                       <p className="font-medium">{timeEntry.time}</p>
                       <p className="text-muted-foreground text-sm">
-                        {timeEntry.days && timeEntry.days.length === 7
+                        {timeEntry.days.length === 7
                           ? 'Every day'
                           : timeEntry.days
-                              ?.map((day) => daysOfWeek.find((d) => d.value === day)?.label)
+                              .map((day) => DAYS_OF_WEEK.find((d) => d.value === day)?.label)
                               .join(', ')}
                       </p>
                     </div>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => removeSpecificTime(index)}
+                      onClick={() => removeScheduleTime(index)}
+                      disabled={isLoading}
                       type="button"
+                      aria-label={`Remove ${timeEntry.time} schedule`}
                     >
-                      Remove
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 ))
@@ -526,60 +499,78 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
                 <div className="text-muted-foreground p-4 text-center">No times scheduled yet</div>
               )}
             </div>
-            <FormDescription>
+
+            <FormDescription className="mt-2">
               Add specific times when you need to take this medication
             </FormDescription>
-            {getScheduleValidationMessage()}
-            {form.formState.errors.schedule && (
-              <div className="mt-1 text-sm text-red-500">
-                {form.formState.errors.schedule.message}
-              </div>
+
+            {hasScheduleError && (
+              <p className="text-destructive mt-1 text-sm">{hasScheduleError.message}</p>
             )}
           </div>
         </div>
 
-        <FormField
-          control={form.control}
-          name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Notes (optional)</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Add any personal notes about this medication"
-                  className="min-h-[80px]"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* Notes and Instructions */}
+        <div className="grid grid-cols-1 gap-4">
+          <FormField
+            control={form.control}
+            name="notes"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Notes (optional)</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Add any personal notes about this medication"
+                    className="min-h-[80px]"
+                    disabled={isLoading}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="instructions"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Doctor's Instructions (optional)</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Add any instructions from your doctor"
-                  className="min-h-[80px]"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="instructions"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Doctor's Instructions (optional)</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Add any instructions from your doctor"
+                    className="min-h-[80px]"
+                    disabled={isLoading}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-        <div className="flex justify-end gap-4">
-          <Button type="button" variant="outline" onClick={onClose}>
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-4 pt-4">
+          <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
-          <Button type="submit" className="bg-green-dark hover:bg-green-medium text-white">
-            {isEditMode ? 'Update Medication' : 'Add Medication'}
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="bg-green-dark hover:bg-green-medium text-white"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {isEditMode ? 'Updating...' : 'Adding...'}
+              </>
+            ) : isEditMode ? (
+              'Update Medication'
+            ) : (
+              'Add Medication'
+            )}
           </Button>
         </div>
       </form>

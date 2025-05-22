@@ -2,9 +2,9 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
-import { RadioGroupItem, RadioGroup } from '@/components/ui/radio-group';
+import { RadioGroupItem, RadioGroup } from '@/components/ui/modify-radio-group';
 import { Label } from '@/components/ui/label';
-import data from '../../../data/beck.json';
+import data from '@/data/beck.json';
 import { Button } from '@/components/ui/button';
 
 interface IQuestion {
@@ -60,7 +60,7 @@ const BeckPage: React.FC = () => {
         </h1>
         <div className="mt-8 space-y-6">
           <h3 className="text-center text-sm text-black">{questionnaire.desc}</h3>
-          <p className="text-center text-sm text-gray-600">
+          <p className="text-grey-dark text-center text-sm">
             Question {currentQuestionIndex + 1} of {questionnaire.questions.length}
           </p>
           {currentQuestion.note && <p className="text-sm text-gray-900">{currentQuestion.note}</p>}

@@ -197,12 +197,4 @@ function DatePicker({ name }: { name: string }) {
   );
 }
 
-// function SubmitButton() {
-//   const { pending } = useFormStatus();
-
-//   return (
-
-//   );
-// }
-
 export default SignupPage;

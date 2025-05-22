@@ -5,6 +5,228 @@
   @apply hidden;
 }
 
+[data-radix-popper-content-wrapper] {
+  z-index: 1000 !important;
+}
+
+[data-radix-popper-content-wrapper][data-side] {
+  z-index: 1001 !important;
+}
+
+.dialog-content [data-radix-popper-content-wrapper] {
+  z-index: 1002 !important;
+}
+
+/* Calendar popover class */
+.calendar-popover {
+  z-index: 1001 !important;
+}
+
+/* Calendar Styling */
+.rdp {
+  --rdp-cell-size: 40px;
+  position: relative;
+  z-index: 1;
+  margin: 0;
+}
+
+/* Today button styling */
+.rdp-day_today:not(.rdp-day_outside) {
+  font-weight: bold;
+  color: var(--rdp-accent-color);
+  background-color: rgba(34, 197, 94, 0.1);
+}
+
+/* Selected day styling */
+.rdp-day_selected {
+  background-color: var(--rdp-accent-color) !important;
+  color: white !important;
+}
+
+.rdp-day_selected:hover {
+  background-color: var(--rdp-accent-color-dark) !important;
+}
+
+/* Calendar button hover states */
+.rdp-button:hover:not([disabled]):not(.rdp-day_selected) {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: var(--rdp-accent-color-dark);
+  transition: all 0.2s;
+}
+
+/* Disabled day styling */
+.rdp-day_disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.rdp-button:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+/* Outside days (previous/next month) */
+.rdp-day_outside {
+  opacity: 0.5;
+}
+
+/* Calendar button base styling */
+.rdp-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Range selection styling (for future use) */
+.rdp-day_range_start {
+  border-radius: 6px 0 0 6px;
+}
+
+.rdp-day_range_end {
+  border-radius: 0 6px 6px 0;
+}
+
+.rdp-day_range_middle {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: var(--rdp-accent-color-dark);
+}
+
+/* Navigation buttons styling */
+.rdp-nav_button {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid hsl(var(--border));
+  background-color: transparent;
+  color: hsl(var(--muted-foreground));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.rdp-nav_button:hover:not([disabled]) {
+  background-color: var(--rdp-accent-color);
+  color: white;
+  border-color: var(--rdp-accent-color);
+}
+
+.rdp-nav_button:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+/* Calendar table styling */
+.rdp-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rdp-head_cell {
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  font-size: 14px;
+  padding: 8px;
+}
+
+.rdp-cell {
+  text-align: center;
+  padding: 2px;
+}
+
+.dialog-content .rdp {
+  position: static;
+  z-index: auto;
+}
+
+[data-side='bottom'] {
+  z-index: 1000;
+}
+
+[data-side='top'] {
+  z-index: 1000;
+}
+
+.popover-content .rdp {
+  margin: 0;
+}
+
+.popover-content {
+  overflow: visible !important;
+}
+
+[data-radix-popover-content] {
+  overflow: visible;
+}
+
+.medication-form .rdp,
+.medication-dialog .rdp {
+  z-index: 1000;
+}
+
+.form-item [data-radix-popper-content-wrapper] {
+  z-index: 1001 !important;
+}
+
+/* Calendar focus styles for accessibility */
+.rdp-button:focus {
+  outline: 2px solid var(--rdp-accent-color);
+  outline-offset: 2px;
+}
+
+/* Responsive calendar adjustments */
+@media (max-width: 640px) {
+  .rdp {
+    --rdp-cell-size: 36px;
+  }
+
+  .rdp-button {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+
+  .rdp-nav_button {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .rdp-day_selected {
+    background-color: #000 !important;
+    color: #fff !important;
+    border: 2px solid #000;
+  }
+
+  .rdp-button:focus {
+    outline: 3px solid #000;
+  }
+}
+
+/* Dark mode specific calendar enhancements */
+.dark .rdp-nav_button {
+  border-color: hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+}
+
+.dark .rdp-head_cell {
+  color: hsl(var(--muted-foreground));
+}
+
+.dark .rdp-day_today:not(.rdp-day_outside) {
+  background-color: rgba(34, 197, 94, 0.2);
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;

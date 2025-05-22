@@ -52,9 +52,12 @@ function Calendar({
   classNames,
   hideNavigation,
   showOutsideDays = true,
+  locale,
   components,
   ...props
 }: CalendarProps) {
+  const calendarLocale = locale || undefined;
+
   const _monthsClassName = cn('relative flex flex-col gap-4 sm:flex-row', props.monthsClassName);
   const _monthCaptionClassName = cn(
     'relative flex h-7 items-center justify-center',
@@ -157,7 +160,7 @@ function Calendar({
 
   return (
     <DayPicker
-      locale={ptBR}
+      locale={calendarLocale}
       showOutsideDays={showOutsideDays}
       hideNavigation={hideNavigation}
       className={cn('p-3', className)}
