@@ -25,13 +25,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { SimpleEditor } from '@/components/tiptap-templates/simple/simple-editor';
 import { useJournalStore } from '@/store/journal-store';
 import { createDefaultTipTapContent, validateTipTapContent } from '@/services/journal-service';
 import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
+import { JournalEditor } from '@/components/journal/journal-editor';
 
 interface JournalEditorPageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 // Mood options for journal entries
@@ -50,9 +50,9 @@ const MOOD_OPTIONS = [
 ];
 
 export default function JournalEditorPage({ params }: JournalEditorPageProps) {
-  const { id } = use(params);
+  const { slug } = use(params);
   const router = useRouter();
-  const isNewEntry = id === 'new';
+  const isNewEntry = slug === 'new';
 
   // Store state and actions
   const {
@@ -122,7 +122,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
         setIsFirstLoad(false);
       } else {
         try {
-          const entry = await getJournalById(id);
+          const entry = await getJournalById(slug);
           if (entry) {
             setTitle(entry.title);
             setContent(entry.content);
@@ -144,7 +144,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
     }
 
     loadEntry();
-  }, [id, isNewEntry, getJournalById, router]);
+  }, [slug, isNewEntry, getJournalById, router]);
 
   // Handle errors
   useEffect(() => {
@@ -186,7 +186,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
         toast.success('Journal entry created successfully');
         router.replace(`/journal/${newEntry.id}`);
       } else {
-        await updateJournal(id, {
+        await updateJournal(slug, {
           title: title.trim(),
           content,
           tags,
@@ -207,21 +207,21 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
       toast.error('Failed to save journal entry');
       console.error('Error saving journal:', error);
     }
-  }, [title, content, tags, mood, isNewEntry, createJournal, updateJournal, id, router]);
+  }, [title, content, tags, mood, isNewEntry, createJournal, updateJournal, slug, router]);
 
   // Handle deleting
   const handleDelete = useCallback(async () => {
     if (isNewEntry) return;
 
     try {
-      await deleteJournal(id);
+      await deleteJournal(slug);
       toast.success('Journal entry deleted');
       router.push('/journal');
     } catch (error) {
       toast.error('Failed to delete journal entry');
       console.error('Error deleting journal:', error);
     }
-  }, [deleteJournal, id, router, isNewEntry]);
+  }, [deleteJournal, slug, router, isNewEntry]);
 
   // Handle back navigation
   const handleBack = useCallback(() => {
@@ -390,7 +390,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
 
       {/* Content Editor */}
       <div className="min-h-[60vh] rounded-lg border border-[#CBCFD7] bg-white p-4">
-        <SimpleEditor content={content} onUpdate={handleContentChange} />
+        <JournalEditor content={content} onUpdate={handleContentChange} />
       </div>
 
       {/* Unsaved Changes Dialog */}

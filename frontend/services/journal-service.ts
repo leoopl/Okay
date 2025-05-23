@@ -1,10 +1,5 @@
-/**
- * Journal Service - API communication layer
- * Handles all journal-related API calls with proper error handling
- */
 import { ApiClient, ApiError } from '@/lib/api-client';
 
-// TypeScript interfaces for journal data
 export interface Journal {
   id: string;
   title: string;

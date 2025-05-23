@@ -1,7 +1,3 @@
-/**
- * Journal Store - Zustand state management for journal entries
- * Handles CRUD operations and local state management
- */
 import { create } from 'zustand';
 import { devtools, subscribeWithSelector } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
