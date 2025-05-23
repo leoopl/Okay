@@ -29,7 +29,7 @@ interface JournalState {
 export const useJournalStore = create<JournalState>()(
   devtools(
     subscribeWithSelector(
-      immer((set, get) => ({
+      immer<JournalState>((set, get) => ({
         // Initial state
         entries: [],
         currentEntry: null,
@@ -89,12 +89,22 @@ export const useJournalStore = create<JournalState>()(
           });
 
           try {
+            const defaultContent = JSON.stringify({
+              type: 'doc',
+              content: [
+                {
+                  type: 'paragraph',
+                  attrs: { textAlign: null },
+                  content: [{ type: 'text', text: 'Start writing...' }],
+                },
+              ],
+            });
+
             const newEntry = await journalService.createJournal({
               title: 'New Journal Entry',
-              content:
-                '{"type":"doc","content":[{"type":"paragraph","attrs":{"textAlign":null},"content":[{"type":"text","text":"Start writing..."}]}]}',
+              content: defaultContent, // Send as string
               tags: [],
-              mood: '',
+              // Don't include mood if not provided (it's optional)
               ...data,
             });
 
@@ -126,7 +136,7 @@ export const useJournalStore = create<JournalState>()(
 
             set((state) => {
               // Update in entries array
-              const index = state.entries.findIndex((entry) => entry.id === id);
+              const index = state.entries.findIndex((entry: Journal) => entry.id === id);
               if (index !== -1) {
                 state.entries[index] = updatedEntry;
               }
@@ -158,7 +168,7 @@ export const useJournalStore = create<JournalState>()(
             await journalService.deleteJournal(id);
 
             set((state) => {
-              state.entries = state.entries.filter((entry) => entry.id !== id);
+              state.entries = state.entries.filter((entry: Journal) => entry.id !== id);
               if (state.currentEntry?.id === id) {
                 state.currentEntry = null;
               }
@@ -190,7 +200,7 @@ export const useJournalStore = create<JournalState>()(
         // Local state helpers (for optimistic updates)
         updateEntry: (id: string, updates: Partial<Journal>) => {
           set((state) => {
-            const index = state.entries.findIndex((entry) => entry.id === id);
+            const index = state.entries.findIndex((entry: Journal) => entry.id === id);
             if (index !== -1) {
               Object.assign(state.entries[index], updates);
             }
@@ -209,17 +219,17 @@ export const useJournalStore = create<JournalState>()(
 
         removeEntry: (id: string) => {
           set((state) => {
-            state.entries = state.entries.filter((entry) => entry.id !== id);
+            state.entries = state.entries.filter((entry: Journal) => entry.id !== id);
             if (state.currentEntry?.id === id) {
               state.currentEntry = null;
             }
           });
         },
       })),
-      {
-        name: 'journal-store',
-      },
     ),
+    {
+      name: 'journal-store',
+    },
   ),
 );
 
