@@ -1,4 +1,9 @@
-import { SimpleEditor } from '@/components/tiptap-templates/simple/simple-editor';
+'use client';
+
+import React, { use, useEffect, useState, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Save, Trash2, Tag, Smile } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,54 +16,269 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Save } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { use, useState } from 'react';
-import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { SimpleEditor } from '@/components/tiptap-templates/simple/simple-editor';
+import { useJournalStore } from '@/store/journal-store';
+import { createDefaultTipTapContent, validateTipTapContent } from '@/services/journal-service';
+import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
 
-export const metadata = {
-  title: 'Journal Entry | Okay',
-  description: 'Edit your journal entry',
-};
-export default function JournalEditorPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = use(params);
+interface JournalEditorPageProps {
+  params: Promise<{ id: string }>;
+}
+
+// Mood options for journal entries
+const MOOD_OPTIONS = [
+  { value: '', label: 'Select mood...' },
+  { value: 'happy', label: '😊 Happy' },
+  { value: 'sad', label: '😢 Sad' },
+  { value: 'excited', label: '🤩 Excited' },
+  { value: 'anxious', label: '😰 Anxious' },
+  { value: 'calm', label: '😌 Calm' },
+  { value: 'angry', label: '😠 Angry' },
+  { value: 'grateful', label: '🙏 Grateful' },
+  { value: 'confused', label: '😕 Confused' },
+  { value: 'proud', label: '😎 Proud' },
+  { value: 'tired', label: '😴 Tired' },
+];
+
+export default function JournalEditorPage({ params }: JournalEditorPageProps) {
+  const { id } = use(params);
   const router = useRouter();
-  const { entries, updateEntry } = useJournalStore();
+  const isNewEntry = id === 'new';
 
-  const entry = entries.find((e) => e.id === slug) || {
-    id: slug,
-    title: 'New Page',
+  // Store state and actions
+  const {
+    currentEntry,
+    isLoading,
+    error,
+    getJournalById,
+    createJournal,
+    updateJournal,
+    deleteJournal,
+    setCurrentEntry,
+    clearError,
+  } = useJournalStore();
+
+  // Form state
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [mood, setMood] = useState('');
+  const [newTag, setNewTag] = useState('');
+
+  // Initial values for unsaved changes detection
+  const [initialValues, setInitialValues] = useState({
+    title: '',
     content: '',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+    tags: [] as string[],
+    mood: '',
+  });
 
-  const [title, setTitle] = useState(entry.title);
-  const [content, setContent] = useState(entry.content);
-  const [initialTitle] = useState(entry.title);
-  const [initialContent] = useState(entry.content);
+  // Track if this is the first load
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
-  const hasUnsavedChanges = title !== initialTitle || content !== initialContent;
+  // Check if there are unsaved changes
+  const hasUnsavedChanges = useMemo(() => {
+    if (isFirstLoad) return false;
 
-  const { showDialog, handleContinue, handleCancel } = useUnsavedChanges(hasUnsavedChanges);
+    return (
+      title !== initialValues.title ||
+      content !== initialValues.content ||
+      JSON.stringify(tags.sort()) !== JSON.stringify(initialValues.tags.sort()) ||
+      mood !== initialValues.mood
+    );
+  }, [title, content, tags, mood, initialValues, isFirstLoad]);
 
-  const handleSave = () => {
-    updateEntry(slug, { title, content });
-    toast.success('Journal entry saved', {
-      description: 'Your journal entry has been saved successfully.',
-    });
-  };
+  // Unsaved changes hook
+  const { showDialog, handleContinue, handleCancel } = useUnsavedChanges({
+    hasUnsavedChanges,
+    message: 'You have unsaved changes. Do you want to save them before leaving?',
+  });
 
-  const handleBack = () => {
+  // Load entry data
+  useEffect(() => {
+    async function loadEntry() {
+      if (isNewEntry) {
+        // Set default values for new entry
+        const defaultContent = createDefaultTipTapContent();
+        setTitle('New Journal Entry');
+        setContent(defaultContent);
+        setTags([]);
+        setMood('');
+        setInitialValues({
+          title: 'New Journal Entry',
+          content: defaultContent,
+          tags: [],
+          mood: '',
+        });
+        setIsFirstLoad(false);
+      } else {
+        try {
+          const entry = await getJournalById(id);
+          if (entry) {
+            setTitle(entry.title);
+            setContent(entry.content);
+            setTags(entry.tags);
+            setMood(entry.mood || '');
+            setInitialValues({
+              title: entry.title,
+              content: entry.content,
+              tags: entry.tags,
+              mood: entry.mood || '',
+            });
+          }
+          setIsFirstLoad(false);
+        } catch (error) {
+          toast.error('Failed to load journal entry');
+          router.push('/journal');
+        }
+      }
+    }
+
+    loadEntry();
+  }, [id, isNewEntry, getJournalById, router]);
+
+  // Handle errors
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      clearError();
+    }
+  }, [error, clearError]);
+
+  // Handle saving
+  const handleSave = useCallback(async () => {
+    if (!title.trim()) {
+      toast.error('Please enter a title for your journal entry');
+      return;
+    }
+
+    if (!content.trim() || !validateTipTapContent(content)) {
+      toast.error('Please enter some content for your journal entry');
+      return;
+    }
+
+    try {
+      if (isNewEntry) {
+        const newEntry = await createJournal({
+          title: title.trim(),
+          content,
+          tags,
+          mood,
+        });
+
+        // Update initial values
+        setInitialValues({
+          title: newEntry.title,
+          content: newEntry.content,
+          tags: newEntry.tags,
+          mood: newEntry.mood || '',
+        });
+
+        toast.success('Journal entry created successfully');
+        router.replace(`/journal/${newEntry.id}`);
+      } else {
+        await updateJournal(id, {
+          title: title.trim(),
+          content,
+          tags,
+          mood,
+        });
+
+        // Update initial values
+        setInitialValues({
+          title: title.trim(),
+          content,
+          tags,
+          mood,
+        });
+
+        toast.success('Journal entry saved successfully');
+      }
+    } catch (error) {
+      toast.error('Failed to save journal entry');
+      console.error('Error saving journal:', error);
+    }
+  }, [title, content, tags, mood, isNewEntry, createJournal, updateJournal, id, router]);
+
+  // Handle deleting
+  const handleDelete = useCallback(async () => {
+    if (isNewEntry) return;
+
+    try {
+      await deleteJournal(id);
+      toast.success('Journal entry deleted');
+      router.push('/journal');
+    } catch (error) {
+      toast.error('Failed to delete journal entry');
+      console.error('Error deleting journal:', error);
+    }
+  }, [deleteJournal, id, router, isNewEntry]);
+
+  // Handle back navigation
+  const handleBack = useCallback(() => {
     if (hasUnsavedChanges) {
-      // Show confirmation dialog
-      // This is handled by the useUnsavedChanges hook
+      // This will trigger the unsaved changes dialog
+      router.push('/journal');
     } else {
       router.push('/journal');
     }
-  };
+  }, [hasUnsavedChanges, router]);
+
+  // Handle adding tags
+  const handleAddTag = useCallback(() => {
+    const trimmedTag = newTag.trim();
+    if (trimmedTag && !tags.includes(trimmedTag)) {
+      setTags((prev) => [...prev, trimmedTag]);
+      setNewTag('');
+    }
+  }, [newTag, tags]);
+
+  // Handle removing tags
+  const handleRemoveTag = useCallback((tagToRemove: string) => {
+    setTags((prev) => prev.filter((tag) => tag !== tagToRemove));
+  }, []);
+
+  // Handle key press for adding tags
+  const handleTagKeyPress = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleAddTag();
+      }
+    },
+    [handleAddTag],
+  );
+
+  // Handle TipTap content changes
+  const handleContentChange = useCallback((newContent: string) => {
+    setContent(newContent);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto max-w-3xl px-4 py-8">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-[#7F9463] border-t-transparent"></div>
+            <p className="text-[#91857A]">Loading journal entry...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto max-w-3xl px-4 py-8">
+      {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <Button
           variant="ghost"
@@ -69,16 +289,30 @@ export default function JournalEditorPage({ params }: { params: Promise<{ slug: 
           Back to Journal
         </Button>
 
-        <Button
-          onClick={handleSave}
-          disabled={!hasUnsavedChanges}
-          className="text-black disabled:opacity-50"
-        >
-          <Save size={18} className="mr-2" />
-          Save
-        </Button>
+        <div className="flex gap-2">
+          {!isNewEntry && (
+            <Button
+              variant="outline"
+              onClick={handleDelete}
+              className="border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700"
+            >
+              <Trash2 size={18} className="mr-2" />
+              Delete
+            </Button>
+          )}
+
+          <Button
+            onClick={handleSave}
+            disabled={isLoading || !hasUnsavedChanges}
+            className="bg-[#7F9463] text-white hover:bg-[#ABB899] disabled:opacity-50"
+          >
+            <Save size={18} className="mr-2" />
+            Save
+          </Button>
+        </div>
       </div>
 
+      {/* Title */}
       <div className="mb-6">
         <Input
           value={title}
@@ -88,10 +322,78 @@ export default function JournalEditorPage({ params }: { params: Promise<{ slug: 
         />
       </div>
 
-      <div className="min-h-[60vh] rounded-lg border border-[#CBCFD7] bg-white p-4">
-        <SimpleEditor content={entry.content} />
+      {/* Metadata Section */}
+      <div className="mb-6 space-y-4 rounded-lg border border-[#CBCFD7] bg-[#F2DECC]/10 p-4">
+        {/* Mood Selector */}
+        <div className="space-y-2">
+          <Label htmlFor="mood" className="flex items-center text-sm font-medium text-[#7F9463]">
+            <Smile size={16} className="mr-2" />
+            How are you feeling?
+          </Label>
+          <Select value={mood} onValueChange={setMood}>
+            <SelectTrigger className="w-full border-[#CBCFD7] focus:ring-[#78C7EE]">
+              <SelectValue placeholder="Select your mood..." />
+            </SelectTrigger>
+            <SelectContent>
+              {MOOD_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Tags Section */}
+        <div className="space-y-2">
+          <Label htmlFor="tags" className="flex items-center text-sm font-medium text-[#7F9463]">
+            <Tag size={16} className="mr-2" />
+            Tags
+          </Label>
+
+          {/* Tag Input */}
+          <div className="flex gap-2">
+            <Input
+              value={newTag}
+              onChange={(e) => setNewTag(e.target.value)}
+              onKeyPress={handleTagKeyPress}
+              placeholder="Add a tag..."
+              className="border-[#CBCFD7] focus-visible:ring-[#78C7EE]"
+            />
+            <Button
+              type="button"
+              onClick={handleAddTag}
+              variant="outline"
+              className="border-[#7F9463] text-[#7F9463] hover:bg-[#7F9463] hover:text-white"
+            >
+              Add
+            </Button>
+          </div>
+
+          {/* Display Tags */}
+          {tags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <Badge
+                  key={tag}
+                  variant="secondary"
+                  className="cursor-pointer bg-[#7F9463] text-white hover:bg-[#ABB899]"
+                  onClick={() => handleRemoveTag(tag)}
+                >
+                  {tag} ×
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
+      {/* Content Editor */}
+      <div className="min-h-[60vh] rounded-lg border border-[#CBCFD7] bg-white p-4">
+        <SimpleEditor content={content} onUpdate={handleContentChange} />
+      </div>
+
+      {/* Unsaved Changes Dialog */}
       <AlertDialog open={showDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -103,8 +405,8 @@ export default function JournalEditorPage({ params }: { params: Promise<{ slug: 
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleCancel}>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
-                handleSave();
+              onClick={async () => {
+                await handleSave();
                 handleContinue();
               }}
               className="bg-[#7F9463] text-white hover:bg-[#ABB899]"
