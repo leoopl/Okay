@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   InventoryService,
@@ -26,7 +26,10 @@ import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-export default function InventoryPage({ params }: { params: { slug: string } }) {
+export default function InventoryPage({ params }: { params: Promise<{ slug: string }> }) {
+  // Unwrap params using React.use()
+  const { slug } = use(params);
+
   const [inventory, setInventory] = useState<Inventory | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showConsentForm, setShowConsentForm] = useState(true);
@@ -44,7 +47,7 @@ export default function InventoryPage({ params }: { params: { slug: string } }) 
     async function fetchInventory() {
       try {
         setLoading(true);
-        const data = await InventoryService.getInventory(params.slug);
+        const data = await InventoryService.getInventory(slug);
         setInventory(data);
         setCurrentInventory(data);
         setError(null);
@@ -59,7 +62,7 @@ export default function InventoryPage({ params }: { params: { slug: string } }) 
     }
 
     fetchInventory();
-  }, [params.slug, setCurrentInventory]);
+  }, [slug, setCurrentInventory]);
 
   // Calculate progress
   const progress = inventory
@@ -81,8 +84,13 @@ export default function InventoryPage({ params }: { params: { slug: string } }) 
     // Find the selected option to get its label
     const option = currentQuestion.options.find((opt) => opt.value === optionValue);
 
-    // Update response in store
-    updateResponse(currentQuestion.id, optionValue, option?.label);
+    // Update response in store with question title for better tracking
+    updateResponse(
+      currentQuestion.id,
+      optionValue,
+      option?.label,
+      currentQuestion.title, // Pass question title
+    );
   };
 
   const handleNext = () => {
@@ -128,7 +136,7 @@ export default function InventoryPage({ params }: { params: { slug: string } }) 
       setResults(result.calculatedScores, result.interpretationResults);
 
       // Navigate to results page
-      router.push(`/inventory/${params.slug}/result`);
+      router.push(`/inventory/${slug}/result`);
     } catch (err) {
       console.error('Failed to submit responses:', err);
       setError('Não foi possível enviar suas respostas. Por favor, tente novamente.');
@@ -206,10 +214,10 @@ export default function InventoryPage({ params }: { params: { slug: string } }) 
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-14 w-full rounded-lg" />
+              <Skeleton className="h-14 w-full rounded-lg" />
+              <Skeleton className="h-14 w-full rounded-lg" />
+              <Skeleton className="h-14 w-full rounded-lg" />
             </div>
           </CardContent>
           <CardFooter>
@@ -277,7 +285,7 @@ export default function InventoryPage({ params }: { params: { slug: string } }) 
       </div>
 
       {currentQuestion && (
-        <Card>
+        <Card className="bg-transparent">
           <CardHeader>
             <CardTitle className="text-xl">{currentQuestion.title}</CardTitle>
             {currentQuestion.subscale && (
@@ -288,15 +296,16 @@ export default function InventoryPage({ params }: { params: { slug: string } }) 
             <RadioGroup
               value={getCurrentResponse()?.optionValue.toString() || ''}
               onValueChange={(value) => handleOptionSelect(parseInt(value))}
-              className="space-y-3"
+              aria-label={currentQuestion.title}
             >
               {currentQuestion.options.map((option) => (
-                <div key={option.value} className="flex items-center space-x-2">
-                  <RadioGroupItem value={option.value.toString()} id={`option-${option.value}`} />
-                  <Label htmlFor={`option-${option.value}`} className="flex-1">
-                    {option.label}
-                  </Label>
-                </div>
+                <RadioGroupItem
+                  key={option.value}
+                  value={option.value.toString()}
+                  className="w-full"
+                >
+                  {option.label}
+                </RadioGroupItem>
               ))}
             </RadioGroup>
           </CardContent>
@@ -318,7 +327,7 @@ export default function InventoryPage({ params }: { params: { slug: string } }) 
                 </>
               ) : (
                 <>
-                  Finalizar
+                  {submitting ? 'Enviando...' : 'Finalizar'}
                   <CheckCircle2 className="ml-2 h-4 w-4" />
                 </>
               )}

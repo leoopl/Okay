@@ -1,13 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useInventoryStore } from '@/store/inventory-store';
-import {
-  InventoryService,
-  InterpretationResult,
-  CalculatedScores,
-} from '@/services/inventory-service';
+import { InventoryService } from '@/services/inventory-service';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -23,7 +19,10 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-export default function ResultPage({ params }: { params: { slug: string } }) {
+export default function ResultPage({ params }: { params: Promise<{ slug: string }> }) {
+  // Unwrap params using React.use()
+  const { slug } = use(params);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,7 +38,7 @@ export default function ResultPage({ params }: { params: { slug: string } }) {
       // First try to fetch the most recent response for this inventory
       InventoryService.getUserResponses()
         .then((responses) => {
-          const response = responses.find((r) => r.inventoryId === params.slug);
+          const response = responses.find((r) => r.inventoryId === slug);
           if (response) {
             useInventoryStore.setState({
               calculatedScores: response.calculatedScores,
@@ -58,7 +57,7 @@ export default function ResultPage({ params }: { params: { slug: string } }) {
           setLoading(false);
         });
     }
-  }, [params.slug, interpretationResults, calculatedScores]);
+  }, [slug, interpretationResults, calculatedScores]);
 
   // Function to get color based on score severity
   const getScoreColor = (score: number, maxScore: number): string => {
@@ -139,9 +138,7 @@ export default function ResultPage({ params }: { params: { slug: string } }) {
           </AlertDescription>
         </Alert>
         <div className="mt-4 flex justify-center">
-          <Button onClick={() => router.push(`/inventory/${params.slug}`)}>
-            Responder Questionário
-          </Button>
+          <Button onClick={() => router.push(`/inventory/${slug}`)}>Responder Questionário</Button>
         </div>
       </div>
     );

@@ -8,7 +8,7 @@ interface TestimonialSliderCardProps {
 
 const TestimonialCard: React.FC<TestimonialSliderCardProps> = ({ message }) => {
   return (
-    <Card className="relative w-full max-w-sm rounded-lg bg-white p-4 shadow-md">
+    <Card className="relative w-full max-w-sm rounded-lg bg-white/40 p-4 shadow-md">
       <Quote className="text-yellow-light absolute top-3 right-2 h-16 w-16 stroke-[1.5px]" />
       <CardHeader />
       <CardContent>

@@ -7,23 +7,22 @@ import {
 } from '@/services/inventory-service';
 
 interface InventoryState {
-  // Current inventory being taken
   currentInventory: Inventory | null;
-  // User responses to questions
   responses: UserResponseOption[];
-  // Results after submission
   calculatedScores: CalculatedScores | null;
   interpretationResults: InterpretationResult | null;
-  // Consent status
   consentGiven: boolean;
-  // Loading states
   isLoading: boolean;
   error: string | null;
 
-  // Actions
   setCurrentInventory: (inventory: Inventory | null) => void;
   addResponse: (response: UserResponseOption) => void;
-  updateResponse: (questionId: string, optionValue: number, optionLabel?: string) => void;
+  updateResponse: (
+    questionId: string,
+    optionValue: number,
+    optionLabel?: string,
+    questionTitle?: string,
+  ) => void;
   setResponses: (responses: UserResponseOption[]) => void;
   setResults: (scores: CalculatedScores, interpretation: InterpretationResult) => void;
   setConsent: (consent: boolean) => void;
@@ -59,21 +58,26 @@ export const useInventoryStore = create<InventoryState>((set) => ({
       }
     }),
 
-  updateResponse: (questionId, optionValue, optionLabel) =>
+  updateResponse: (questionId, optionValue, optionLabel, questionTitle) =>
     set((state) => {
       const existingIndex = state.responses.findIndex((r) => r.questionId === questionId);
+
+      const newResponse: UserResponseOption = {
+        questionId,
+        optionValue,
+        optionLabel,
+        questionTitle,
+      };
 
       if (existingIndex >= 0) {
         // Update existing response
         const newResponses = [...state.responses];
-        newResponses[existingIndex] = {
-          ...newResponses[existingIndex],
-          optionValue,
-          optionLabel,
-        };
+        newResponses[existingIndex] = newResponse;
         return { responses: newResponses };
+      } else {
+        // Add new response
+        return { responses: [...state.responses, newResponse] };
       }
-      return state; // No change if question not found
     }),
 
   setResponses: (responses) => set({ responses }),

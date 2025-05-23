@@ -11,6 +11,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@floating-ui/react": "^0.27.8",
     "@hookform/resolvers": "^3.9.0",
     "@mdx-js/react": "^3.1.0",
     "@radix-ui/react-accordion": "^1.2.8",
@@ -28,6 +29,19 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-switch": "^1.2.2",
     "@radix-ui/react-tabs": "^1.1.9",
+    "@tiptap/extension-highlight": "^2.12.0",
+    "@tiptap/extension-image": "^2.12.0",
+    "@tiptap/extension-link": "^2.12.0",
+    "@tiptap/extension-subscript": "^2.12.0",
+    "@tiptap/extension-superscript": "^2.12.0",
+    "@tiptap/extension-task-item": "^2.12.0",
+    "@tiptap/extension-task-list": "^2.12.0",
+    "@tiptap/extension-text-align": "^2.12.0",
+    "@tiptap/extension-typography": "^2.12.0",
+    "@tiptap/extension-underline": "^2.12.0",
+    "@tiptap/pm": "^2.12.0",
+    "@tiptap/react": "^2.12.0",
+    "@tiptap/starter-kit": "^2.12.0",
     "@types/mdx": "^2.0.13",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -66,6 +80,7 @@
     "postcss": "^8.5.3",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
+    "sass": "^1.89.0",
     "tailwindcss": "^4.0.13",
     "typescript": "^5.8.2"
   }

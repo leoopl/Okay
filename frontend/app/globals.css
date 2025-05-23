@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 @config "../tailwind.config.ts";
+@import '../styles/_keyframe-animations.scss';
+@import '../styles/_variables.scss';
 
 .rdp-vhidden {
   @apply hidden;

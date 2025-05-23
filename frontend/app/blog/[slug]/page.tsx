@@ -2,18 +2,11 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { getBlogPostBySlug, getBlogPosts } from '../util';
 import { formatDate } from '@/lib/utils';
-import { Suspense } from 'react';
+import { Suspense, use } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { TableOfContents } from '@/components/blog/table-of-contents';
 import ButtonScrollTop from '@/components/button-scroll-top';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 import { BackButton } from '@/components/blog/back-button';
-
-type Props = {
-  params: { slug: string } | Promise<{ slug: string }>;
-};
 
 // Generate static paths for all blog posts
 export async function generateStaticParams() {
@@ -24,19 +17,22 @@ export async function generateStaticParams() {
 }
 
 // Generate metadata for each blog post
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
   try {
-    // Resolve params to handle Promise
-    const resolvedParams = await Promise.resolve(params);
+    const { slug } = use(params);
 
-    if (!resolvedParams || !resolvedParams.slug) {
+    if (!slug) {
       return {
         title: 'Post Not Found',
         description: 'The requested blog post could not be found',
       };
     }
 
-    const post = await getBlogPostBySlug(resolvedParams.slug);
+    const post = await getBlogPostBySlug(slug);
 
     if (!post) {
       return {
@@ -58,23 +54,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function BlogPostPage({ params }: Props) {
+export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   try {
-    // Resolve params to handle Promise
-    const resolvedParams = await Promise.resolve(params);
+    const { slug } = use(params);
 
-    console.log('Accessing blog post with slug:', resolvedParams?.slug);
+    console.log('Accessing blog post with slug:', slug);
 
-    if (!resolvedParams || !resolvedParams.slug) {
+    if (!slug) {
       console.error('No slug parameter provided');
       notFound();
     }
 
-    const post = await getBlogPostBySlug(resolvedParams.slug);
+    const post = await getBlogPostBySlug(slug);
     console.log('Post found:', post ? 'Yes' : 'No');
 
     if (!post) {
-      console.error(`Post with slug "${resolvedParams.slug}" not found`);
+      console.error(`Post with slug "${slug}" not found`);
       notFound();
     }
 

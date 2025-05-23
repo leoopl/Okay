@@ -14,14 +14,12 @@ import { useInventoryStore } from '@/store/inventory-store';
 import { AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function InventoriesPage() {
   const [inventories, setInventories] = useState<Inventory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
   const resetState = useInventoryStore((state) => state.resetState);
 
   useEffect(() => {
@@ -77,7 +75,7 @@ export default function InventoriesPage() {
             {inventories.map((inventory) => (
               <Card
                 key={inventory.id}
-                className="shadow-soft-md hover:shadow-soft-lg flex h-full flex-col transition-shadow"
+                className="flex h-full flex-col bg-transparent shadow transition-transform duration-300 hover:-translate-y-1 hover:shadow-md"
               >
                 <CardHeader>
                   <CardTitle>{inventory.title}</CardTitle>
