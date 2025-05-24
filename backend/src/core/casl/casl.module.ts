@@ -10,6 +10,7 @@ import { Permission } from '../../modules/user/entities/permission.entity';
 import { Role } from '../../modules/user/entities/role.entity';
 import { InventoryModule } from '../../modules/inventory/inventory.module';
 import { JournalModule } from '../../modules/journal/journal.module';
+import { MedicationModule } from 'src/modules/medication/medication.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { JournalModule } from '../../modules/journal/journal.module';
     forwardRef(() => UserModule), // Use forwardRef to avoid circular dependency
     forwardRef(() => InventoryModule), // Add InventoryModule
     forwardRef(() => JournalModule), // Add JournalModule
+    forwardRef(() => MedicationModule), // Add MedicationModule
   ],
   providers: [
     CaslAbilityFactory,

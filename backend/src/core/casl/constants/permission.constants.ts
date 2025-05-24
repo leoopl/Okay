@@ -10,6 +10,7 @@ export enum Resource {
   INVENTORY = 'inventory',
   INVENTORY_RESPONSE = 'inventory-response',
   TESTIMONIAL = 'testimonial',
+  MEDICATION = 'medication',
   ALL = 'all',
 }
 
@@ -59,6 +60,13 @@ export const Permissions = {
   TESTIMONIAL_DELETE: `${Resource.TESTIMONIAL}:${PermissionAction.DELETE}`,
   TESTIMONIAL_MANAGE: `${Resource.TESTIMONIAL}:${PermissionAction.MANAGE}`,
 
+  // Medication permissions
+  MEDICATION_CREATE: `${Resource.MEDICATION}:${PermissionAction.CREATE}`,
+  MEDICATION_READ: `${Resource.MEDICATION}:${PermissionAction.READ}`,
+  MEDICATION_UPDATE: `${Resource.MEDICATION}:${PermissionAction.UPDATE}`,
+  MEDICATION_DELETE: `${Resource.MEDICATION}:${PermissionAction.DELETE}`,
+  MEDICATION_MANAGE: `${Resource.MEDICATION}:${PermissionAction.MANAGE}`,
+
   // Special permissions
   MANAGE_ALL: `${Resource.ALL}:${PermissionAction.MANAGE}`,
 };
@@ -84,6 +92,12 @@ export const RolePermissions = {
     // Inventory response
     Permissions.INVENTORY_RESPONSE_CREATE,
     Permissions.INVENTORY_RESPONSE_READ,
+
+    // Medication access
+    Permissions.MEDICATION_READ,
+    Permissions.MEDICATION_CREATE,
+    Permissions.MEDICATION_UPDATE,
+    Permissions.MEDICATION_DELETE,
 
     // Testimonial management (own entries)
     Permissions.TESTIMONIAL_CREATE,

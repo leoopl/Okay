@@ -3,6 +3,7 @@ import { User } from '../../../modules/user/entities/user.entity';
 import { JournalEntry } from '../../../modules/journal/entities/journal.entity';
 import { Inventory } from '../../../modules/inventory/entities/inventory.entity';
 import { InventoryResponse } from '../../../modules/inventory/entities/inventory-response.entity';
+import { Medication } from 'src/modules/medication/entities/medication.entity';
 
 // Define possible actions
 export enum Action {
@@ -19,7 +20,9 @@ export type Subjects =
       | typeof User
       | typeof JournalEntry
       | typeof Inventory
-      | typeof InventoryResponse // Add other resource types as needed
+      | typeof InventoryResponse
+      | typeof Medication
+      // Add other resource types as needed
     >
   | 'all';
 

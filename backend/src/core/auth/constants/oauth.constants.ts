@@ -8,10 +8,4 @@ export default registerAs('oauth', () => ({
     scope: ['email', 'profile'],
   },
   // Add other providers as needed
-  github: {
-    clientID: process.env.GITHUB_CLIENT_ID,
-    clientSecret: process.env.GITHUB_CLIENT_SECRET,
-    callbackURL: process.env.GITHUB_CALLBACK_URL,
-    scope: ['user:email'],
-  },
 }));

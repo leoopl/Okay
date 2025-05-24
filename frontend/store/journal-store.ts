@@ -101,7 +101,7 @@ export const useJournalStore = create<JournalState>()(
             });
 
             const newEntry = await journalService.createJournal({
-              title: 'New Journal Entry',
+              title: 'Give your thoughts a title...',
               content: defaultContent, // Send as string
               tags: [],
               // Don't include mood if not provided (it's optional)

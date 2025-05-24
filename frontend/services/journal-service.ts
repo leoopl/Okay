@@ -24,34 +24,16 @@ export interface UpdateJournalDto {
   mood?: string;
 }
 
-// API response type for journal operations
-interface JournalApiResponse {
-  success: boolean;
-  data?: Journal;
-  message?: string;
-  errors?: Record<string, string[]>;
-}
-
-interface JournalListApiResponse {
-  success: boolean;
-  data?: Journal[];
-  message?: string;
-  errors?: Record<string, string[]>;
-}
-
 /**
  * Fetch all journals for the authenticated user
  */
 export async function getAllJournals(): Promise<Journal[]> {
   try {
-    const response = await ApiClient.get<JournalListApiResponse>('/journals');
-
-    if (!response.success || !response.data) {
-      throw new ApiError(response.message || 'Failed to fetch journals');
-    }
+    // Backend returns array of journals directly
+    const response = await ApiClient.get<Journal[]>('/journals');
 
     // Transform dates from strings to Date objects
-    return response.data.map(transformJournalDates);
+    return response.map(transformJournalDates);
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
@@ -71,13 +53,9 @@ export async function getJournalById(id: string): Promise<Journal> {
   }
 
   try {
-    const response = await ApiClient.get<JournalApiResponse>(`/journals/${id}`);
-
-    if (!response.success || !response.data) {
-      throw new ApiError(response.message || 'Journal not found');
-    }
-
-    return transformJournalDates(response.data);
+    // Backend returns journal entry directly
+    const response = await ApiClient.get<Journal>(`/journals/${id}`);
+    return transformJournalDates(response);
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
@@ -102,18 +80,21 @@ export async function createJournal(data: CreateJournalDto): Promise<Journal> {
   }
 
   try {
-    const response = await ApiClient.post<JournalApiResponse>('/journals', {
+    // Prepare the request payload
+    const payload: any = {
       title: data.title.trim(),
       content: data.content,
       tags: data.tags || [],
-      mood: data.mood || '',
-    });
+    };
 
-    if (!response.success || !response.data) {
-      throw new ApiError(response.message || 'Failed to create journal');
+    // Only include mood if it has a valid value
+    if (data.mood && data.mood.trim()) {
+      payload.mood = data.mood;
     }
 
-    return transformJournalDates(response.data);
+    // Backend returns journal entry directly
+    const response = await ApiClient.post<Journal>('/journals', payload);
+    return transformJournalDates(response);
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
@@ -133,13 +114,13 @@ export async function updateJournal(id: string, data: UpdateJournalDto): Promise
   }
 
   // Validate at least one field is being updated
-  if (!data.title && !data.content && !data.tags && !data.mood) {
+  if (!data.title && !data.content && !data.tags && data.mood === undefined) {
     throw new ApiError('At least one field must be updated');
   }
 
   try {
     // Prepare update data, only including defined fields
-    const updateData: Partial<UpdateJournalDto> = {};
+    const updateData: any = {};
 
     if (data.title !== undefined) {
       updateData.title = data.title.trim();
@@ -150,17 +131,17 @@ export async function updateJournal(id: string, data: UpdateJournalDto): Promise
     if (data.tags !== undefined) {
       updateData.tags = data.tags;
     }
+    // Only include mood if it has a valid value
     if (data.mood !== undefined) {
-      updateData.mood = data.mood;
+      if (data.mood && data.mood.trim()) {
+        updateData.mood = data.mood;
+      }
+      // If mood is explicitly set to empty string, don't include it to clear the field
     }
 
-    const response = await ApiClient.patch<JournalApiResponse>(`/journals/${id}`, updateData);
-
-    if (!response.success || !response.data) {
-      throw new ApiError(response.message || 'Failed to update journal');
-    }
-
-    return transformJournalDates(response.data);
+    // Backend returns journal entry directly
+    const response = await ApiClient.patch<Journal>(`/journals/${id}`, updateData);
+    return transformJournalDates(response);
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
@@ -180,13 +161,8 @@ export async function deleteJournal(id: string): Promise<void> {
   }
 
   try {
-    const response = await ApiClient.delete<{ success: boolean; message?: string }>(
-      `/journals/${id}`,
-    );
-
-    if (!response.success) {
-      throw new ApiError(response.message || 'Failed to delete journal');
-    }
+    // Backend returns nothing (204 No Content)
+    await ApiClient.delete(`/journals/${id}`);
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;

@@ -77,18 +77,18 @@ export function JournalCard({ entry, onDelete, onClick }: JournalCardProps) {
         {/* Tags */}
         {tags.length > 0 && (
           <div className="mb-3 flex flex-wrap gap-1">
-            <Tag size={12} className="mt-0.5 mr-1 text-[#A3A6B0]" />
+            <Tag size={12} className="text-grey-dark mt-0.5 mr-1" />
             {tags.slice(0, 3).map((tag) => (
               <Badge
                 key={tag}
-                variant="secondary"
-                className="bg-[#7F9463]/10 text-xs text-[#7F9463] hover:bg-[#7F9463]/20"
+                variant="outline"
+                className="bg-yellow-medium/10 text-yellow-mebg-yellow-medium hover:bg-yellow-medium/20 text-xs"
               >
                 {tag}
               </Badge>
             ))}
             {tags.length > 3 && (
-              <Badge variant="secondary" className="bg-[#A3A6B0]/10 text-xs text-[#A3A6B0]">
+              <Badge variant="secondary" className="bg-grey-dark/10 text-grey-dark text-xs">
                 +{tags.length - 3}
               </Badge>
             )}

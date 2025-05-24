@@ -36,7 +36,6 @@ interface JournalEditorPageProps {
 
 // Mood options for journal entries
 const MOOD_OPTIONS = [
-  { value: '', label: 'Select mood...' },
   { value: 'happy', label: '😊 Happy' },
   { value: 'sad', label: '😢 Sad' },
   { value: 'excited', label: '🤩 Excited' },
@@ -47,6 +46,7 @@ const MOOD_OPTIONS = [
   { value: 'confused', label: '😕 Confused' },
   { value: 'proud', label: '😎 Proud' },
   { value: 'tired', label: '😴 Tired' },
+  { value: 'neutral', label: '😐 Neutral' },
 ];
 
 export default function JournalEditorPage({ params }: JournalEditorPageProps) {
@@ -85,6 +85,22 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
   // Track if this is the first load
   const [isFirstLoad, setIsFirstLoad] = useState(true);
 
+  // Helper function to compare tag arrays (order-independent)
+  const tagsAreEqual = useCallback((a: string[], b: string[]): boolean => {
+    if (a.length !== b.length) return false;
+
+    // Create sets for O(1) lookup instead of sorting
+    const setA = new Set(a);
+    const setB = new Set(b);
+
+    // Check if all items in A exist in B
+    for (const item of setA) {
+      if (!setB.has(item)) return false;
+    }
+
+    return true;
+  }, []);
+
   // Check if there are unsaved changes
   const hasUnsavedChanges = useMemo(() => {
     if (isFirstLoad) return false;
@@ -92,16 +108,93 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
     return (
       title !== initialValues.title ||
       content !== initialValues.content ||
-      JSON.stringify(tags.sort()) !== JSON.stringify(initialValues.tags.sort()) ||
+      !tagsAreEqual(tags, initialValues.tags) ||
       mood !== initialValues.mood
     );
-  }, [title, content, tags, mood, initialValues, isFirstLoad]);
+  }, [title, content, tags, mood, initialValues, isFirstLoad, tagsAreEqual]);
 
   // Unsaved changes hook
-  const { showDialog, handleContinue, handleCancel } = useUnsavedChanges({
+  const { showDialog, handleContinue, handleCancel, checkAndShowDialog } = useUnsavedChanges({
     hasUnsavedChanges,
     message: 'You have unsaved changes. Do you want to save them before leaving?',
   });
+
+  useEffect(() => {
+    // Additional protection for browser events
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = ''; // Required for Chrome
+        return ''; // Required for some browsers
+      }
+    };
+
+    const handleUnload = () => {
+      if (hasUnsavedChanges) {
+        // Attempt to save data to localStorage as a backup
+        localStorage.setItem(
+          'unsaved_journal_backup',
+          JSON.stringify({
+            title,
+            content,
+            tags,
+            mood,
+            timestamp: Date.now(),
+          }),
+        );
+      }
+    };
+
+    // Listen for browser events
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('unload', handleUnload);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('unload', handleUnload);
+    };
+  }, [hasUnsavedChanges, title, content, tags, mood]);
+
+  // Optional: Add this useEffect to recover from localStorage on page load
+  useEffect(() => {
+    // Check for backup data on page load
+    const backup = localStorage.getItem('unsaved_journal_backup');
+    if (backup && isNewEntry) {
+      try {
+        const backupData = JSON.parse(backup);
+        const backupAge = Date.now() - backupData.timestamp;
+
+        // Only restore if backup is less than 1 hour old
+        if (backupAge < 60 * 60 * 1000) {
+          // Show option to restore
+          if (
+            confirm(
+              'We found unsaved changes from your previous session. Would you like to restore them?',
+            )
+          ) {
+            setTitle(backupData.title);
+            setContent(backupData.content);
+            setTags(backupData.tags);
+            setMood(backupData.mood);
+          }
+        }
+
+        // Clear the backup
+        localStorage.removeItem('unsaved_journal_backup');
+      } catch (error) {
+        console.error('Error restoring backup:', error);
+        localStorage.removeItem('unsaved_journal_backup');
+      }
+    }
+  }, [isNewEntry]);
+
+  // Clear backup when saving successfully
+  useEffect(() => {
+    if (!hasUnsavedChanges) {
+      localStorage.removeItem('unsaved_journal_backup');
+    }
+  }, [hasUnsavedChanges]);
 
   // Load entry data
   useEffect(() => {
@@ -109,12 +202,12 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
       if (isNewEntry) {
         // Set default values for new entry
         const defaultContent = createDefaultTipTapContent();
-        setTitle('New Journal Entry');
+        setTitle('Give your thoughts a title...');
         setContent(defaultContent);
         setTags([]);
         setMood('');
         setInitialValues({
-          title: 'New Journal Entry',
+          title: 'Give your thoughts a title...',
           content: defaultContent,
           tags: [],
           mood: '',
@@ -167,13 +260,21 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
     }
 
     try {
+      // Prepare the data object
+      const journalData = {
+        title: title.trim(),
+        content,
+        tags,
+        mood,
+      };
+
+      // Only include mood if it's not empty
+      if (mood && mood.trim()) {
+        journalData.mood = mood;
+      }
+
       if (isNewEntry) {
-        const newEntry = await createJournal({
-          title: title.trim(),
-          content,
-          tags,
-          mood,
-        });
+        const newEntry = await createJournal(journalData);
 
         // Update initial values
         setInitialValues({
@@ -186,19 +287,14 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
         toast.success('Journal entry created successfully');
         router.replace(`/journal/${newEntry.id}`);
       } else {
-        await updateJournal(slug, {
-          title: title.trim(),
-          content,
-          tags,
-          mood,
-        });
+        await updateJournal(slug, journalData);
 
         // Update initial values
         setInitialValues({
           title: title.trim(),
           content,
           tags,
-          mood,
+          mood: mood || '',
         });
 
         toast.success('Journal entry saved successfully');
@@ -225,13 +321,15 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
 
   // Handle back navigation
   const handleBack = useCallback(() => {
-    if (hasUnsavedChanges) {
-      // This will trigger the unsaved changes dialog
+    const shouldShowDialog = checkAndShowDialog(() => {
       router.push('/journal');
-    } else {
+    });
+
+    // If no unsaved changes, navigate immediately
+    if (!shouldShowDialog) {
       router.push('/journal');
     }
-  }, [hasUnsavedChanges, router]);
+  }, [checkAndShowDialog, router]);
 
   // Handle adding tags
   const handleAddTag = useCallback(() => {
@@ -269,7 +367,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-[#7F9463] border-t-transparent"></div>
-            <p className="text-[#91857A]">Loading journal entry...</p>
+            <p className="text-beige-dark">Loading journal entry...</p>
           </div>
         </div>
       </div>
@@ -280,11 +378,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
     <div className="container mx-auto max-w-3xl px-4 py-8">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
-        <Button
-          variant="ghost"
-          onClick={handleBack}
-          className="text-grey-dark hover:bg-[#D1DBC3]/20 hover:text-[#7F9463]"
-        >
+        <Button variant="ghost" onClick={handleBack} className="hover:bg-yellow-light">
           <ArrowLeft size={18} className="mr-2" />
           Back to Journal
         </Button>
@@ -294,9 +388,9 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
             <Button
               variant="outline"
               onClick={handleDelete}
-              className="border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700"
+              className="border-destructive hover:bg-destructive font-varela text-destructive hover:text-red-700"
             >
-              <Trash2 size={18} className="mr-2" />
+              <Trash2 size={18} className="mb-0.5" />
               Delete
             </Button>
           )}
@@ -304,34 +398,35 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
           <Button
             onClick={handleSave}
             disabled={isLoading || !hasUnsavedChanges}
-            className="bg-[#7F9463] text-white hover:bg-[#ABB899] disabled:opacity-50"
+            className="bg-yellow-dark hover:bg-yellow-medium font-varela text-black disabled:opacity-50"
           >
-            <Save size={18} className="mr-2" />
+            <Save size={18} className="mb-0.5" />
             Save
           </Button>
         </div>
       </div>
 
       {/* Title */}
-      <div className="mb-6">
-        <Input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="border-none px-0 text-2xl font-bold text-[#7F9463] shadow-none focus-visible:ring-0"
-          placeholder="Enter title..."
-        />
-      </div>
+      <Input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        className="font-varela !text-green-dark placeholder:!text-green-dark/50 focus-visible:!border-green-dark/30 !h-auto !border-b-2 !border-none !border-transparent !bg-transparent !px-0 !py-4 !text-4xl !leading-tight !font-bold !tracking-tight !shadow-none !transition-colors !duration-200 focus-visible:!ring-0"
+        placeholder="Give your thoughts a title..."
+      />
 
       {/* Metadata Section */}
-      <div className="mb-6 space-y-4 rounded-lg border border-[#CBCFD7] bg-[#F2DECC]/10 p-4">
+      <div className="border-grey-light bg-beige-light/20 mb-6 space-y-4 rounded-lg border p-4">
         {/* Mood Selector */}
         <div className="space-y-2">
-          <Label htmlFor="mood" className="flex items-center text-sm font-medium text-[#7F9463]">
+          <Label htmlFor="mood" className="text-green-dark flex items-center text-sm font-medium">
             <Smile size={16} className="mr-2" />
             How are you feeling?
           </Label>
-          <Select value={mood} onValueChange={setMood}>
-            <SelectTrigger className="w-full border-[#CBCFD7] focus:ring-[#78C7EE]">
+          <Select
+            value={mood || undefined} // Convert empty string to undefined for placeholder
+            onValueChange={(value) => setMood(value || '')} // Convert back to empty string internally
+          >
+            <SelectTrigger className="border-grey-light focus:ring-blue-dark w-full">
               <SelectValue placeholder="Select your mood..." />
             </SelectTrigger>
             <SelectContent>
@@ -346,7 +441,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
 
         {/* Tags Section */}
         <div className="space-y-2">
-          <Label htmlFor="tags" className="flex items-center text-sm font-medium text-[#7F9463]">
+          <Label htmlFor="tags" className="text-green-dark flex items-center text-sm font-medium">
             <Tag size={16} className="mr-2" />
             Tags
           </Label>
@@ -358,13 +453,13 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
               onChange={(e) => setNewTag(e.target.value)}
               onKeyPress={handleTagKeyPress}
               placeholder="Add a tag..."
-              className="border-[#CBCFD7] focus-visible:ring-[#78C7EE]"
+              className="border-grey-light focus-visible:ring-blue-medium"
             />
             <Button
               type="button"
               onClick={handleAddTag}
               variant="outline"
-              className="border-[#7F9463] text-[#7F9463] hover:bg-[#7F9463] hover:text-white"
+              className="border-yellow-dark text-yellow-dark font-varela hover:bg-yellow-dark hover:text-black"
             >
               Add
             </Button>
@@ -377,7 +472,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
                 <Badge
                   key={tag}
                   variant="secondary"
-                  className="cursor-pointer bg-[#7F9463] text-white hover:bg-[#ABB899]"
+                  className="bg-yellow-medium hover:bg-yellow-light cursor-pointer text-black"
                   onClick={() => handleRemoveTag(tag)}
                 >
                   {tag} ×
@@ -389,33 +484,46 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
       </div>
 
       {/* Content Editor */}
-      <div className="min-h-[60vh] rounded-lg border border-[#CBCFD7] bg-white p-4">
+      <div className="border-grey-light min-h-[60vh] rounded-lg border bg-white p-4">
         <JournalEditor content={content} onUpdate={handleContentChange} />
       </div>
 
       {/* Unsaved Changes Dialog */}
-      <AlertDialog open={showDialog}>
+      <AlertDialog
+        open={showDialog}
+        onOpenChange={() => {
+          /* Prevent closing via overlay */
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-black/80">
               You have unsaved changes. Do you want to save them before leaving?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCancel}>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="flex flex-col gap-2 sm:flex-row">
+            <AlertDialogCancel className="hover:bg-beige-dark text-black" onClick={handleCancel}>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={async () => {
-                await handleSave();
-                handleContinue();
+                try {
+                  await handleSave();
+                  handleContinue();
+                } catch (error) {
+                  // If save fails, don't navigate
+                  console.error('Failed to save:', error);
+                  toast.error('Failed to save. Please try again.');
+                }
               }}
-              className="bg-[#7F9463] text-white hover:bg-[#ABB899]"
+              className="bg-yellow-dark hover:bg-yellow-medium text-black"
             >
               Save & Continue
             </AlertDialogAction>
             <AlertDialogAction
               onClick={handleContinue}
-              className="bg-[#C2B2A3] text-white hover:bg-[#91857A]"
+              className="hover:bg-destructive bg-red-200 text-black"
             >
               Discard Changes
             </AlertDialogAction>

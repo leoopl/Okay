@@ -5,6 +5,7 @@ import { User } from '../../../modules/user/entities/user.entity';
 import { JournalEntry } from '../../../modules/journal/entities/journal.entity';
 import { Inventory } from '../../../modules/inventory/entities/inventory.entity';
 import { InventoryResponse } from '../../../modules/inventory/entities/inventory-response.entity';
+import { Medication } from 'src/modules/medication/entities/medication.entity';
 
 /**
  * Factory for creating policy handlers
@@ -75,6 +76,22 @@ export class PolicyHandlerFactory {
     };
   }
 
+  // Medication policy handlers
+  createMedicationPolicyHandler(
+    action: Action,
+    medication?: Medication,
+  ): IPolicyHandler {
+    return {
+      handle: (ability: AppAbility): boolean => {
+        if (medication) {
+          return ability.can(action, medication);
+        }
+        // If no specific medication, check general permission
+        return ability.can(action, Medication);
+      },
+    };
+  }
+
   // Generic resource policy handler
   createResourcePolicyHandler(
     action: Action,
@@ -111,6 +128,9 @@ export class PolicyHandlerFactory {
 
         case 'inventory-response':
           return this.createInventoryResponsePolicyHandler(action, resource);
+
+        case 'medication':
+          return this.createMedicationPolicyHandler(action, resource);
 
         default:
           // For other resource types or generic usage

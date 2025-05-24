@@ -28,13 +28,13 @@ const RadioGroupItem = React.memo(
         ref={ref}
         className={cn(
           // Base styles
-          'group bg-beige-dark relative flex cursor-pointer rounded-lg px-5 py-4 text-black shadow-md transition-all duration-200 focus:outline-none',
+          'group relative flex cursor-pointer rounded-lg bg-white/90 px-5 py-4 text-black shadow-md transition-all duration-200 focus:outline-none',
           // Hover state
           'hover:scale-[1.02] hover:shadow-lg',
           // On checked state, change background
-          'data-[state=checked]:bg-beige-medium data-[state=checked]:shadow-lg',
+          'data-[state=checked]:bg-yellow-light data-[state=checked]:shadow-lg',
           // Focus state styling with better visibility
-          'focus-visible:ring-green-dark focus-visible:ring-2 focus-visible:ring-offset-2',
+          'focus-visible:ring-blue-medium focus-visible:ring-2 focus-visible:ring-offset-2',
           // Disabled state
           'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100',
           className,

@@ -56,11 +56,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
         </div>
 
         <div className="mt-12">
-          {/* Pass filteredPosts to BlogPageClient */}
           <BlogPageClient initialPosts={filteredPosts} />
-          {/* <Suspense fallback={<div className="py-12 text-center">Loading articles...</div>}>
-            <BlogList tag={tag} search={search} />
-          </Suspense> */}
         </div>
       </div>
     </div>

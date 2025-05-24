@@ -87,12 +87,8 @@ export default function JournalPage() {
     <div className="container mx-auto max-w-3xl px-4 py-8">
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-[#7F9463]">Journal</h1>
-        <Button
-          onClick={handleCreateEntry}
-          className="bg-[#7F9463] text-white hover:bg-[#ABB899]"
-          disabled={isLoading}
-        >
+        <h1 className="text-green-dark font-varela text-3xl font-bold md:text-4xl">Journal</h1>
+        <Button onClick={handleCreateEntry} className="font-varela font-bold" disabled={isLoading}>
           <Plus size={18} className="mr-2" />
           New Entry
         </Button>
@@ -101,7 +97,7 @@ export default function JournalPage() {
       {/* Search */}
       <div className="relative mb-6">
         <Search
-          className="absolute top-1/2 left-3 -translate-y-1/2 transform text-[#A3A6B0]"
+          className="text-grey-dark absolute top-1/2 left-3 -translate-y-1/2 transform"
           size={18}
         />
         <Input
@@ -109,7 +105,7 @@ export default function JournalPage() {
           placeholder="Search journal entries..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="border-[#CBCFD7] bg-white pl-10 focus-visible:ring-[#78C7EE]"
+          className="border-grey-light focus-visible:ring-blue-dark bg-white pl-10"
         />
       </div>
 
@@ -118,7 +114,7 @@ export default function JournalPage() {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-[#7F9463] border-t-transparent"></div>
-            <p className="text-[#91857A]">Loading your journal entries...</p>
+            <p className="text-beige-medium">Loading your journal entries...</p>
           </div>
         </div>
       )}
@@ -126,14 +122,14 @@ export default function JournalPage() {
       {/* Empty State */}
       {!isLoading && sortedEntries.length === 0 && !searchQuery && (
         <div className="py-12 text-center">
-          <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-[#F2DECC]/20">
-            <Plus size={32} className="text-[#7F9463]" />
+          <div className="bg-beige-light/40 mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full">
+            <Plus size={32} className="text-blue-dark" />
           </div>
-          <h3 className="mb-2 text-lg font-medium text-[#797D89]">No journal entries yet</h3>
-          <p className="mb-4 text-[#91857A]">Start documenting your thoughts and experiences.</p>
+          <h3 className="text-grey-dark mb-2 text-lg font-medium">No journal entries yet</h3>
+          <p className="text-beige-dark mb-4">Start documenting your thoughts and experiences.</p>
           <Button
             onClick={handleCreateEntry}
-            className="bg-[#7F9463] text-white hover:bg-[#ABB899]"
+            className="font-varela font-bold"
             disabled={isLoading}
           >
             <Plus size={18} className="mr-2" />
@@ -178,7 +174,7 @@ export default function JournalPage() {
 
       {/* Search Results Count */}
       {searchQuery && sortedEntries.length > 0 && (
-        <div className="mt-6 text-center text-sm text-[#91857A]">
+        <div className="text-beige-dark mt-6 text-center text-sm">
           Found {sortedEntries.length} {sortedEntries.length === 1 ? 'entry' : 'entries'}
           matching "{searchQuery}"
         </div>

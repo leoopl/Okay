@@ -23,14 +23,14 @@ export class InventoryResponse {
   userId: string;
 
   @ManyToOne(() => User, (user) => user.inventoryResponses)
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn()
   user: User;
 
   @Column({ type: 'uuid' })
   inventoryId: string;
 
   @ManyToOne(() => Inventory, (inventory) => inventory.responses)
-  @JoinColumn({ name: 'inventoryId' })
+  @JoinColumn()
   inventory: Inventory;
 
   @Column('jsonb') // Stores the user's selected responses

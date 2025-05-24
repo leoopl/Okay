@@ -1,9 +1,20 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { UserProfile } from './definitions';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+// Get user initials for avatar fallback
+export const getUserInitials = (user: UserProfile) => {
+  if (!user) return 'U';
+
+  const nameInitial = user.name?.charAt(0) || '';
+  const surnameInitial = user.surname?.charAt(0) || '';
+
+  return (nameInitial + surnameInitial).toUpperCase();
+};
 
 /**
  * Get the CSRF token from cookie

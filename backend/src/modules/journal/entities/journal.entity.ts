@@ -39,7 +39,7 @@ export class JournalEntry {
   userId: string;
 
   @ManyToOne(() => User, (user) => user.journalEntries, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn()
   user: User;
 
   @Column({ nullable: true, length: 50 })

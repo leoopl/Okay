@@ -8,11 +8,21 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Book, ClipboardList, LogOut, Pill, Settings, Shield, Star, User } from 'lucide-react';
+import {
+  Book,
+  CircleUser,
+  ClipboardList,
+  LogOut,
+  Pill,
+  Settings,
+  Shield,
+  Star,
+  User,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useAuth } from '@/providers/auth-provider';
-import { formatDate } from '@/lib/utils';
+import { formatDate, getUserInitials } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 
 export default function Profile() {
@@ -23,16 +33,6 @@ export default function Profile() {
   const handleLogout = async () => {
     await logout();
     router.push('/');
-  };
-
-  // Get user initials for avatar fallback
-  const getUserInitials = () => {
-    if (!user) return 'U';
-
-    const nameInitial = user.name?.charAt(0) || '';
-    const surnameInitial = user.surname?.charAt(0) || '';
-
-    return (nameInitial + surnameInitial).toUpperCase();
   };
 
   // Format member since date
@@ -53,7 +53,7 @@ export default function Profile() {
                 <AvatarImage
                   src={`https://ui-avatars.com/api/?name=${user?.name}+${user?.surname || ''}&background=7F9463&color=fff`}
                 />
-                <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                <AvatarFallback>{user ? getUserInitials(user) : <CircleUser />}</AvatarFallback>
               </Avatar>
               <div className="space-y-2 text-center">
                 <h2 className="text-xl font-semibold">
