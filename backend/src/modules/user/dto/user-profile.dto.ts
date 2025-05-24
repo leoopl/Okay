@@ -64,6 +64,14 @@ export class UserProfile {
   @ApiProperty({ description: "User's roles", type: [String] })
   roles: string[];
 
+  @Expose()
+  @ApiProperty({ description: "User's profile picture URL", required: false })
+  profilePictureUrl?: string;
+
+  @Expose()
+  @ApiProperty({ description: 'Profile picture upload date', required: false })
+  profilePictureUpdatedAt?: Date;
+
   // Excluded sensitive fields
   // @Exclude() is not needed because of the class-level @Exclude()
   password?: string;

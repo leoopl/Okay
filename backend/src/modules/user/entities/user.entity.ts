@@ -74,6 +74,24 @@ export class User {
   @UpdateDateColumn({ type: 'timestamp with time zone' })
   updatedAt: Date;
 
+  @Column({ nullable: true })
+  profilePictureKey?: string;
+
+  @Column({ nullable: true })
+  profilePictureUrl?: string;
+
+  @Column({ nullable: true })
+  profilePictureProvider?: string;
+
+  @Column({ nullable: true })
+  profilePictureMimeType?: string;
+
+  @Column({ nullable: true })
+  profilePictureSize?: number;
+
+  @Column({ nullable: true, type: 'timestamp' })
+  profilePictureUpdatedAt?: Date;
+
   // Relationships
   @ManyToMany(() => Role, { eager: true })
   @JoinTable({

@@ -14,6 +14,7 @@ import { AuditAction } from '../../core/audit/entities/audit-log.entity';
 import { Role } from './entities/role.entity';
 import { ConfigService } from '@nestjs/config';
 import * as argon2 from 'argon2';
+import { StorageService } from 'src/common/storage/services/storage.service';
 
 @Injectable()
 export class UserService {
@@ -26,6 +27,7 @@ export class UserService {
     private readonly rolesRepository: Repository<Role>,
     private readonly auditService: AuditService,
     private readonly configService: ConfigService,
+    private readonly storageService: StorageService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -143,6 +145,100 @@ export class UserService {
     });
 
     return this.findOne(id);
+  }
+
+  async uploadProfilePicture(
+    userId: string,
+    file: Express.Multer.File,
+    actorId: string,
+  ): Promise<User> {
+    const user = await this.findOne(userId);
+
+    try {
+      // Delete old profile picture if exists
+      if (user.profilePictureKey) {
+        await this.storageService.deleteFile(user.profilePictureKey);
+      }
+
+      // Upload new profile picture
+      const uploadResult = await this.storageService.uploadFile(
+        file,
+        `profile-pictures/${userId}`,
+      );
+
+      // Update user with new profile picture info
+      user.profilePictureKey = uploadResult.key;
+      user.profilePictureUrl = uploadResult.url;
+      user.profilePictureProvider = uploadResult.provider;
+      user.profilePictureMimeType = uploadResult.mimetype;
+      user.profilePictureSize = uploadResult.size;
+      user.profilePictureUpdatedAt = new Date();
+
+      await this.usersRepository.save(user);
+
+      // Audit the upload
+      await this.auditService.logAction({
+        userId: actorId,
+        action: AuditAction.UPDATE,
+        resource: 'user',
+        resourceId: userId,
+        details: {
+          action: 'profile_picture_uploaded',
+          fileSize: uploadResult.size,
+          mimeType: uploadResult.mimetype,
+        },
+      });
+
+      return user;
+    } catch (error) {
+      this.logger.error(
+        `Failed to upload profile picture: ${error.message}`,
+        error.stack,
+      );
+      throw new Error('Failed to upload profile picture');
+    }
+  }
+
+  async deleteProfilePicture(userId: string, actorId: string): Promise<User> {
+    const user = await this.findOne(userId);
+
+    if (!user.profilePictureKey) {
+      return user; // No profile picture to delete
+    }
+
+    try {
+      // Delete file from storage
+      await this.storageService.deleteFile(user.profilePictureKey);
+
+      // Clear profile picture fields
+      user.profilePictureKey = null;
+      user.profilePictureUrl = null;
+      user.profilePictureProvider = null;
+      user.profilePictureMimeType = null;
+      user.profilePictureSize = null;
+      user.profilePictureUpdatedAt = null;
+
+      await this.usersRepository.save(user);
+
+      // Audit the deletion
+      await this.auditService.logAction({
+        userId: actorId,
+        action: AuditAction.UPDATE,
+        resource: 'user',
+        resourceId: userId,
+        details: {
+          action: 'profile_picture_deleted',
+        },
+      });
+
+      return user;
+    } catch (error) {
+      this.logger.error(
+        `Failed to delete profile picture: ${error.message}`,
+        error.stack,
+      );
+      throw new Error('Failed to delete profile picture');
+    }
   }
 
   async updateConsent(id: string, actorId: string): Promise<User> {

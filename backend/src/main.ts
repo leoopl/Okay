@@ -7,9 +7,11 @@ import helmet from 'helmet';
 import * as compression from 'compression';
 import * as cookieParser from 'cookie-parser';
 import { AuditMiddleware } from './common/middleware/audit.middleware';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ['error', 'warn', 'log', 'debug'],
   });
   const configService = app.get(ConfigService);
@@ -51,6 +53,11 @@ async function bootstrap() {
   // Set global API prefix
   app.setGlobalPrefix('api');
 
+  // Serve static files from uploads directory
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads/',
+  });
+
   // Set up Swagger API documentation
   const config = new DocumentBuilder()
     .setTitle('Okay Mental Health API')
@@ -61,6 +68,8 @@ async function bootstrap() {
     .addTag('journal')
     .addTag('inventories')
     .addTag('authentication')
+    .addTag('medications')
+    .addTag('testimonials')
     .addBearerAuth(
       {
         type: 'http',

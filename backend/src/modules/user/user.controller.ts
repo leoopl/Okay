@@ -14,9 +14,12 @@ import {
   HttpStatus,
   ForbiddenException,
   UnauthorizedException,
+  ParseUUIDPipe,
+  UploadedFile,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiConsumes,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -32,6 +35,8 @@ import { Public } from '../../common/decorators/is-public.decorator';
 import { IAuthenticatedRequest } from '../../common/interfaces/auth-request.interface';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { AuthService } from 'src/core/auth/auth.service';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { FileUploadInterceptor } from 'src/common/storage/interceptors/file-upload.interceptor';
 
 @ApiTags('users')
 @Controller('users')
@@ -130,6 +135,71 @@ export class UserController {
     const user = await this.userService.update(
       id,
       updateUserDto,
+      req.user.userId,
+    );
+    return new UserProfile(user);
+  }
+
+  @ApiOperation({ summary: 'Upload profile picture' })
+  @ApiResponse({
+    status: 200,
+    description: 'Profile picture uploaded successfully',
+    type: UserProfile,
+  })
+  @ApiResponse({ status: 400, description: 'Invalid file' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions',
+  })
+  @ApiConsumes('multipart/form-data')
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/profile-picture')
+  @UseInterceptors(FileInterceptor('file'), FileUploadInterceptor)
+  async uploadProfilePicture(
+    @Param('id', ParseUUIDPipe) id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: IAuthenticatedRequest,
+  ) {
+    // Users can only update their own profile picture unless they're admins
+    if (id !== req.user.userId && !req.user.roles?.includes('admin')) {
+      throw new ForbiddenException(
+        'You can only update your own profile picture',
+      );
+    }
+
+    const user = await this.userService.uploadProfilePicture(
+      id,
+      file,
+      req.user.userId,
+    );
+    return new UserProfile(user);
+  }
+
+  @ApiOperation({ summary: 'Delete profile picture' })
+  @ApiResponse({
+    status: 200,
+    description: 'Profile picture deleted successfully',
+    type: UserProfile,
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions',
+  })
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id/profile-picture')
+  async deleteProfilePicture(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: IAuthenticatedRequest,
+  ) {
+    // Users can only delete their own profile picture unless they're admins
+    if (id !== req.user.userId && !req.user.roles?.includes('admin')) {
+      throw new ForbiddenException(
+        'You can only delete your own profile picture',
+      );
+    }
+
+    const user = await this.userService.deleteProfilePicture(
+      id,
       req.user.userId,
     );
     return new UserProfile(user);
