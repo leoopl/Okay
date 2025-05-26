@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { getBlogPostBySlug, getBlogPosts } from '../util';
 import { formatDate } from '@/lib/utils';
-import { Suspense, use } from 'react';
+import { Suspense } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { TableOfContents } from '@/components/blog/table-of-contents';
 import ButtonScrollTop from '@/components/button-scroll-top';
@@ -22,16 +22,17 @@ export async function generateMetadata({
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
+  // Move use() outside of try/catch
+  const { slug } = await params;
+
+  if (!slug) {
+    return {
+      title: 'Post Not Found',
+      description: 'The requested blog post could not be found',
+    };
+  }
+
   try {
-    const { slug } = use(params);
-
-    if (!slug) {
-      return {
-        title: 'Post Not Found',
-        description: 'The requested blog post could not be found',
-      };
-    }
-
     const post = await getBlogPostBySlug(slug);
 
     if (!post) {
@@ -55,16 +56,17 @@ export async function generateMetadata({
 }
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+  // Move use() outside of try/catch
+  const { slug } = await params;
+
+  console.log('Accessing blog post with slug:', slug);
+
+  if (!slug) {
+    console.error('No slug parameter provided');
+    notFound();
+  }
+
   try {
-    const { slug } = use(params);
-
-    console.log('Accessing blog post with slug:', slug);
-
-    if (!slug) {
-      console.error('No slug parameter provided');
-      notFound();
-    }
-
     const post = await getBlogPostBySlug(slug);
     console.log('Post found:', post ? 'Yes' : 'No');
 

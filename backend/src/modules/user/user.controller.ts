@@ -154,7 +154,10 @@ export class UserController {
   @ApiConsumes('multipart/form-data')
   @UseGuards(JwtAuthGuard)
   @Post(':id/profile-picture')
-  @UseInterceptors(FileInterceptor('file'), FileUploadInterceptor)
+  @UseInterceptors(
+    FileInterceptor('file'),
+    FileUploadInterceptor(), // Call as a function with optional options
+  )
   async uploadProfilePicture(
     @Param('id', ParseUUIDPipe) id: string,
     @UploadedFile() file: Express.Multer.File,
