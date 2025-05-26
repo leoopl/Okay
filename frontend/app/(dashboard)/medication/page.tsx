@@ -182,12 +182,12 @@ export default function MedicationPage({ className }: MedicationPageProps) {
         {/* Main Content */}
         <div className="space-y-2">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="bg-grey-light/30 grid w-full grid-cols-3">
+            <TabsList className="bg-grey-light/40 grid w-full grid-cols-3">
               {Object.entries(TABS_CONFIG).map(([value, config]) => (
                 <TabsTrigger
                   key={value}
                   value={value}
-                  className="data-[state=active]:text-blue-dark data-[state=active]:bg-beige-light/40 transition-colors"
+                  className="data-[state=active]:text-blue-dark data-[state=active]:bg-background transition-colors"
                   aria-label={config.description}
                 >
                   {config.label}

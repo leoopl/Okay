@@ -174,8 +174,6 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
   const onSubmit = useCallback(
     async (values: MedicationFormValues) => {
       try {
-        console.log('Form submission - raw values:', values); // Debug log
-
         const payload = {
           ...values,
           form: values.form as MedicationForm, // Type assertion for proper typing
@@ -187,14 +185,7 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
           instructions: values.instructions?.trim() || undefined,
         };
 
-        console.log('Form submission payload:', payload); // Debug log
-
         if (isEditMode && medication) {
-          console.log('Edit mode - original medication:', {
-            endDate: medication.endDate,
-            endDateType: typeof medication.endDate,
-          }); // Debug log
-
           // For edit mode, only send changed fields
           const changes: Partial<typeof payload> = {};
 
@@ -217,40 +208,25 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
               const currentTime = current?.getTime();
               const originalTime = original?.getTime();
 
-              console.log(`Date comparison for ${key}:`, {
-                current: current?.toISOString(),
-                original: original?.toISOString(),
-                currentTime,
-                originalTime,
-                changed: currentTime !== originalTime,
-              }); // Debug log
-
               if (currentTime !== originalTime) {
                 changes[key as keyof typeof changes] = current as any;
               }
             } else if (currentValue !== originalValue) {
-              console.log(`Field ${key} changed:`, { currentValue, originalValue }); // Debug log
               changes[key as keyof typeof changes] = currentValue as any;
             }
           });
 
-          console.log('Edit mode changes:', changes); // Debug log
-
           // Only update if there are changes
           if (Object.keys(changes).length > 0) {
             await updateMedication(medication.id, changes as any);
-          } else {
-            console.log('No changes detected, closing form'); // Debug log
           }
         } else {
-          console.log('Creating new medication with payload:', payload); // Debug log
           await createMedication(payload as any);
         }
 
         onClose();
       } catch (error) {
         console.error('Error saving medication:', error);
-        // Error handling is done in the store with toast notifications
       }
     },
     [isEditMode, medication, createMedication, updateMedication, onClose],

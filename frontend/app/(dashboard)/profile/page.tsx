@@ -6,9 +6,21 @@ import { SecurityTab } from '@/components/profile/security-tab';
 import { ProfilePictureUpload } from '@/components/profile/profile-picture-upload';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Book, ClipboardList, LogOut, Pill, Settings, Shield, Star, User } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Book,
+  ClipboardList,
+  LogOut,
+  Pill,
+  Settings,
+  Shield,
+  Star,
+  User,
+  Activity,
+  Clock,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useAuth } from '@/providers/auth-provider';
@@ -16,77 +28,207 @@ import { formatDate } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { Toaster } from 'sonner';
 
+// Feature card component for better reusability
+interface FeatureCardProps {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  href: string;
+  bgColor: string;
+  iconColor: string;
+  buttonColor: string;
+}
+
+interface FeatureCardProps {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  href: string;
+  bgColor: string;
+  iconColor: string;
+  buttonColor: string;
+}
+
+const FeatureCard = ({
+  icon: Icon,
+  title,
+  description,
+  href,
+  bgColor,
+  iconColor,
+  buttonColor,
+}: FeatureCardProps) => (
+  <Card
+    className={`${bgColor} group relative h-full overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg`}
+  >
+    <CardContent className="flex h-full flex-col p-6">
+      <div className="flex flex-1 flex-col items-center text-center">
+        <div
+          className={`mb-4 flex size-12 items-center justify-center rounded-full ${iconColor}/20 transition-transform duration-300 group-hover:scale-110`}
+        >
+          <Icon className={`size-6 ${iconColor}`} />
+        </div>
+        <h3 className="text-foreground font-varela mb-2 text-lg font-bold">{title}</h3>
+        <p className="text-muted-foreground mb-6 flex-1 text-sm leading-relaxed">{description}</p>
+        <Button
+          asChild
+          className={`${buttonColor} mt-auto w-full text-black transition-all duration-200 hover:scale-105 focus-visible:scale-105`}
+        >
+          <Link href={href}>Acessar {title}</Link>
+        </Button>
+      </div>
+    </CardContent>
+  </Card>
+);
+
+// Stats component for user engagement
+const UserStats = ({ user }: { user: any }) => (
+  <div className="mt-4 grid grid-cols-2 gap-4">
+    <div className="bg-grey-light/40 rounded-lg p-3 text-center">
+      <Activity className="text-blue-dark mx-auto mb-1 size-4" />
+      <p className="text-muted-foreground text-xs">Atividade</p>
+      <p className="text-sm font-semibold">7 dias</p>
+    </div>
+    <div className="bg-grey-light/40 rounded-lg p-3 text-center">
+      <Clock className="text-blue-dark mx-auto mb-1 size-4" />
+      <p className="text-muted-foreground text-xs">Última sessão</p>
+      <p className="text-sm font-semibold">Hoje</p>
+    </div>
+  </div>
+);
+
 export default function Profile() {
   const [activeTab, setActiveTab] = useState('profile');
   const { user, isAuth, logout } = useAuth();
   const router = useRouter();
 
   const handleLogout = async () => {
-    await logout();
-    router.push('/');
+    try {
+      await logout();
+      router.push('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
-  // Format member since date
+  // Format member since date with better error handling
   const memberSince = user?.createdAt
-    ? formatDate(user.createdAt, false).split('/')[1] +
-      '/' +
-      formatDate(user.createdAt, false).split('/')[2]
+    ? (() => {
+        try {
+          const formatted = formatDate(user.createdAt, false);
+          const parts = formatted.split('/');
+          return parts.length >= 3 ? `${parts[1]}/${parts[2]}` : 'Jan 2024';
+        } catch {
+          return 'Jan 2024';
+        }
+      })()
     : 'Jan 2024';
+
+  // Feature cards data
+  const featureCards = [
+    {
+      icon: Book,
+      title: 'Diário',
+      description: 'Registre seus pensamentos e acompanhe seu humor ao longo do tempo.',
+      href: '/journal',
+      bgColor: 'border-accent/50 bg-accent/10',
+      iconColor: 'text-green-dark',
+      buttonColor: 'bg-green-dark hover:bg-green-dark/90',
+    },
+    {
+      icon: Pill,
+      title: 'Medicamentos',
+      description: 'Gerencie sua agenda de medicamentos e lembretes.',
+      href: '/medication',
+      bgColor: 'border-primary/50 bg-primary/10',
+      iconColor: 'text-primary',
+      buttonColor: 'bg-primary hover:bg-primary/90',
+    },
+    {
+      icon: ClipboardList,
+      title: 'Questionários',
+      description: 'Complete avaliações para acompanhar seu progresso em saúde mental.',
+      href: '/inventory',
+      bgColor: 'border-blue-medium/50 bg-blue-light/20',
+      iconColor: 'text-blue-dark',
+      buttonColor: 'bg-blue-dark hover:bg-blue-dark/90',
+    },
+  ];
 
   return (
     <div className="mx-auto max-w-7xl pb-5">
       <Toaster richColors position="top-center" />
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        {/* Profile Card */}
-        <Card className="bg-grey-light/30 lg:col-span-3">
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center space-y-4">
-              {/* Profile Picture Upload Component */}
-              <ProfilePictureUpload size="xl" className="transition-transform hover:scale-105" />
 
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        {/* Enhanced Profile Card */}
+        <Card className="overflow-hidden lg:col-span-3">
+          <CardHeader className="pb-2">
+            <div className="text-center">
+              <ProfilePictureUpload size="xl" className="transition-transform hover:scale-105" />
+            </div>
+          </CardHeader>
+
+          <CardContent className="pt-0">
+            <div className="space-y-4">
+              {/* User Info */}
               <div className="space-y-2 text-center">
-                <h2 className="text-xl font-semibold">
+                <h2 className="text-foreground text-xl font-semibold">
                   {user?.name} {user?.surname}
                 </h2>
-                {user?.roles?.includes('admin') && (
-                  <Badge variant="outline" className="text-yellow-dark">
-                    Administrador
-                    <Star className="ml-1 h-3 w-3" />
-                  </Badge>
-                )}
-                {user?.roles?.includes('patient') && !user?.roles?.includes('admin') && (
-                  <Badge variant="outline" className="text-green-dark">
-                    Paciente
-                  </Badge>
-                )}
+
+                {/* Role Badges */}
+                <div className="flex flex-wrap justify-center gap-2">
+                  {user?.roles?.includes('admin') && (
+                    <Badge variant="outline" className="text-primary border-primary/50">
+                      <Star className="mr-1 size-3" />
+                      Administrador
+                    </Badge>
+                  )}
+                  {user?.roles?.includes('patient') && !user?.roles?.includes('admin') && (
+                    <Badge variant="outline" className="text-accent-foreground border-accent">
+                      Paciente
+                    </Badge>
+                  )}
+                </div>
               </div>
-              <div className="w-full space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-okay-grey-dark">Membro desde</span>
-                  <span>{memberSince}</span>
+
+              {/* User Details */}
+              <div className="space-y-3 text-sm">
+                <div className="border-border/50 flex items-center justify-between border-b py-2">
+                  <span className="text-muted-foreground">Membro desde</span>
+                  <span className="font-medium">{memberSince}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-okay-grey-dark">E-mail</span>
-                  <span className="max-w-[150px] truncate">{user?.email}</span>
+                <div className="border-border/50 flex items-center justify-between border-b py-2">
+                  <span className="text-muted-foreground">E-mail</span>
+                  <span className="max-w-[150px] truncate font-medium" title={user?.email}>
+                    {user?.email}
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-okay-grey-dark">Função</span>
-                  <span>{user?.roles?.includes('admin') ? 'Admin' : 'Paciente'}</span>
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-muted-foreground">Função</span>
+                  <span className="font-medium">
+                    {user?.roles?.includes('admin') ? 'Admin' : 'Paciente'}
+                  </span>
                 </div>
-                <Button
-                  variant="outline"
-                  className="text-destructive border-destructive hover:bg-destructive mt-8 w-full"
-                  onClick={handleLogout}
-                >
-                  Sair
-                  <LogOut className="ml-2 h-4 w-4" />
-                </Button>
               </div>
+
+              {/* User Stats */}
+              <UserStats user={user} />
+
+              {/* Logout Button */}
+              <Button
+                variant="outline"
+                className="border-destructive/50 text-destructive hover:bg-destructive mt-6 w-full transition-all duration-200 hover:text-black"
+                onClick={handleLogout}
+              >
+                <LogOut className="mr-2 size-4" />
+                Sair
+              </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Tabs Card */}
+        {/* Enhanced Tabs Section */}
         <div className="space-y-6 lg:col-span-9">
           <Tabs
             defaultValue="profile"
@@ -94,88 +236,50 @@ export default function Profile() {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <Card className="bg-grey-light/30 p-6 md:col-span-3">
-              <TabsList className="bg-grey-light mb-8 grid w-full grid-cols-3">
-                <TabsTrigger
-                  value="profile"
-                  className="data-[state=active]:text-blue-dark data-[state=active]:bg-beige-light/40"
-                >
-                  <User className="mr-2 h-4 w-4" />
-                  Perfil
-                </TabsTrigger>
-                <TabsTrigger
-                  value="security"
-                  className="data-[state=active]:text-blue-dark data-[state=active]:bg-beige-light/40"
-                >
-                  <Shield className="mr-2 h-4 w-4" />
-                  Segurança
-                </TabsTrigger>
-                <TabsTrigger
-                  value="notifications"
-                  className="data-[state=active]:text-blue-dark data-[state=active]:bg-beige-light/40"
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  Configurações
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="profile" className="mt-0">
-                <ProfileTab />
-              </TabsContent>
-              <TabsContent value="security" className="mt-0">
-                <SecurityTab />
-              </TabsContent>
-              <TabsContent value="notifications" className="mt-0">
-                <NotificationsTab />
-              </TabsContent>
+            <Card className="overflow-hidden">
+              <CardContent className="p-6">
+                <TabsList className="bg-grey-light/40 mb-8 grid w-full grid-cols-3">
+                  <TabsTrigger
+                    value="profile"
+                    className="data-[state=active]:bg-background data-[state=active]:text-blue-dark"
+                  >
+                    <User className="mr-2 size-4" />
+                    <span className="hidden sm:inline">Perfil</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="security"
+                    className="data-[state=active]:bg-background data-[state=active]:text-blue-dark"
+                  >
+                    <Shield className="mr-2 size-4" />
+                    <span className="hidden sm:inline">Segurança</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="notifications"
+                    className="data-[state=active]:bg-background data-[state=active]:text-blue-dark"
+                  >
+                    <Settings className="mr-2 size-4" />
+                    <span className="hidden sm:inline">Configurações</span>
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="profile" className="mt-0">
+                  <ProfileTab />
+                </TabsContent>
+                <TabsContent value="security" className="mt-0">
+                  <SecurityTab />
+                </TabsContent>
+                <TabsContent value="notifications" className="mt-0">
+                  <NotificationsTab />
+                </TabsContent>
+              </CardContent>
             </Card>
           </Tabs>
 
-          {/* Feature Card */}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <Card className="border-[#ABB899] bg-[#D1DBC3]/30 p-6 transition-shadow hover:shadow-md">
-              <div className="flex flex-col items-center text-center">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#7F9463]/20">
-                  <Book className="h-6 w-6 text-[#7F9463]" />
-                </div>
-                <h3 className="mb-2 text-lg font-bold text-[#7F9463]">Diário</h3>
-                <p className="mb-4 text-[#91857A]">
-                  Registre seus pensamentos e acompanhe seu humor ao longo do tempo.
-                </p>
-                <Button asChild className="bg-[#7F9463] text-white hover:bg-[#7F9463]/90">
-                  <Link href="/journal">Abrir Diário</Link>
-                </Button>
-              </div>
-            </Card>
-
-            <Card className="border-[#C2B2A3] bg-[#F2DECC]/30 p-6 transition-shadow hover:shadow-md">
-              <div className="flex flex-col items-center text-center">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#F4B400]/20">
-                  <Pill className="h-6 w-6 text-[#F4B400]" />
-                </div>
-                <h3 className="mb-2 text-lg font-bold text-[#7F9463]">Medicamentos</h3>
-                <p className="mb-4 text-[#91857A]">
-                  Gerencie sua agenda de medicamentos e lembretes.
-                </p>
-                <Button asChild className="bg-[#F4B400] text-white hover:bg-[#F4B400]/90">
-                  <Link href="/medication">Configurações de Medicamentos</Link>
-                </Button>
-              </div>
-            </Card>
-
-            <Card className="border-[#78C7EE] bg-[#A5DCF6]/30 p-6 transition-shadow hover:shadow-md">
-              <div className="flex flex-col items-center text-center">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#039BE5]/20">
-                  <ClipboardList className="h-6 w-6 text-[#039BE5]" />
-                </div>
-                <h3 className="mb-2 text-lg font-bold text-[#7F9463]">Questionários</h3>
-                <p className="mb-4 text-[#91857A]">
-                  Complete avaliações para acompanhar seu progresso em saúde mental.
-                </p>
-                <Button asChild className="bg-[#039BE5] text-white hover:bg-[#039BE5]/90">
-                  <Link href="/inventory">Ver Questionários</Link>
-                </Button>
-              </div>
-            </Card>
+          {/* Enhanced Feature Cards */}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {featureCards.map((card, index) => (
+              <FeatureCard key={index} {...card} />
+            ))}
           </div>
         </div>
       </div>

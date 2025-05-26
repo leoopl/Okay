@@ -306,12 +306,8 @@ export default function MedicationList({ className }: MedicationListProps) {
           <h2 className="text-green-dark font-varela text-2xl font-bold">Your Medications</h2>
           {isLoading && <Loader2 className="text-green-dark size-5 animate-spin" />}
         </div>
-        <Button
-          onClick={handleOpenAddDialog}
-          disabled={isLoading}
-          className="bg-green-dark hover:bg-green-medium gap-2 text-white"
-        >
-          <PlusCircle className="size-4" />
+        <Button onClick={handleOpenAddDialog} disabled={isLoading} className="gap-2">
+          <PlusCircle className="mb-0.5 size-4" />
           Add New Medication
         </Button>
       </div>
@@ -349,11 +345,8 @@ export default function MedicationList({ className }: MedicationListProps) {
           </div>
           <h3 className="text-green-dark mb-2 text-xl font-medium">No medications found</h3>
           <p className="text-beige-dark mb-6">Start by adding your medications to track them</p>
-          <Button
-            onClick={handleOpenAddDialog}
-            className="bg-green-dark hover:bg-green-medium gap-2 text-white"
-          >
-            <PlusCircle className="size-4" />
+          <Button onClick={handleOpenAddDialog}>
+            <PlusCircle className="mr-2 mb-0.5 size-4" />
             Add your first medication
           </Button>
         </div>

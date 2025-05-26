@@ -3,150 +3,473 @@
 @import '../styles/_keyframe-animations.scss';
 @import '../styles/_variables.scss';
 
+/* React Day Picker override */
 .rdp-vhidden {
   @apply hidden;
 }
 
 @layer base {
+  /* Smooth scrolling for better UX */
   html {
     scroll-behavior: smooth;
   }
 
+  /* CSS Variables for Light Theme */
   :root {
-    --background: 140 14% 95%; /* #f2f5f3 */
-    --foreground: 225 8% 24%; /* #3a3c42 */
-    --card: 0 0% 100%; /* #ffffff */
-    --card-foreground: 225 8% 24%; /* #3a3c42 */
-    --popover: 0 0% 100%; /* #ffffff */
-    --popover-foreground: 225 8% 24%; /* #3a3c42 */
+    /* Background colors - warm, calming neutrals */
+    --background: 140 14% 95%; /* #f2f5f3 - Very light sage green */
+    --foreground: 225 8% 24%; /* #3a3c42 - Charcoal gray */
 
-    /* Primary - Warm, optimistic accent from logo */
-    --primary: 41 94% 58%; /* #f9c22e */
-    --primary-foreground: 39 25% 21%; /* #2d2a1b */
+    /* Card colors - clean and accessible */
+    --card: 0 0% 100%; /* #ffffff - Pure white */
+    --card-foreground: 225 8% 24%; /* #3a3c42 - Charcoal gray */
 
-    /* Secondary - Calming blue from your selection */
-    --secondary: 199 84% 81%; /* #a5dcf6 */
-    --secondary-foreground: 210 22% 26%; /* #2a3642 */
+    /* Popover colors */
+    --popover: 0 0% 100%; /* #ffffff - Pure white */
+    --popover-foreground: 225 8% 24%; /* #3a3c42 - Charcoal gray */
 
-    /* Muted - Warm neutral from your selection */
-    --muted: 26 65% 87%; /* #f2decc */
-    --muted-foreground: 27 10% 53%; /* #91857a */
+    /* Primary - Warm, optimistic yellow (mental health friendly) */
+    --primary: 41 94% 58%; /* #f9c22e - Warm yellow */
+    --primary-foreground: 39 25% 21%; /* #2d2a1b - Dark brown */
 
-    /* Accent - Soft green from your gradient base */
-    --accent: 126 23% 76%; /* #b6cfb8 */
-    --accent-foreground: 225 8% 24%; /* #3a3c42 */
+    /* Secondary - Calming blue (anxiety-reducing) */
+    --secondary: 199 84% 81%; /* #a5dcf6 - Light blue */
+    --secondary-foreground: 210 22% 26%; /* #2a3642 - Dark blue-gray */
 
-    /* Destructive - Gentle red that doesn't trigger anxiety */
-    --destructive: 0 67% 73%; /* #e88a8a */
-    --destructive-foreground: 0 0% 100%; /* #ffffff */
+    /* Muted - Warm neutral (comforting) */
+    --muted: 26 65% 87%; /* #f2decc - Warm beige */
+    --muted-foreground: 27 10% 53%; /* #91857a - Muted brown */
 
-    /* Border & UI elements - Soft, unobtrusive */
-    --border: 220 15% 82%; /* #cbcfd7 */
-    --input: 220 15% 82%; /* #cbcfd7 */
-    --ring: 201 79% 70%; /* #a3a6b0 */
-    /* --ring: 228 8% 66%; #a3a6b0 */
+    /* Accent - Soft green (growth and hope) */
+    --accent: 126 23% 76%; /* #b6cfb8 - Soft sage green */
+    --accent-foreground: 225 8% 24%; /* #3a3c42 - Charcoal gray */
 
-    /* Chart colors - aligned with your color selections */
-    --chart-1: 41 94% 58%; /* #f9c22e */
-    --chart-2: 201 79% 70%; /* #78c7ee */
-    --chart-3: 95 19% 66%; /* #abb899 */
-    --chart-4: 26 65% 87%; /* #f2decc */
-    --chart-5: 28 20% 70%; /* #c2b2a3 */
+    /* Destructive - Gentle red (non-alarming) */
+    --destructive: 0 67% 73%; /* #e88a8a - Soft red */
+    --destructive-foreground: 0 0% 100%; /* #ffffff - White */
 
-    /* Sidebar - creates a sense of safety with subtle differentiation */
-    --sidebar: 195 20% 95%; /* #eff3f4 */
-    --sidebar-foreground: 225 8% 24%; /* #3a3c42 */
-    --sidebar-primary: 41 94% 58%; /* #f9c22e */
-    --sidebar-primary-foreground: 39 25% 21%; /* #2d2a1b */
-    --sidebar-accent: 126 23% 76%; /* #b6cfb8 */
-    --sidebar-accent-foreground: 225 8% 24%; /* #3a3c42 */
-    --sidebar-border: 220 15% 82%; /* #cbcfd7 */
-    --sidebar-ring: 228 8% 66%; /* #a3a6b0 */
+    /* Border & Input colors - subtle and accessible */
+    --border: 220 15% 82%; /* #cbcfd7 - Light gray */
+    --input: 220 15% 82%; /* #cbcfd7 - Light gray */
+    --ring: 201 79% 70%; /* #78c7ee - Focus blue */
 
+    /* Chart colors - consistent with brand palette */
+    --chart-1: 41 94% 58%; /* #f9c22e - Primary yellow */
+    --chart-2: 201 79% 70%; /* #78c7ee - Medium blue */
+    --chart-3: 95 19% 66%; /* #abb899 - Sage green */
+    --chart-4: 26 65% 87%; /* #f2decc - Warm beige */
+    --chart-5: 28 20% 70%; /* #c2b2a3 - Neutral beige */
+
+    /* Sidebar colors - safe and welcoming */
+    --sidebar: 195 20% 95%; /* #eff3f4 - Very light blue-gray */
+    --sidebar-foreground: 225 8% 24%; /* #3a3c42 - Charcoal gray */
+    --sidebar-primary: 41 94% 58%; /* #f9c22e - Primary yellow */
+    --sidebar-primary-foreground: 39 25% 21%; /* #2d2a1b - Dark brown */
+    --sidebar-accent: 126 23% 76%; /* #b6cfb8 - Soft sage green */
+    --sidebar-accent-foreground: 225 8% 24%; /* #3a3c42 - Charcoal gray */
+    --sidebar-border: 220 15% 82%; /* #cbcfd7 - Light gray */
+    --sidebar-ring: 228 8% 66%; /* #a3a6b0 - Medium gray */
+
+    /* Design system tokens */
     --radius: 0.5rem;
     --font-varela-round: 'Varela Round', sans-serif;
   }
 
+  /* Dark Theme Variables */
   .dark {
-    /* Base colors - dark but not harsh black */
-    --background: 217 16% 12%; /* #1a1e24 */
-    --foreground: 210 16% 93%; /* #e9ecef */
-    --card: 217 15% 17%; /* #242931 */
-    --card-foreground: 210 16% 93%; /* #e9ecef */
-    --popover: 217 15% 17%; /* #242931 */
-    --popover-foreground: 210 16% 93%; /* #e9ecef */
+    /* Background colors - dark but not harsh */
+    --background: 217 16% 12%; /* #1a1e24 - Dark blue-gray */
+    --foreground: 210 16% 93%; /* #e9ecef - Light gray */
 
-    /* Primary - slightly muted yellow to avoid eye strain */
-    --primary: 44 81% 54%; /* #e9b829 */
-    --primary-foreground: 39 25% 21%; /* #2d2a1b */
+    /* Card colors */
+    --card: 217 15% 17%; /* #242931 - Dark card background */
+    --card-foreground: 210 16% 93%; /* #e9ecef - Light text */
 
-    /* Secondary - deeper blue that's still calming in dark mode */
-    --secondary: 201 50% 51%; /* #4095c3 */
-    --secondary-foreground: 210 16% 93%; /* #e9ecef */
+    /* Popover colors */
+    --popover: 217 15% 17%; /* #242931 - Dark popover */
+    --popover-foreground: 210 16% 93%; /* #e9ecef - Light text */
 
-    /* Muted - darker neutral tones */
-    --muted: 216 11% 25%; /* #394149 */
-    --muted-foreground: 206 11% 78%; /* #b8c0c7 */
+    /* Primary - Slightly muted yellow (reduced eye strain) */
+    --primary: 44 81% 54%; /* #e9b829 - Muted yellow */
+    --primary-foreground: 39 25% 21%; /* #2d2a1b - Dark brown */
 
-    /* Accent - deeper green still conveying growth */
-    /*--accent: 127 11% 45%;  #657f68 */
-    --accent: 124.8 20.66% 76.27%; /*  #657f68 */
-    --accent-foreground: 210 16% 93%; /* #e9ecef */
+    /* Secondary - Deeper blue (calming in dark mode) */
+    --secondary: 201 50% 51%; /* #4095c3 - Medium blue */
+    --secondary-foreground: 210 16% 93%; /* #e9ecef - Light text */
 
-    /* Destructive - muted red that doesn't trigger anxiety */
-    --destructive: 0 35% 49%; /* #a95151 */
-    --destructive-foreground: 0 0% 95%; /* #f2f2f2 */
+    /* Muted - Darker neutral tones */
+    --muted: 216 11% 25%; /* #394149 - Dark muted */
+    --muted-foreground: 206 11% 78%; /* #b8c0c7 - Light muted text */
 
-    /* Border & UI elements - subtle separation */
-    --border: 216 11% 25%; /* #394149 */
-    --input: 216 11% 25%; /* #394149 */
-    --ring: 214 8% 40%; /* #5d656c */
+    /* Accent - Deeper green (maintains hope/growth meaning) */
+    --accent: 124.8 20.66% 76.27%; /* #a4c4a7 - Muted sage green */
+    --accent-foreground: 210 16% 93%; /* #e9ecef - Light text */
+
+    /* Destructive - Muted red (less alarming) */
+    --destructive: 0 35% 49%; /* #a95151 - Darker red */
+    --destructive-foreground: 0 0% 95%; /* #f2f2f2 - Near white */
+
+    /* Border & Input - subtle separation */
+    --border: 216 11% 25%; /* #394149 - Dark border */
+    --input: 216 11% 25%; /* #394149 - Dark input */
+    --ring: 214 8% 40%; /* #5d656c - Dark focus ring */
 
     /* Chart colors - consistent meaning with light theme */
-    --chart-1: 44 81% 54%; /* #e9b829 */
-    --chart-2: 201 50% 51%; /* #4095c3 */
-    --chart-3: 127 11% 45%; /* #657f68 */
-    --chart-4: 23 15% 52%; /* #9a8672 */
-    --chart-5: 271 12% 48%; /* #7d6c8a */
+    --chart-1: 44 81% 54%; /* #e9b829 - Muted yellow */
+    --chart-2: 201 50% 51%; /* #4095c3 - Medium blue */
+    --chart-3: 127 11% 45%; /* #657f68 - Dark green */
+    --chart-4: 23 15% 52%; /* #9a8672 - Dark beige */
+    --chart-5: 271 12% 48%; /* #7d6c8a - Dark purple */
 
-    /* Sidebar - creates a sense of safety with subtle differentiation */
-    --sidebar: 218 18% 15%; /* #1f242c */
-    --sidebar-foreground: 210 16% 93%; /* #e9ecef */
-    --sidebar-primary: 44 81% 54%; /* #e9b829 */
-    --sidebar-primary-foreground: 39 25% 21%; /* #2d2a1b */
-    --sidebar-accent: 127 11% 45%; /* #657f68 */
-    --sidebar-accent-foreground: 210 16% 93%; /* #e9ecef */
-    --sidebar-border: 216 11% 25%; /* #394149 */
-    --sidebar-ring: 214 8% 40%; /* #5d656c */
+    /* Sidebar - consistent with main theme */
+    --sidebar: 218 18% 15%; /* #1f242c - Darker sidebar */
+    --sidebar-foreground: 210 16% 93%; /* #e9ecef - Light text */
+    --sidebar-primary: 44 81% 54%; /* #e9b829 - Muted yellow */
+    --sidebar-primary-foreground: 39 25% 21%; /* #2d2a1b - Dark brown */
+    --sidebar-accent: 127 11% 45%; /* #657f68 - Dark green */
+    --sidebar-accent-foreground: 210 16% 93%; /* #e9ecef - Light text */
+    --sidebar-border: 216 11% 25%; /* #394149 - Dark border */
+    --sidebar-ring: 214 8% 40%; /* #5d656c - Dark ring */
   }
 }
 
-/* Base styles */
+/* Base element styling */
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
+  }
+
+  /* Enhanced focus styles for accessibility */
+  *:focus-visible {
+    @apply ring-ring ring-offset-background ring-2 ring-offset-2 outline-none;
+  }
+
+  /* Button focus improvements */
+  button:focus-visible,
+  [role='button']:focus-visible {
+    @apply ring-ring ring-2 ring-offset-2;
+  }
+
+  /* Form element improvements */
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    @apply ring-ring ring-2 ring-offset-2;
+  }
+
+  /* Link improvements */
+  a:focus-visible {
+    @apply ring-ring rounded-sm ring-2 ring-offset-2;
+  }
+
+  /* Improved selection colors */
+  ::selection {
+    @apply bg-primary/20 text-primary-foreground;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted/30;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-md;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
   }
 }
 
-/* Custom utility classes */
+/* Component layer improvements */
+@layer components {
+  /* Enhanced card component */
+  .card {
+    @apply bg-card text-card-foreground overflow-hidden rounded-xl border shadow-sm transition-all duration-200;
+  }
+
+  .card:hover {
+    @apply shadow-lg;
+  }
+
+  /* Form component improvements */
+  .form-section {
+    @apply border-border bg-card/50 space-y-4 rounded-lg border p-6;
+  }
+
+  .form-section h3 {
+    @apply text-foreground text-lg font-semibold;
+  }
+
+  .form-section p {
+    @apply text-muted-foreground text-sm;
+  }
+
+  /* Button component enhancements */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-primary/50;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/90 focus-visible:ring-secondary/50;
+  }
+
+  .btn-destructive {
+    @apply bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive/50;
+  }
+
+  /* Loading states */
+  .loading-skeleton {
+    @apply bg-muted/50 animate-pulse rounded;
+  }
+
+  .loading-spinner {
+    @apply text-muted-foreground animate-spin;
+  }
+
+  /* Status indicators */
+  .status-success {
+    @apply border-green-200 bg-green-50 text-green-600;
+  }
+
+  .status-error {
+    @apply border-red-200 bg-red-50 text-red-600;
+  }
+
+  .status-warning {
+    @apply border-yellow-200 bg-yellow-50 text-yellow-600;
+  }
+
+  .status-info {
+    @apply border-blue-200 bg-blue-50 text-blue-600;
+  }
+
+  /* Typography improvements */
+  .heading-1 {
+    @apply text-foreground text-3xl font-bold tracking-tight;
+  }
+
+  .heading-2 {
+    @apply text-foreground text-2xl font-semibold tracking-tight;
+  }
+
+  .heading-3 {
+    @apply text-foreground text-xl font-semibold;
+  }
+
+  .heading-4 {
+    @apply text-foreground text-lg font-medium;
+  }
+
+  .body-large {
+    @apply text-foreground text-base;
+  }
+
+  .body-medium {
+    @apply text-foreground text-sm;
+  }
+
+  .body-small {
+    @apply text-muted-foreground text-xs;
+  }
+
+  /* Interactive element improvements */
+  .interactive-element {
+    @apply cursor-pointer transition-all duration-200;
+  }
+
+  .interactive-element:hover {
+    @apply scale-105 shadow-lg;
+  }
+
+  .interactive-element:active {
+    @apply scale-95;
+  }
+
+  .interactive-element:disabled {
+    @apply cursor-not-allowed opacity-50 hover:scale-100 hover:shadow-sm;
+  }
+}
+
+/* Utility layer enhancements */
 @layer utilities {
+  /* Text utilities */
   .text-balance {
     text-wrap: balance;
   }
+
   .small-caps {
     font-variant: small-caps;
   }
 
+  /* Enhanced gradient background */
   .gradient-background {
-    @apply bg-background bg-gradient-to-b from-[#F2DECC]/30 to-[#A5DCF6]/20;
+    @apply from-background via-muted/20 to-accent/10 bg-gradient-to-br;
+  }
+
+  .gradient-background-dark {
+    @apply from-background via-card to-muted/10 bg-gradient-to-br;
+  }
+
+  /* Focus utilities */
+  .focus-ring {
+    @apply focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none;
+  }
+
+  .focus-ring-primary {
+    @apply focus-visible:ring-primary/50;
+  }
+
+  .focus-ring-destructive {
+    @apply focus-visible:ring-destructive/50;
+  }
+
+  /* Animation utilities */
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.2s ease-out;
+  }
+
+  /* Mental health friendly colors */
+  .text-calm {
+    @apply text-blue-600;
+  }
+
+  .text-hope {
+    @apply text-green-600;
+  }
+
+  .text-warmth {
+    @apply text-yellow-600;
+  }
+
+  .text-comfort {
+    @apply text-orange-600;
+  }
+
+  .bg-calm {
+    @apply bg-blue-50;
+  }
+
+  .bg-hope {
+    @apply bg-green-50;
+  }
+
+  .bg-warmth {
+    @apply bg-yellow-50;
+  }
+
+  .bg-comfort {
+    @apply bg-orange-50;
+  }
+
+  /* Accessibility utilities */
+  .sr-only-focusable {
+    @apply focus:bg-background focus:text-foreground sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-2;
+  }
+
+  .high-contrast {
+    @apply contrast-150 saturate-150;
+  }
+
+  .reduced-motion {
+    @apply motion-reduce:animate-none motion-reduce:transition-none;
   }
 }
 
-@layer components {
+/* Print styles */
+@media print {
+  .no-print {
+    @apply hidden;
+  }
+
+  .print-only {
+    @apply block;
+  }
+
+  body {
+    @apply bg-white text-black;
+  }
+
   .card {
-    @apply overflow-hidden rounded-xl p-6 shadow-md transition-shadow duration-300 hover:shadow-lg;
+    @apply border shadow-none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --border: 0 0% 20%;
+    --ring: 0 0% 30%;
+  }
+
+  .dark {
+    --border: 0 0% 70%;
+    --ring: 0 0% 80%;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Custom keyframes for enhanced animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
