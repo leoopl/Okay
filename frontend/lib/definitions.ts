@@ -103,6 +103,8 @@ export type UserProfile = {
   createdAt?: string;
   updatedAt?: string;
   tokenFingerprint?: string;
+  profilePictureUrl?: string;
+  profilePictureUpdatedAt?: string;
 };
 
 export type TokenResponse = {

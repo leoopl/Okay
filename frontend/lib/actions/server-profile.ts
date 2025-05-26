@@ -13,6 +13,13 @@ export type ProfileActionResponse = {
   errors?: Record<string, string[]>;
 };
 
+// Profile picture upload
+export type ProfilePictureActionResponse = {
+  success: boolean;
+  message?: string;
+  profilePictureUrl?: string;
+};
+
 /**
  * Update user profile
  */
@@ -316,5 +323,183 @@ export async function getUserProfile() {
   } catch (error) {
     console.error('Error fetching user profile:', error);
     return null;
+  }
+}
+
+/**
+ * Upload user profile picture
+ */
+export async function uploadProfilePicture(
+  prevState: ProfilePictureActionResponse | undefined,
+  formData: FormData,
+): Promise<ProfilePictureActionResponse> {
+  try {
+    // Get current user session
+    const session = await getServerSession();
+    if (!session) {
+      return { success: false, message: 'Você precisa estar logado para fazer upload da foto' };
+    }
+
+    // Get the file from form data
+    const file = formData.get('file') as File;
+    if (!file || file.size === 0) {
+      return { success: false, message: 'Nenhum arquivo foi selecionado' };
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      return {
+        success: false,
+        message: 'Tipo de arquivo não permitido. Use JPG, PNG, GIF ou WEBP',
+      };
+    }
+
+    // Validate file size (5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      return {
+        success: false,
+        message: 'Arquivo muito grande. Tamanho máximo: 5MB',
+      };
+    }
+
+    // Make API call to upload profile picture
+    const apiUrl = process.env.API_URL;
+    const userId = session.id;
+    const cookieStore = await cookies();
+    const csrfToken = cookieStore.get('csrf_token')?.value || '';
+    const accessToken = cookieStore.get('access_token')?.value;
+
+    // Check if we have an access token
+    if (!accessToken) {
+      // Try to refresh the token
+      const refreshed = await refreshServerToken();
+      if (!refreshed) {
+        return { success: false, message: 'Sua sessão expirou. Por favor, faça login novamente.' };
+      }
+    }
+
+    // Get the potentially refreshed token
+    const currentToken = cookieStore.get('access_token')?.value;
+
+    // Create form data for the API
+    const uploadFormData = new FormData();
+    uploadFormData.append('file', file);
+
+    const response = await fetch(`${apiUrl}/users/${userId}/profile-picture`, {
+      method: 'POST',
+      headers: {
+        'X-CSRF-Token': csrfToken,
+        Authorization: `Bearer ${currentToken}`,
+      },
+      credentials: 'include',
+      body: uploadFormData, // Don't set Content-Type for FormData
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        return {
+          success: false,
+          message: 'Sua sessão expirou. Por favor, faça login novamente.',
+        };
+      }
+
+      const errorData = await response.json();
+      return {
+        success: false,
+        message: errorData.message || 'Erro ao fazer upload da foto',
+      };
+    }
+
+    const userData = await response.json();
+
+    // Revalidate profile page
+    revalidatePath('/profile');
+
+    return {
+      success: true,
+      message: 'Foto de perfil atualizada com sucesso',
+      profilePictureUrl: userData.profilePictureUrl,
+    };
+  } catch (error) {
+    console.error('Error uploading profile picture:', error);
+    return {
+      success: false,
+      message: 'Ocorreu um erro ao fazer upload da foto. Tente novamente mais tarde.',
+    };
+  }
+}
+
+/**
+ * Delete user profile picture
+ */
+export async function deleteProfilePicture(
+  prevState: ProfilePictureActionResponse | undefined,
+  formData: FormData,
+): Promise<ProfilePictureActionResponse> {
+  try {
+    // Get current user session
+    const session = await getServerSession();
+    if (!session) {
+      return { success: false, message: 'Você precisa estar logado para remover a foto' };
+    }
+
+    // Make API call to delete profile picture
+    const apiUrl = process.env.API_URL;
+    const userId = session.id;
+    const cookieStore = await cookies();
+    const csrfToken = cookieStore.get('csrf_token')?.value || '';
+    const accessToken = cookieStore.get('access_token')?.value;
+
+    // Check if we have an access token
+    if (!accessToken) {
+      // Try to refresh the token
+      const refreshed = await refreshServerToken();
+      if (!refreshed) {
+        return { success: false, message: 'Sua sessão expirou. Por favor, faça login novamente.' };
+      }
+    }
+
+    // Get the potentially refreshed token
+    const currentToken = cookieStore.get('access_token')?.value;
+
+    const response = await fetch(`${apiUrl}/users/${userId}/profile-picture`, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRF-Token': csrfToken,
+        Authorization: `Bearer ${currentToken}`,
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        return {
+          success: false,
+          message: 'Sua sessão expirou. Por favor, faça login novamente.',
+        };
+      }
+
+      const errorData = await response.json();
+      return {
+        success: false,
+        message: errorData.message || 'Erro ao remover a foto',
+      };
+    }
+
+    // Revalidate profile page
+    revalidatePath('/profile');
+
+    return {
+      success: true,
+      message: 'Foto de perfil removida com sucesso',
+    };
+  } catch (error) {
+    console.error('Error deleting profile picture:', error);
+    return {
+      success: false,
+      message: 'Ocorreu um erro ao remover a foto. Tente novamente mais tarde.',
+    };
   }
 }

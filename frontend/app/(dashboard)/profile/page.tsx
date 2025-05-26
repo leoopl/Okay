@@ -3,27 +3,18 @@
 import { NotificationsTab } from '@/components/profile/notifications-tab';
 import { ProfileTab } from '@/components/profile/profile-tab';
 import { SecurityTab } from '@/components/profile/security-tab';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ProfilePictureUpload } from '@/components/profile/profile-picture-upload';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Book,
-  CircleUser,
-  ClipboardList,
-  LogOut,
-  Pill,
-  Settings,
-  Shield,
-  Star,
-  User,
-} from 'lucide-react';
+import { Book, ClipboardList, LogOut, Pill, Settings, Shield, Star, User } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useAuth } from '@/providers/auth-provider';
-import { formatDate, getUserInitials } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import { Toaster } from 'sonner';
 
 export default function Profile() {
   const [activeTab, setActiveTab] = useState('profile');
@@ -44,17 +35,15 @@ export default function Profile() {
 
   return (
     <div className="mx-auto max-w-7xl pb-5">
+      <Toaster richColors position="top-center" />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* Profile Card */}
         <Card className="bg-grey-light/30 lg:col-span-3">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center space-y-4">
-              <Avatar className="h-24 w-24">
-                <AvatarImage
-                  src={`https://ui-avatars.com/api/?name=${user?.name}+${user?.surname || ''}&background=7F9463&color=fff`}
-                />
-                <AvatarFallback>{user ? getUserInitials(user) : <CircleUser />}</AvatarFallback>
-              </Avatar>
+              {/* Profile Picture Upload Component */}
+              <ProfilePictureUpload size="xl" className="transition-transform hover:scale-105" />
+
               <div className="space-y-2 text-center">
                 <h2 className="text-xl font-semibold">
                   {user?.name} {user?.surname}

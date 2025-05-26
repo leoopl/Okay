@@ -70,6 +70,7 @@ async function bootstrap() {
     .addTag('authentication')
     .addTag('medications')
     .addTag('testimonials')
+    .addTag('files')
     .addBearerAuth(
       {
         type: 'http',

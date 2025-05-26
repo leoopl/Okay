@@ -332,6 +332,8 @@ export async function getServerSession(): Promise<UserProfile | null> {
       consentToMarketing: userData.consentToMarketing,
       createdAt: userData.createdAt,
       updatedAt: userData.updatedAt,
+      profilePictureUrl: userData.profilePictureUrl,
+      profilePictureUpdatedAt: userData.profilePictureUpdatedAt,
     };
   } catch (error) {
     console.error('Error validating token:', error);
