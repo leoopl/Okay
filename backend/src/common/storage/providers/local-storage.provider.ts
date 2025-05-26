@@ -37,9 +37,15 @@ export class LocalStorageProvider implements IStorageProvider {
 
       const key = path.join(filePath, fileName).replace(/\\/g, '/');
 
+      // Make sure the URL is correctly formatted
+      const fileUrl = `${this.baseUrl}/api/files/${key}`;
+
+      this.logger.log(`File uploaded successfully: ${key}`);
+      this.logger.log(`Generated URL: ${fileUrl}`);
+
       return {
         key,
-        url: `${this.baseUrl}/api/files/${key}`,
+        url: fileUrl,
         size: file.size,
         mimetype: file.mimetype,
         provider: 'local',

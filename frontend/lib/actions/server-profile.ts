@@ -414,8 +414,12 @@ export async function uploadProfilePicture(
 
     const userData = await response.json();
 
-    // Revalidate profile page
+    // IMPORTANT: Revalidate both the profile page AND clear Next.js cache
     revalidatePath('/profile');
+    revalidatePath('/profile', 'page'); // Revalidate the specific page
+
+    // Also revalidate the layout to refresh the user session
+    revalidatePath('/', 'layout');
 
     return {
       success: true,
@@ -488,8 +492,12 @@ export async function deleteProfilePicture(
       };
     }
 
-    // Revalidate profile page
+    // IMPORTANT: Revalidate both the profile page AND clear Next.js cache
     revalidatePath('/profile');
+    revalidatePath('/profile', 'page');
+
+    // Also revalidate the layout to refresh the user session
+    revalidatePath('/', 'layout');
 
     return {
       success: true,

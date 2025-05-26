@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   BookHeart,
-  Package,
   Pill,
   Settings,
   LogOut,
@@ -22,7 +21,7 @@ import {
   NotebookPen,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { getUserInitials } from '@/lib/utils';
+import { getProfilePictureUrl, getUserInitials } from '@/lib/utils';
 import { useAuth } from '@/providers/auth-provider';
 
 export default function UserButton() {
@@ -74,7 +73,7 @@ export default function UserButton() {
           <div className="flex items-center gap-2">
             <Avatar className="h-8 w-8 ring-2 ring-[#F8D77C]/30">
               <AvatarImage
-                src={`https://ui-avatars.com/api/?name=${user?.name}+${user?.surname || ''}&background=7F9463&color=fff`}
+                src={user ? getProfilePictureUrl(user) : undefined}
                 alt={user?.name}
                 className="object-cover"
               />
@@ -100,9 +99,9 @@ export default function UserButton() {
         {/* User Info Section */}
         <DropdownMenuLabel className="px-3 py-2">
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10 ring-2 ring-[#F8D77C]/30">
+            <Avatar className="ring-beige-medium/30 size-10 ring-2">
               <AvatarImage
-                src={`https://ui-avatars.com/api/?name=${user?.name}+${user?.surname || ''}&background=7F9463&color=fff`}
+                src={user ? getProfilePictureUrl(user) : undefined}
                 alt={user?.name}
                 className="object-cover"
               />
@@ -129,7 +128,7 @@ export default function UserButton() {
             >
               <div className="flex w-full items-center gap-3">
                 <div className="flex-shrink-0">
-                  <item.icon className="text-green-dark h-4 w-4" />
+                  <item.icon className="text-green-dark size-4" />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-grey-dark text-sm font-medium">{item.label}</span>
@@ -149,7 +148,7 @@ export default function UserButton() {
             className="hover:bg-destructive/40 focus:bg-destructive/40 cursor-pointer rounded-md px-3 py-2 text-red-600 transition-colors duration-150"
           >
             <div className="flex w-full items-center gap-3">
-              <LogOut className="h-4 w-4" />
+              <LogOut className="size-4" />
               <span className="text-sm font-medium">Logout</span>
             </div>
           </DropdownMenuItem>

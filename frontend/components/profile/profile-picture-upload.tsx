@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { getUserInitials } from '@/lib/utils';
 import { useAuth } from '@/providers/auth-provider';
 import { uploadProfilePicture, deleteProfilePicture } from '@/lib/actions/server-profile';
+import { useRouter } from 'next/navigation';
 
 interface ProfilePictureUploadProps {
   className?: string;
@@ -29,8 +30,10 @@ const sizeClasses = {
 
 export function ProfilePictureUpload({ className = '', size = 'xl' }: ProfilePictureUploadProps) {
   const { user } = useAuth();
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
   const [uploadState, uploadAction, isUploadPending] = useActionState(
     uploadProfilePicture,
     undefined,
@@ -40,6 +43,11 @@ export function ProfilePictureUpload({ className = '', size = 'xl' }: ProfilePic
     undefined,
   );
 
+  // Update local image URL when user changes
+  useEffect(() => {
+    setCurrentImageUrl(user?.profilePictureUrl || null);
+  }, [user?.profilePictureUrl]);
+
   // Handle upload success/error
   useEffect(() => {
     if (uploadState?.success) {
@@ -47,13 +55,21 @@ export function ProfilePictureUpload({ className = '', size = 'xl' }: ProfilePic
         description: uploadState.message,
       });
       setIsUploading(false);
+
+      // Update local state with new URL
+      if (uploadState.profilePictureUrl) {
+        setCurrentImageUrl(uploadState.profilePictureUrl);
+      }
+
+      // Force a router refresh to update the server session
+      router.refresh();
     } else if (uploadState && !uploadState.success && uploadState.message) {
       toast.error('Erro no upload', {
         description: uploadState.message,
       });
       setIsUploading(false);
     }
-  }, [uploadState]);
+  }, [uploadState, router]);
 
   // Handle delete success/error
   useEffect(() => {
@@ -61,12 +77,18 @@ export function ProfilePictureUpload({ className = '', size = 'xl' }: ProfilePic
       toast.success('Foto removida', {
         description: deleteState.message,
       });
+
+      // Clear local image URL
+      setCurrentImageUrl(null);
+
+      // Force a router refresh to update the server session
+      router.refresh();
     } else if (deleteState && !deleteState.success && deleteState.message) {
       toast.error('Erro ao remover', {
         description: deleteState.message,
       });
     }
-  }, [deleteState]);
+  }, [deleteState, router]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -116,11 +138,15 @@ export function ProfilePictureUpload({ className = '', size = 'xl' }: ProfilePic
     });
   };
 
-  // Get the profile picture URL or fallback
+  // Get the profile picture URL with fallback
   const getProfilePictureUrl = () => {
-    // If user has a profile picture URL, use it
-    if (user?.profilePictureUrl) {
-      return user.profilePictureUrl;
+    // Use local state first, then user data, then fallback
+    const imageUrl = currentImageUrl || user?.profilePictureUrl;
+
+    if (imageUrl) {
+      // Add timestamp to prevent caching issues
+      const separator = imageUrl.includes('?') ? '&' : '?';
+      return `${imageUrl}${separator}t=${Date.now()}`;
     }
 
     // Fallback to ui-avatars.com
@@ -128,6 +154,7 @@ export function ProfilePictureUpload({ className = '', size = 'xl' }: ProfilePic
   };
 
   const isPending = isUploading || isUploadPending || isDeletePending;
+  const hasProfilePicture = currentImageUrl || user?.profilePictureUrl;
 
   return (
     <div className={`relative ${className}`}>
@@ -152,6 +179,14 @@ export function ProfilePictureUpload({ className = '', size = 'xl' }: ProfilePic
                 src={getProfilePictureUrl()}
                 alt={`${user?.name}'s profile picture`}
                 className="object-cover"
+                onError={(e) => {
+                  // If image fails to load, try without timestamp
+                  const target = e.target as HTMLImageElement;
+                  const originalSrc = currentImageUrl || user?.profilePictureUrl;
+                  if (originalSrc && target.src.includes('?t=')) {
+                    target.src = originalSrc;
+                  }
+                }}
               />
               <AvatarFallback>{user ? getUserInitials(user) : <CircleUser />}</AvatarFallback>
             </Avatar>
@@ -172,10 +207,10 @@ export function ProfilePictureUpload({ className = '', size = 'xl' }: ProfilePic
         <DropdownMenuContent align="center" className="w-56">
           <DropdownMenuItem onClick={handleUploadClick} disabled={isPending}>
             <Upload className="mr-2 h-4 w-4" />
-            {user?.profilePictureUrl ? 'Alterar foto' : 'Fazer upload da foto'}
+            {hasProfilePicture ? 'Alterar foto' : 'Fazer upload da foto'}
           </DropdownMenuItem>
 
-          {user?.profilePictureUrl && (
+          {hasProfilePicture && (
             <DropdownMenuItem
               onClick={handleDeleteClick}
               disabled={isPending}

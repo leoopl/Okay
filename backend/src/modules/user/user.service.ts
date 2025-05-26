@@ -166,15 +166,18 @@ export class UserService {
         `profile-pictures/${userId}`,
       );
 
-      // Update user with new profile picture info
-      user.profilePictureKey = uploadResult.key;
-      user.profilePictureUrl = uploadResult.url;
-      user.profilePictureProvider = uploadResult.provider;
-      user.profilePictureMimeType = uploadResult.mimetype;
-      user.profilePictureSize = uploadResult.size;
-      user.profilePictureUpdatedAt = new Date();
+      // IMPORTANT: Only update profile picture fields, don't modify password-related fields
+      const updateData = {
+        profilePictureKey: uploadResult.key,
+        profilePictureUrl: uploadResult.url,
+        profilePictureProvider: uploadResult.provider,
+        profilePictureMimeType: uploadResult.mimetype,
+        profilePictureSize: uploadResult.size,
+        profilePictureUpdatedAt: new Date(),
+      };
 
-      await this.usersRepository.save(user);
+      // Use a more targeted update to avoid triggering password hashing
+      await this.usersRepository.update(userId, updateData);
 
       // Audit the upload
       await this.auditService.logAction({
@@ -189,7 +192,8 @@ export class UserService {
         },
       });
 
-      return user;
+      // Return fresh user data
+      return this.findOne(userId);
     } catch (error) {
       this.logger.error(
         `Failed to upload profile picture: ${error.message}`,
@@ -199,6 +203,7 @@ export class UserService {
     }
   }
 
+  // Also update deleteProfilePicture method
   async deleteProfilePicture(userId: string, actorId: string): Promise<User> {
     const user = await this.findOne(userId);
 
@@ -210,15 +215,17 @@ export class UserService {
       // Delete file from storage
       await this.storageService.deleteFile(user.profilePictureKey);
 
-      // Clear profile picture fields
-      user.profilePictureKey = null;
-      user.profilePictureUrl = null;
-      user.profilePictureProvider = null;
-      user.profilePictureMimeType = null;
-      user.profilePictureSize = null;
-      user.profilePictureUpdatedAt = null;
+      // Use targeted update to clear profile picture fields
+      const updateData = {
+        profilePictureKey: null,
+        profilePictureUrl: null,
+        profilePictureProvider: null,
+        profilePictureMimeType: null,
+        profilePictureSize: null,
+        profilePictureUpdatedAt: null,
+      };
 
-      await this.usersRepository.save(user);
+      await this.usersRepository.update(userId, updateData);
 
       // Audit the deletion
       await this.auditService.logAction({
@@ -231,7 +238,8 @@ export class UserService {
         },
       });
 
-      return user;
+      // Return fresh user data
+      return this.findOne(userId);
     } catch (error) {
       this.logger.error(
         `Failed to delete profile picture: ${error.message}`,
@@ -392,8 +400,8 @@ export class UserService {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
-    // Update password - using argon2 hashing through entity hook
-    user.password = newPassword;
+    // Use the safe setPassword method instead of directly setting password
+    user.setPassword(newPassword);
 
     // Save user
     const updatedUser = await this.usersRepository.save(user);

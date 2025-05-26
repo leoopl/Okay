@@ -6,7 +6,26 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// Get user initials for avatar fallback
+/**
+ * Get User Profile Picture URL
+ */
+export const getProfilePictureUrl = (user: UserProfile) => {
+  // Use local state first, then user data, then fallback
+  const imageUrl = user?.profilePictureUrl;
+
+  if (imageUrl) {
+    // Add timestamp to prevent caching issues
+    const separator = imageUrl.includes('?') ? '&' : '?';
+    return `${imageUrl}${separator}t=${Date.now()}`;
+  }
+
+  // Fallback to ui-avatars.com
+  return `https://ui-avatars.com/api/?name=${user?.name}+${user?.surname || ''}&background=7F9463&color=fff`;
+};
+
+/**
+ * Get user initials for avatar fallback
+ */
 export const getUserInitials = (user: UserProfile) => {
   if (!user) return 'U';
 

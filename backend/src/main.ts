@@ -16,8 +16,17 @@ async function bootstrap() {
   });
   const configService = app.get(ConfigService);
 
-  // Apply security headers
-  app.use(helmet());
+  // Apply security headers with image serving exceptions
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow cross-origin images
+      contentSecurityPolicy: {
+        directives: {
+          imgSrc: ["'self'", 'data:', 'blob:', '*'], // Allow images from anywhere
+        },
+      },
+    }),
+  );
 
   // Apply compression for better performance
   app.use(compression());
@@ -34,28 +43,59 @@ async function bootstrap() {
     }),
   );
 
-  // Set up CORS for frontend integration
+  // Set up CORS for frontend integration with detailed configuration
   app.enableCors({
-    origin: configService.get<string>('CORS_ORIGIN'),
+    origin: [
+      configService.get<string>('CORS_ORIGIN'),
+      'http://localhost:3000', // Frontend
+      'http://localhost:3001', // Backend (for file serving)
+    ],
     credentials: true, // Required for cookies
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
     allowedHeaders: [
       'Content-Type',
       'Authorization',
       'Accept',
       'X-Requested-With',
       'X-CSRF-Token',
+      'Range', // Important for image serving
     ],
-    exposedHeaders: ['Authorization'],
+    exposedHeaders: [
+      'Authorization',
+      'Content-Length',
+      'Content-Type',
+      'X-File-Key', // Custom debug header
+    ],
     maxAge: 86400, // 24 hours
+    optionsSuccessStatus: 200, // Some legacy browsers choke on 204
   });
 
   // Set global API prefix
   app.setGlobalPrefix('api');
 
-  // Serve static files from uploads directory
+  // Serve static files from uploads directory with proper headers
   app.useStaticAssets(join(__dirname, '..', 'uploads'), {
     prefix: '/uploads/',
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    setHeaders: (res, path, stat) => {
+      // Set CORS headers for static files
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+
+      // Set appropriate content type based on file extension
+      const ext = path.split('.').pop()?.toLowerCase();
+      const mimeTypes = {
+        jpg: 'image/jpeg',
+        jpeg: 'image/jpeg',
+        png: 'image/png',
+        gif: 'image/gif',
+        webp: 'image/webp',
+      };
+
+      if (ext && mimeTypes[ext]) {
+        res.setHeader('Content-Type', mimeTypes[ext]);
+      }
+    },
   });
 
   // Set up Swagger API documentation

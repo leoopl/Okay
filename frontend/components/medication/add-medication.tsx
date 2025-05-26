@@ -337,7 +337,7 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
             render={({ field }) => (
               <FormItem className="flex flex-col">
                 <FormLabel>Start Date *</FormLabel>
-                <Popover>
+                <Popover modal={true}>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
@@ -375,7 +375,7 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
             render={({ field }) => (
               <FormItem className="flex flex-col">
                 <FormLabel>End Date (optional)</FormLabel>
-                <Popover>
+                <Popover modal={true}>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button

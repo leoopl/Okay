@@ -92,6 +92,9 @@ export class User {
   @Column({ nullable: true, type: 'timestamp' })
   profilePictureUpdatedAt?: Date;
 
+  // Track if password was changed to avoid unnecessary hashing
+  private passwordChanged = false;
+
   // Relationships
   @ManyToMany(() => Role, { eager: true })
   @JoinTable({
@@ -111,13 +114,29 @@ export class User {
   medications: Medication[];
 
   @BeforeInsert()
-  @BeforeUpdate()
-  async hashPassword() {
+  async hashPasswordOnInsert() {
     if (this.password) {
       this.password = await argon2.hash(this.password, {
         type: argon2.argon2id,
       });
     }
+  }
+
+  @BeforeUpdate()
+  async hashPasswordOnUpdate() {
+    // Only hash password if it was actually changed
+    if (this.password && this.passwordChanged) {
+      this.password = await argon2.hash(this.password, {
+        type: argon2.argon2id,
+      });
+      this.passwordChanged = false; // Reset flag
+    }
+  }
+
+  // Method to safely set password (marks it as changed)
+  setPassword(newPassword: string) {
+    this.password = newPassword;
+    this.passwordChanged = true;
   }
 
   // Method to update consent fields
