@@ -9,6 +9,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  Index,
 } from 'typeorm';
 import * as argon2 from 'argon2';
 import { Role } from './role.entity';
@@ -34,10 +35,11 @@ export class User {
   surname?: string;
 
   @Column({ unique: true })
+  @Index()
   email: string;
 
   @Column({ nullable: true })
-  password: string; // nullable for Auth0 users
+  password: string; // nullable for OAuth users
 
   @Column({ nullable: true })
   gender?: string;
@@ -45,8 +47,23 @@ export class User {
   @Column({ type: 'date', nullable: true })
   birthdate: Date;
 
+  // OAuth provider fields
   @Column({ nullable: true, unique: true })
+  @Index()
   auth0Id: string; // field to link with Auth0 users
+
+  @Column({ nullable: true, unique: true })
+  @Index()
+  googleId: string; // field to link with Google OAuth users
+
+  @Column({ nullable: true })
+  googleAccessToken?: string; // encrypted Google access token
+
+  @Column({ nullable: true })
+  googleRefreshToken?: string; // encrypted Google refresh token
+
+  @Column({ nullable: true, type: 'timestamp with time zone' })
+  googleTokenExpiresAt?: Date;
 
   @Column({
     type: 'enum',
@@ -65,7 +82,7 @@ export class User {
   @Column({ default: false })
   consentToMarketing: boolean;
 
-  @Column({ nullable: true, type: 'timestamp' })
+  @Column({ nullable: true, type: 'timestamp with time zone' })
   consentUpdatedAt: Date;
 
   @CreateDateColumn({ type: 'timestamp with time zone' })
@@ -81,7 +98,7 @@ export class User {
   profilePictureUrl?: string;
 
   @Column({ nullable: true })
-  profilePictureProvider?: string;
+  profilePictureProvider?: string; // 'local', 'google', 'gravatar', etc.
 
   @Column({ nullable: true })
   profilePictureMimeType?: string;
@@ -89,7 +106,7 @@ export class User {
   @Column({ nullable: true })
   profilePictureSize?: number;
 
-  @Column({ nullable: true, type: 'timestamp' })
+  @Column({ nullable: true, type: 'timestamp with time zone' })
   profilePictureUpdatedAt?: Date;
 
   // Track if password was changed to avoid unnecessary hashing
@@ -145,5 +162,28 @@ export class User {
     this.consentToResearch = !this.consentToResearch;
     this.consentToMarketing = !this.consentToMarketing;
     this.consentUpdatedAt = new Date();
+  }
+
+  /**
+   * Checks if user has any OAuth provider linked
+   */
+  hasOAuthProvider(): boolean {
+    return !!(this.auth0Id || this.googleId);
+  }
+
+  /**
+   * Checks if user was created via OAuth (no password set)
+   */
+  isOAuthOnlyUser(): boolean {
+    return this.hasOAuthProvider() && !this.password;
+  }
+
+  /**
+   * Gets the primary OAuth provider for this user
+   */
+  getPrimaryOAuthProvider(): string | null {
+    if (this.googleId) return 'google';
+    if (this.auth0Id) return 'auth0';
+    return null;
   }
 }

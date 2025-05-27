@@ -213,19 +213,7 @@ export default function MedicationPage({ className }: MedicationPageProps) {
       </div>
 
       {/* Global Toast Notifications */}
-      <Toaster
-        position="bottom-right"
-        richColors
-        closeButton
-        duration={4000}
-        toastOptions={{
-          style: {
-            background: 'white',
-            border: '1px solid #e5e7eb',
-            color: '#374151',
-          },
-        }}
-      />
+      <Toaster position="top-center" richColors closeButton duration={4000} />
     </main>
   );
 }

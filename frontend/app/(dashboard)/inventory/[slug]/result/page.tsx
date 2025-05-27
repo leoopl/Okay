@@ -5,22 +5,174 @@ import { useRouter } from 'next/navigation';
 import { useInventoryStore } from '@/store/inventory-store';
 import { InventoryService } from '@/services/inventory-service';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { AlertCircle, BarChart4, Download, Home } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+  AlertCircle,
+  BarChart4,
+  Download,
+  Home,
+  Calendar,
+  TrendingUp,
+  Award,
+  Info,
+  Heart,
+  Shield,
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
+import Loading from './loading';
 
+// Enhanced Error Component
+const ErrorState = ({
+  error,
+  onRetry,
+  showRetryButton = true,
+}: {
+  error: string;
+  onRetry: () => void;
+  showRetryButton?: boolean;
+}) => (
+  <div className="container mx-auto max-w-2xl px-4 py-16">
+    <div className="space-y-6 text-center">
+      <div className="bg-destructive/10 mx-auto w-fit rounded-full p-6">
+        <AlertCircle className="text-destructive h-12 w-12" />
+      </div>
+      <div className="space-y-2">
+        <h2 className="text-foreground text-2xl font-bold">Resultados não encontrados</h2>
+        <p className="text-muted-foreground mx-auto max-w-md">{error}</p>
+      </div>
+      <div className="flex flex-col justify-center gap-3 sm:flex-row">
+        {showRetryButton && (
+          <Button onClick={onRetry} variant="default" className="gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Tentar Novamente
+          </Button>
+        )}
+        <Button
+          onClick={() => (window.location.href = '/inventory')}
+          variant="outline"
+          className="gap-2"
+        >
+          <Home className="h-4 w-4" />
+          Voltar para Questionários
+        </Button>
+      </div>
+    </div>
+  </div>
+);
+
+// Enhanced Score Display Component
+const ScoreDisplay = ({
+  label,
+  score,
+  maxScore,
+  interpretation,
+  variant = 'default',
+}: {
+  label: string;
+  score: number;
+  maxScore: number;
+  interpretation: { label: string; recommendation: string };
+  variant?: 'default' | 'primary';
+}) => {
+  const percentage = (score / maxScore) * 100;
+  const getColorClass = (percentage: number) => {
+    if (percentage < 30) return 'from-green-500 to-green-600';
+    if (percentage < 60) return 'from-yellow-500 to-yellow-600';
+    if (percentage < 80) return 'from-orange-500 to-orange-600';
+    return 'from-red-500 to-red-600';
+  };
+
+  const getBackgroundClass = (percentage: number) => {
+    if (percentage < 30)
+      return 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800';
+    if (percentage < 60)
+      return 'bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800';
+    if (percentage < 80)
+      return 'bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800';
+    return 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800';
+  };
+
+  return (
+    <Card
+      className={cn(
+        'transition-all duration-200 hover:shadow-md',
+        variant === 'primary' && 'ring-primary/20 shadow-lg ring-2',
+      )}
+    >
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle
+            className={cn(
+              'text-lg font-semibold capitalize',
+              variant === 'primary' && 'text-primary',
+            )}
+          >
+            {label}
+          </CardTitle>
+          <Badge variant="outline" className="text-xs">
+            {score}/{maxScore}
+          </Badge>
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Pontuação</span>
+            <span className="font-medium">{percentage.toFixed(1)}%</span>
+          </div>
+          <div className="bg-muted relative h-3 overflow-hidden rounded-full">
+            <div
+              className={cn(
+                'h-full bg-gradient-to-r transition-all duration-1000 ease-out',
+                getColorClass(percentage),
+              )}
+              style={{ width: `${percentage}%` }}
+            />
+          </div>
+        </div>
+
+        <div className={cn('rounded-lg border p-3', getBackgroundClass(percentage))}>
+          <div className="flex items-start gap-2">
+            <Award className="mt-0.5 h-4 w-4 shrink-0" />
+            <div className="space-y-1">
+              <p className="text-sm font-medium">{interpretation.label}</p>
+              <p className="text-xs leading-relaxed opacity-90">{interpretation.recommendation}</p>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Response Details Component
+const ResponseDetails = ({ responses }: { responses: any[] }) => (
+  <div className="space-y-4">
+    {responses.map((response, index) => (
+      <Card key={index} className="bg-muted/30">
+        <CardContent className="p-4">
+          <div className="space-y-2">
+            <div className="flex items-start justify-between gap-4">
+              <h4 className="text-sm leading-relaxed font-medium">{response.questionTitle}</h4>
+              <Badge variant="secondary" className="shrink-0 text-xs">
+                {response.optionValue}
+              </Badge>
+            </div>
+            <p className="text-muted-foreground text-sm">
+              <span className="font-medium">Resposta:</span> {response.optionLabel}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+);
+
+// Main Component
 export default function ResultPage({ params }: { params: Promise<{ slug: string }> }) {
-  // Unwrap params using React.use()
   const { slug } = use(params);
 
   const [loading, setLoading] = useState(false);
@@ -30,15 +182,16 @@ export default function ResultPage({ params }: { params: Promise<{ slug: string 
   const { currentInventory, calculatedScores, interpretationResults, responses, resetState } =
     useInventoryStore();
 
+  // Fetch results if not in store
   useEffect(() => {
-    // If we don't have results in the store, try to fetch them
-    if (!interpretationResults || !calculatedScores) {
-      setLoading(true);
+    const fetchResults = async () => {
+      if (!interpretationResults || !calculatedScores) {
+        setLoading(true);
 
-      // First try to fetch the most recent response for this inventory
-      InventoryService.getUserResponses()
-        .then((responses) => {
-          const response = responses.find((r) => r.inventoryId === slug);
+        try {
+          const userResponses = await InventoryService.getUserResponses();
+          const response = userResponses.find((r) => r.inventoryId === slug);
+
           if (response) {
             useInventoryStore.setState({
               calculatedScores: response.calculatedScores,
@@ -46,246 +199,239 @@ export default function ResultPage({ params }: { params: Promise<{ slug: string 
               responses: response.responses,
             });
           } else {
-            setError('Não foi possível encontrar seus resultados. Por favor, tente novamente.');
+            setError(
+              'Não foi possível encontrar seus resultados. Por favor, responda o questionário novamente.',
+            );
           }
-        })
-        .catch((err) => {
+        } catch (err) {
           console.error('Failed to fetch user responses:', err);
-          setError('Não foi possível carregar seus resultados. Por favor, tente novamente.');
-        })
-        .finally(() => {
+          setError(
+            'Não foi possível carregar seus resultados. Verifique sua conexão e tente novamente.',
+          );
+        } finally {
           setLoading(false);
-        });
-    }
+        }
+      }
+    };
+
+    fetchResults();
   }, [slug, interpretationResults, calculatedScores]);
 
-  // Function to get color based on score severity
-  const getScoreColor = (score: number, maxScore: number): string => {
-    const percentage = score / maxScore;
-
-    if (percentage < 0.3) return 'bg-green-medium';
-    if (percentage < 0.6) return 'bg-yellow-medium';
-    if (percentage < 0.8) return 'bg-orange-500';
-    return 'bg-destructive';
-  };
-
-  // Function to handle downloading results
+  // Download results function
   const handleDownloadResults = () => {
     if (!currentInventory || !calculatedScores || !interpretationResults) return;
 
     const resultData = {
-      title: currentInventory.title,
-      date: new Date().toLocaleDateString('pt-BR'),
-      scores: calculatedScores,
-      interpretation: interpretationResults,
+      inventory: {
+        title: currentInventory.title,
+        version: currentInventory.version,
+      },
+      assessment: {
+        date: new Date().toLocaleDateString('pt-BR'),
+        scores: calculatedScores,
+        interpretation: interpretationResults,
+      },
       responses: responses.map((r) => ({
         question: r.questionTitle,
         answer: r.optionLabel,
         value: r.optionValue,
       })),
+      metadata: {
+        exportedAt: new Date().toISOString(),
+        format: 'JSON',
+      },
     };
 
-    // Create a blob and download
-    const blob = new Blob([JSON.stringify(resultData, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(resultData, null, 2)], {
+      type: 'application/json',
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${currentInventory.name.toLowerCase()}-resultado.json`;
+    a.download = `okay-${currentInventory.name}-${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
-  // Handle going back to inventorys
+  // Navigation functions
   const handleBackToQuestionnaires = () => {
     resetState();
     router.push('/inventory');
   };
 
+  const handleRetakeAssessment = () => {
+    resetState();
+    router.push(`/inventory/${slug}`);
+  };
+
+  // Loading state
   if (loading) {
-    return (
-      <div className="container mx-auto flex justify-center py-8">
-        <div className="border-primary h-16 w-16 animate-spin rounded-full border-4 border-t-transparent"></div>
-      </div>
-    );
+    return <Loading />;
   }
 
+  // Error state
   if (error) {
     return (
-      <div className="container mx-auto max-w-3xl py-8">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Erro</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-        <div className="mt-4 flex justify-center">
-          <Button onClick={() => router.push('/inventory')}>Voltar para Questionários</Button>
-        </div>
-      </div>
+      <ErrorState
+        error={error}
+        onRetry={() => window.location.reload()}
+        showRetryButton={!error.includes('responda o questionário')}
+      />
     );
   }
 
+  // Missing results state
   if (!interpretationResults || !calculatedScores) {
     return (
-      <div className="container mx-auto max-w-3xl py-8">
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Resultados não encontrados</AlertTitle>
-          <AlertDescription>
-            Não encontramos resultados para este questionário. Você pode tentar responder o
-            questionário novamente.
-          </AlertDescription>
-        </Alert>
-        <div className="mt-4 flex justify-center">
-          <Button onClick={() => router.push(`/inventory/${slug}`)}>Responder Questionário</Button>
-        </div>
-      </div>
+      <ErrorState
+        error="Não encontramos resultados para este questionário. Você pode responder o questionário para obter seus resultados."
+        onRetry={handleRetakeAssessment}
+        showRetryButton={true}
+      />
     );
   }
 
   return (
-    <div className="container mx-auto max-w-3xl py-8">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold">Seus Resultados</h1>
-        <p className="text-muted-foreground mt-2">{currentInventory?.title || 'Questionário'}</p>
-      </div>
+    <div className="from-background via-background to-muted/30 min-h-screen bg-gradient-to-br">
+      <div className="container mx-auto max-w-4xl px-4 py-8">
+        {/* Header */}
+        <div className="mb-8 space-y-4 text-center">
+          <div className="bg-primary/10 text-primary inline-flex items-center rounded-full px-4 py-2 text-sm font-medium">
+            <Award className="mr-2 h-4 w-4" />
+            Avaliação Concluída
+          </div>
 
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="details">Detalhes</TabsTrigger>
-        </TabsList>
+          <h1 className="text-foreground text-3xl font-bold">Seus Resultados</h1>
 
-        <TabsContent value="overview">
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart4 className="h-5 w-5" />
-                Resultado Geral
-              </CardTitle>
-              <CardDescription>Sua pontuação e interpretação</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-6">
-                <div className="mb-2 flex justify-between">
-                  <span className="text-sm font-medium">Pontuação Total</span>
-                  <span className="text-sm font-medium">
-                    {calculatedScores.total} /{' '}
-                    {currentInventory?.scoring.totalScoreRange?.[1] || '--'}
-                  </span>
-                </div>
-                <Progress
-                  value={
-                    ((calculatedScores.total || 0) /
-                      (currentInventory?.scoring.totalScoreRange?.[1] || 100)) *
-                    100
-                  }
-                  className={`h-3 ${getScoreColor(
-                    calculatedScores.total || 0,
-                    currentInventory?.scoring.totalScoreRange?.[1] || 100,
-                  )}`}
-                />
-              </div>
+          <div className="text-muted-foreground flex flex-col items-center justify-center gap-4 text-sm sm:flex-row">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <span>Realizado hoje</span>
+            </div>
+            {currentInventory && (
+              <>
+                <div className="bg-muted-foreground/50 hidden h-1 w-1 rounded-full sm:block" />
+                <span>{currentInventory.title}</span>
+              </>
+            )}
+          </div>
+        </div>
 
-              <div className="bg-muted rounded-md p-4">
-                <Badge variant="outline" className="mb-2">
-                  {interpretationResults.label}
-                </Badge>
-                <p className="text-muted-foreground">{interpretationResults.recommendation}</p>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Results Tabs */}
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 lg:mx-auto lg:w-fit">
+            <TabsTrigger value="overview" className="gap-2">
+              <BarChart4 className="h-4 w-4" />
+              Visão Geral
+            </TabsTrigger>
+            <TabsTrigger value="details" className="gap-2">
+              <Info className="h-4 w-4" />
+              Detalhes
+            </TabsTrigger>
+          </TabsList>
 
-          {/* Subscale results */}
-          {interpretationResults.subscaleInterpretations &&
-            Object.keys(interpretationResults.subscaleInterpretations).length > 0 && (
-              <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle>Resultados por Categoria</CardTitle>
-                  <CardDescription>Análise detalhada por categorias</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            {/* Main Score */}
+            <ScoreDisplay
+              label="Resultado Geral"
+              score={calculatedScores.total || 0}
+              maxScore={currentInventory?.scoring.totalScoreRange?.[1] || 100}
+              interpretation={interpretationResults}
+              variant="primary"
+            />
+
+            {/* Subscale Scores */}
+            {interpretationResults.subscaleInterpretations &&
+              Object.keys(interpretationResults.subscaleInterpretations).length > 0 && (
+                <div className="space-y-4">
+                  <h2 className="text-foreground flex items-center gap-2 text-xl font-semibold">
+                    <TrendingUp className="text-primary h-5 w-5" />
+                    Análise por Categorias
+                  </h2>
+
+                  <div className="grid gap-4 md:grid-cols-2">
                     {Object.entries(interpretationResults.subscaleInterpretations).map(
                       ([key, value]) => (
-                        <div key={key}>
-                          <div className="mb-2 flex justify-between">
-                            <span className="text-sm font-medium capitalize">{key}</span>
-                            <span className="text-sm font-medium">
-                              {calculatedScores[key] || 0} /{' '}
-                              {currentInventory?.scoring.subscales?.[key]?.maxRawScore || '--'}
-                            </span>
-                          </div>
-                          <Progress
-                            value={
-                              ((calculatedScores[key] || 0) /
-                                (currentInventory?.scoring.subscales?.[key]?.maxRawScore || 100)) *
-                              100
-                            }
-                            className={`h-3 ${getScoreColor(
-                              calculatedScores[key] || 0,
-                              currentInventory?.scoring.subscales?.[key]?.maxRawScore || 100,
-                            )}`}
-                          />
-                          <div className="mt-2">
-                            <Badge variant="outline" className="mb-1">
-                              {value.label}
-                            </Badge>
-                            <p className="text-muted-foreground text-sm">{value.recommendation}</p>
-                          </div>
-                        </div>
+                        <ScoreDisplay
+                          key={key}
+                          label={key}
+                          score={calculatedScores[key] || 0}
+                          maxScore={currentInventory?.scoring.subscales?.[key]?.maxRawScore || 100}
+                          interpretation={value}
+                        />
                       ),
                     )}
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                </div>
+              )}
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Aviso Importante</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-sm">
-                Este resultado não substitui uma avaliação profissional de saúde mental. Se você
-                está com dificuldades, recomendamos buscar ajuda profissional.
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="details">
-          <Card>
-            <CardHeader>
-              <CardTitle>Suas Respostas</CardTitle>
-              <CardDescription>Revise as respostas que você forneceu</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {responses.map((response, index) => (
-                  <div key={index} className="rounded-md border p-3">
-                    <p className="mb-1 font-medium">{response.questionTitle}</p>
-                    <p className="text-muted-foreground text-sm">
-                      Resposta: {response.optionLabel}
-                    </p>
+            {/* Important Notice */}
+            <Card className="border-accent/20 bg-accent/5">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="bg-accent/20 rounded-full p-2">
+                    <Shield className="text-accent-foreground h-5 w-5" />
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                  <div className="space-y-2">
+                    <h3 className="text-foreground font-semibold">Importante lembrar</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      Este resultado é uma ferramenta de autoavaliação e não substitui uma consulta
+                      com profissional de saúde mental. Se você está enfrentando dificuldades
+                      significativas, recomendamos buscar acompanhamento especializado.
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Badge variant="outline" className="text-xs">
+                        Baseado em evidências científicas
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        Dados seguros e privados
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-      <div className="mt-8 flex flex-wrap justify-center gap-4">
-        <Button variant="outline" onClick={handleDownloadResults}>
-          <Download className="mr-2 h-4 w-4" />
-          Baixar Resultados
-        </Button>
-        <Button onClick={handleBackToQuestionnaires}>
-          <Home className="mr-2 h-4 w-4" />
-          Voltar para Questionários
-        </Button>
+          {/* Details Tab */}
+          <TabsContent value="details" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Info className="text-primary h-5 w-5" />
+                  Suas Respostas
+                </CardTitle>
+                <CardDescription>
+                  Revise as respostas que você forneceu durante a avaliação
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponseDetails responses={responses} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        {/* Action Buttons */}
+        <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
+          <Button variant="outline" onClick={handleDownloadResults} className="gap-2">
+            <Download className="h-4 w-4" />
+            Baixar Resultados
+          </Button>
+
+          <Button variant="outline" onClick={handleRetakeAssessment} className="gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Refazer Avaliação
+          </Button>
+
+          <Button onClick={handleBackToQuestionnaires} className="gap-2">
+            <Heart className="h-4 w-4" />
+            Outras Avaliações
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -178,7 +178,9 @@ export function ProfileTab() {
 
       {/* Header Section */}
       <div>
-        <h2 className="text-foreground mb-2 text-2xl font-bold">Informações Pessoais</h2>
+        <h2 className="text-green-dark font-varela mb-2 text-2xl font-bold">
+          Informações Pessoais
+        </h2>
         <p className="text-muted-foreground">
           Mantenha seus dados pessoais atualizados. As informações aqui serão usadas para
           personalizar sua experiência no aplicativo.
@@ -286,7 +288,7 @@ export function ProfileTab() {
                     <Button
                       variant="outline"
                       className={cn(
-                        'w-full justify-start text-left font-normal transition-all duration-200 hover:scale-[1.02]',
+                        'w-full justify-start bg-white text-left font-normal transition-all duration-200 hover:scale-[1.02]',
                         !date && 'text-muted-foreground',
                       )}
                     >

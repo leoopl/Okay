@@ -573,4 +573,234 @@ export class UserService {
     // We keep this method for compatibility, but it's a no-op
     this.logger.log('Role seeding is now handled by the dedicated seeder');
   }
+
+  /**
+   * Find user by Google ID
+   */
+  async findByGoogleId(googleId: string): Promise<User | null> {
+    return await this.usersRepository.findOne({
+      where: { googleId },
+      relations: ['roles'],
+    });
+  }
+
+  /**
+   * Create a new user from Google OAuth data
+   */
+  async createGoogleUser(googleUserData: {
+    googleId: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    picture?: string;
+    emailVerified: boolean;
+  }): Promise<User> {
+    try {
+      // Check if user already exists by email
+      const existingUser = await this.findByEmail(googleUserData.email);
+      if (existingUser) {
+        throw new ConflictException('Email already exists');
+      }
+
+      // Create new user from Google data
+      const user = this.usersRepository.create({
+        email: googleUserData.email,
+        name: googleUserData.firstName,
+        surname: googleUserData.lastName,
+        googleId: googleUserData.googleId,
+        status: googleUserData.emailVerified
+          ? UserStatus.ACTIVE
+          : UserStatus.PENDING_VERIFICATION,
+        profilePictureUrl: googleUserData.picture,
+        profilePictureProvider: googleUserData.picture ? 'google' : null,
+        profilePictureUpdatedAt: googleUserData.picture ? new Date() : null,
+        // Set initial consent values - user will need to explicitly consent
+        consentToDataProcessing: false,
+        consentToResearch: false,
+        consentToMarketing: false,
+      });
+
+      // Assign default role
+      const defaultRoleName = this.configService.get<string>(
+        'DEFAULT_USER_ROLE',
+        'patient',
+      );
+      const defaultRole = await this.rolesRepository.findOne({
+        where: { name: defaultRoleName },
+      });
+
+      if (!defaultRole) {
+        this.logger.error(`Default role '${defaultRoleName}' not found`);
+        throw new Error('Required roles not configured');
+      }
+
+      user.roles = [defaultRole];
+
+      const savedUser = await this.usersRepository.save(user);
+
+      // Audit user creation
+      await this.auditService.logAction({
+        userId: savedUser.id,
+        action: AuditAction.CREATE,
+        resource: 'user',
+        resourceId: savedUser.id,
+        details: {
+          email: savedUser.email,
+          provider: 'google',
+          googleId: googleUserData.googleId,
+        },
+      });
+
+      return savedUser;
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+      this.logger.error(
+        `Error creating Google user: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Update user with partial data (for Google linking)
+   */
+  async updateUser(id: string, updateData: Partial<User>): Promise<User> {
+    const user = await this.findOne(id);
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    // Use a targeted update to avoid triggering password hashing
+    await this.usersRepository.update(id, updateData);
+
+    return this.findOne(id);
+  }
+
+  /**
+   * Link Google account to existing user
+   */
+  async linkGoogleAccount(
+    userId: string,
+    googleId: string,
+    googleData: {
+      picture?: string;
+      accessToken?: string;
+      refreshToken?: string;
+      tokenExpiresAt?: Date;
+    },
+    actorId: string,
+  ): Promise<User> {
+    const user = await this.findOne(userId);
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    // Check if Google ID is already linked to another user
+    const existingGoogleUser = await this.findByGoogleId(googleId);
+    if (existingGoogleUser && existingGoogleUser.id !== userId) {
+      throw new ConflictException(
+        'Google account is already linked to another user',
+      );
+    }
+
+    const updateData: Partial<User> = {
+      googleId,
+      googleAccessToken: googleData.accessToken,
+      googleRefreshToken: googleData.refreshToken,
+      googleTokenExpiresAt: googleData.tokenExpiresAt,
+    };
+
+    // Update profile picture if user doesn't have one and Google provides one
+    if (!user.profilePictureUrl && googleData.picture) {
+      updateData.profilePictureUrl = googleData.picture;
+      updateData.profilePictureProvider = 'google';
+      updateData.profilePictureUpdatedAt = new Date();
+    }
+
+    await this.usersRepository.update(userId, updateData);
+
+    // Audit the linking
+    await this.auditService.logAction({
+      userId: actorId,
+      action: AuditAction.UPDATE,
+      resource: 'user',
+      resourceId: userId,
+      details: {
+        action: 'google_account_linked',
+        googleId,
+      },
+    });
+
+    return this.findOne(userId);
+  }
+
+  /**
+   * Unlink Google account from user
+   */
+  async unlinkGoogleAccount(userId: string, actorId: string): Promise<User> {
+    const user = await this.findOne(userId);
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    if (!user.googleId) {
+      throw new ConflictException('User does not have a Google account linked');
+    }
+
+    // Ensure user has password set before unlinking OAuth
+    if (!user.password) {
+      throw new ConflictException(
+        'Cannot unlink Google account: user must set a password first',
+      );
+    }
+
+    const updateData: Partial<User> = {
+      googleId: null,
+      googleAccessToken: null,
+      googleRefreshToken: null,
+      googleTokenExpiresAt: null,
+    };
+
+    // Remove Google profile picture if it was the source
+    if (user.profilePictureProvider === 'google') {
+      updateData.profilePictureUrl = null;
+      updateData.profilePictureProvider = null;
+      updateData.profilePictureUpdatedAt = null;
+    }
+
+    await this.usersRepository.update(userId, updateData);
+
+    // Audit the unlinking
+    await this.auditService.logAction({
+      userId: actorId,
+      action: AuditAction.UPDATE,
+      resource: 'user',
+      resourceId: userId,
+      details: {
+        action: 'google_account_unlinked',
+      },
+    });
+
+    return this.findOne(userId);
+  }
+
+  /**
+   * Check if user can unlink their OAuth account
+   */
+  async canUnlinkOAuthAccount(userId: string): Promise<boolean> {
+    const user = await this.findOne(userId);
+
+    if (!user) {
+      return false;
+    }
+
+    // User can unlink OAuth if they have a password set
+    return !!user.password;
+  }
 }

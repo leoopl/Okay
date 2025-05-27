@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { UserService } from '../../modules/user/user.service';
-import { AuditService } from '../audit/audit.service';
-import { AuditAction } from '../audit/entities/audit-log.entity';
 import * as argon2 from 'argon2';
+import { AuditService } from 'src/core/audit/audit.service';
+import { AuditAction } from 'src/core/audit/entities/audit-log.entity';
+import { UserService } from 'src/modules/user/user.service';
 
 @Injectable()
 export class AuthService {

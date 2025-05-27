@@ -6,18 +6,22 @@ import Footer from '@/components/footer';
 import AuthProvider from '@/providers/auth-provider';
 import { getServerSession, logout } from '../lib/actions/server-auth';
 import SessionProvider from '@/providers/session-provider';
+import { cn } from '@/lib/utils';
 
 const varelaRound = Varela_Round({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-varela-round',
   weight: '400',
+  preload: true,
+  fallback: ['system-ui', 'arial'],
 });
 
 const APP_NAME = 'Okay';
-const APP_DEFAULT_TITLE = 'Okay';
-const APP_TITLE_TEMPLATE = '%s - PWA App';
-const APP_DESCRIPTION = "Your mental health it's Okay?";
+const APP_DEFAULT_TITLE = 'Okay - Sua Jornada de Bem-Estar Mental';
+const APP_TITLE_TEMPLATE = '%s | Okay';
+const APP_DESCRIPTION =
+  'Plataforma completa para cuidado da saúde mental, oferecendo questionários validados cientificamente, recursos educativos e acompanhamento personalizado.';
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,
@@ -26,6 +30,20 @@ export const metadata: Metadata = {
     template: APP_TITLE_TEMPLATE,
   },
   description: APP_DESCRIPTION,
+  keywords: [
+    'saúde mental',
+    'bem-estar',
+    'questionários psicológicos',
+    'autoavaliação',
+    'depressão',
+    'ansiedade',
+    'estresse',
+    'psicologia',
+    'terapia',
+  ],
+  authors: [{ name: 'Okay Team' }],
+  creator: 'Okay',
+  publisher: 'Okay',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -70,10 +88,14 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
+    <html
+      lang="pt-BR"
+      suppressHydrationWarning
+      className={cn(varelaRound.variable, 'scroll-smooth', 'focus-within:scroll-auto')}
+    >
       <link rel="manifest" href="/manifest.json" />
       <head />
-      <body className={`${varelaRound.variable} gradient-background min-h-screen antialiased`}>
+      <body className={`gradient-background min-h-screen antialiased`}>
         <AuthProvider initialUser={user} isAuthenticated={isAuth} logoutFunction={logout}>
           {isAuth ? (
             <SessionProvider>

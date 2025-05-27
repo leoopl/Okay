@@ -179,7 +179,7 @@ const Testimonials: React.FC = () => {
               <div>
                 <Button
                   type="submit"
-                  className="small-caps w-full cursor-pointer px-4 py-2"
+                  className="w-full cursor-pointer px-4 py-2 font-bold"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? 'Sending...' : 'Compartilhar'}
