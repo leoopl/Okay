@@ -1,6 +1,7 @@
 import { Injectable, ExecutionContext, Logger } from '@nestjs/common';
-import { ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerGuard, ThrottlerStorage } from '@nestjs/throttler';
 import { ConfigService } from '@nestjs/config';
+import { Reflector } from '@nestjs/core';
 
 /**
  * Rate limiting guard specifically for OAuth endpoints
@@ -10,11 +11,21 @@ import { ConfigService } from '@nestjs/config';
 export class OAuthRateLimitGuard extends ThrottlerGuard {
   private readonly logger = new Logger(OAuthRateLimitGuard.name);
 
-  constructor(private readonly configService: ConfigService) {
-    super({
-      ttl: configService.get<number>('OAUTH_THROTTLE_TTL', 300),
-      limit: configService.get<number>('OAUTH_THROTTLE_LIMIT', 5),
-    });
+  constructor(
+    private readonly configService: ConfigService,
+    storageService: ThrottlerStorage,
+    reflector: Reflector,
+  ) {
+    super(
+      [
+        {
+          limit: configService.get<number>('OAUTH_THROTTLE_LIMIT', 5),
+          ttl: configService.get<number>('OAUTH_THROTTLE_TTL', 300),
+        },
+      ],
+      storageService,
+      reflector,
+    );
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

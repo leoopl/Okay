@@ -278,8 +278,8 @@ export class AuthController {
     // Revoke user's refresh tokens
     await this.tokenService.revokeUserRefreshTokens(req.user.userId, ip);
 
-    // Add token to blacklist if JWT ID is available
-    if (req.user.jti) {
+    // Add token to blacklist if JWT ID is available (only for JWT tokens)
+    if (req.user.jti && req.user.exp) {
       const expiresAt = new Date(req.user.exp * 1000); // Convert to milliseconds
       await this.tokenService.blacklistToken(req.user.jti, expiresAt);
     }
@@ -371,7 +371,7 @@ export class AuthController {
         throw new UnauthorizedException('Google authentication failed');
       }
 
-      // Get the full user object from database using the user ID
+      // Get the full user object from database using the normalized user ID
       const user = await this.userService.findOne(authenticatedUser.userId);
 
       if (!user) {
@@ -384,12 +384,11 @@ export class AuthController {
       // Generate JWT tokens
       const { accessToken, refreshToken } =
         await this.googleOAuthService.generateAuthTokens(
-          user, // Now using the full User entity
+          user, // Using the full User entity
           ip,
           userAgent,
         );
 
-      // Rest of the method remains the same...
       // Set refresh token in HttpOnly cookie
       this.tokenService.setRefreshTokenCookie(res, refreshToken);
 
@@ -497,10 +496,10 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async unlinkGoogleAccount(@Req() req: IAuthenticatedRequest) {
     try {
-      const userId = req.user.userId;
-
       // Check if user can unlink their Google account
-      const canUnlink = await this.userService.canUnlinkOAuthAccount(userId);
+      const canUnlink = await this.userService.canUnlinkOAuthAccount(
+        req.user.userId,
+      );
 
       if (!canUnlink) {
         throw new BadRequestException(
@@ -508,11 +507,14 @@ export class AuthController {
         );
       }
 
-      await this.userService.unlinkGoogleAccount(userId, userId);
+      await this.userService.unlinkGoogleAccount(
+        req.user.userId,
+        req.user.userId,
+      );
 
       // Audit the unlinking
       await this.auditService.logAction({
-        userId,
+        userId: req.user.userId,
         action: AuditAction.UPDATE,
         resource: 'auth',
         details: {

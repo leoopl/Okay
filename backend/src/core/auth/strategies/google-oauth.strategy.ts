@@ -6,6 +6,8 @@ import { GoogleOAuthConfig } from '../../../config/google-oauth.config';
 import { GoogleOAuthService } from '../services/google-oauth.service';
 import { AuditService } from '../../audit/audit.service';
 import { AuditAction } from '../../audit/entities/audit-log.entity';
+import { User } from '../../../modules/user/entities/user.entity';
+import { AuthenticatedUser } from '../../../common/interfaces/auth-request.interface';
 
 export interface GoogleProfile {
   id: string;
@@ -36,6 +38,7 @@ export interface GoogleUser {
 /**
  * Google OAuth 2.0 strategy for Passport
  * Handles authentication with Google and user profile extraction
+ * Returns normalized AuthenticatedUser object for consistency
  */
 @Injectable()
 export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
@@ -58,6 +61,7 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
 
   /**
    * Validates Google OAuth callback and processes user data
+   * Returns normalized AuthenticatedUser object for consistent controller access
    */
   async validate(
     accessToken: string,
@@ -72,8 +76,8 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
         `Google OAuth validation for user: ${googleUser.email}`,
       );
 
-      // Process the Google user through our service
-      const user = await this.googleOAuthService.validateGoogleUser(
+      // Process the Google user through our service to get User entity
+      const user: User = await this.googleOAuthService.validateGoogleUser(
         googleUser,
         accessToken,
         refreshToken,
@@ -91,7 +95,16 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
         },
       });
 
-      done(null, user);
+      // Convert User entity to normalized AuthenticatedUser object
+      const authenticatedUser: AuthenticatedUser = {
+        userId: user.id, // Normalize: User uses 'id', we want 'userId'
+        email: user.email,
+        roles: user.roles?.map((role) => role.name) || [], // Convert Role objects to string array
+        permissions: this.extractPermissions(user), // Extract permissions from roles
+        // Note: No jti or exp for OAuth users since they're not JWT tokens
+      };
+
+      done(null, authenticatedUser);
     } catch (error) {
       this.logger.error(
         `Google OAuth validation failed: ${error.message}`,
@@ -144,5 +157,24 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
 
     // Return the first verified email, or the first email if none are verified
     return emails.find((email) => email.verified) || emails[0];
+  }
+
+  /**
+   * Extracts permissions from user roles
+   */
+  private extractPermissions(user: User): string[] {
+    const permissions = new Set<string>();
+
+    if (user.roles) {
+      user.roles.forEach((role) => {
+        if (role.permissions) {
+          role.permissions.forEach((permission) => {
+            permissions.add(permission.name);
+          });
+        }
+      });
+    }
+
+    return Array.from(permissions);
   }
 }

@@ -34,9 +34,9 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { Public } from '../../common/decorators/is-public.decorator';
 import { IAuthenticatedRequest } from '../../common/interfaces/auth-request.interface';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { AuthService } from 'src/core/auth/auth.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileUploadInterceptor } from 'src/common/storage/interceptors/file-upload.interceptor';
+import { AuthService } from 'src/core/auth/services/auth.service';
 
 @ApiTags('users')
 @Controller('users')
@@ -229,7 +229,10 @@ export class UserController {
     }
 
     // Change to new password
-    await this.userService.updatePassword(user.id, passwordData.newPassword);
+    await this.userService.updatePassword(
+      req.user.userId,
+      passwordData.newPassword,
+    );
 
     return { message: 'Password updated successfully' };
   }

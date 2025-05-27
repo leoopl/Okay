@@ -8,7 +8,10 @@ import { OAuthRateLimitGuard } from '../guards/oauth-rate-limit.guard';
  * @param ttl Time window in seconds
  */
 export const OAuthThrottle = (limit: number = 5, ttl: number = 300) => {
-  return applyDecorators(Throttle(limit, ttl), UseGuards(OAuthRateLimitGuard));
+  return applyDecorators(
+    Throttle({ default: { limit, ttl: ttl * 1000 } }), // Convert seconds to milliseconds
+    UseGuards(OAuthRateLimitGuard),
+  );
 };
 
 /**

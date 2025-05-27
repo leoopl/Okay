@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TokenBlacklist } from '../entities/token-blacklist.entity';
+import { AuthenticatedUser } from '../../../common/interfaces/auth-request.interface';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -25,11 +26,11 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  async validate(payload: TokenPayload) {
+  async validate(payload: TokenPayload): Promise<AuthenticatedUser> {
     this.logger.debug(`Validating JWT payload: ${JSON.stringify(payload)}`);
 
     try {
-      // Check if token is blacklisted directly without TokenService
+      // Check if token is blacklisted
       if (payload.jti) {
         const blacklistedToken = await this.tokenBlacklistRepository.findOne({
           where: { jti: payload.jti },
@@ -40,12 +41,13 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         }
       }
 
+      // Return normalized AuthenticatedUser object
       return {
-        userId: payload.sub,
+        userId: payload.sub, // Normalize: JWT uses 'sub', we want 'userId'
         email: payload.email,
-        roles: payload.roles || [],
+        roles: payload.roles || [], // Ensure it's always an array of strings
         permissions: payload.permissions || [],
-        jti: payload.jti,
+        jti: payload.jti, // Keep JWT-specific fields
         exp: payload.exp,
       };
     } catch (error) {
