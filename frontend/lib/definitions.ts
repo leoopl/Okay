@@ -3,29 +3,19 @@ import { z } from 'zod';
 // Signup form schema with validation rules
 export const SignupFormSchema = z
   .object({
-    name: z.string().min(3, { message: 'Name must be at least 2 characters long.' }).trim(),
-    surname: z.string().min(3, { message: 'Surname must be at least 3 characters long.' }).trim(),
-    email: z.string().email({ message: 'Please enter a valid email.' }).trim(),
+    name: z.string().min(3, { message: 'Nome precisa ter ao menos 3 caracteres' }).trim(),
+    email: z.string().min(1, 'E-mail é obrigatório').email('E-mail inválido'),
     password: z
       .string()
-      .min(8, { message: 'Be at least 8 characters long' })
-      .regex(/[a-zA-Z]/, { message: 'Contain at least one letter.' })
-      .regex(/[0-9]/, { message: 'Contain at least one number.' })
-      .regex(/[^a-zA-Z0-9]/, {
-        message: 'Contain at least one special character.',
-      })
+      .min(8, { message: 'Senha deve ter pelo menos 8 caracteres' })
+      .regex(/[a-zA-Z]/, { message: 'Deve conter pelo menos uma letra' })
+      .regex(/[0-9]/, { message: 'Deve conter pelo menos um número' })
+      .regex(/[^a-zA-Z0-9]/, { message: 'Deve conter pelo menos um caractere especial' })
       .trim(),
-    confirm: z.string().trim(),
-    gender: z.string().trim().optional(),
-    birthdate: z
-      .date({
-        required_error: 'Please select a date of birth',
-        invalid_type_error: "That's not a valid date!",
-      })
-      .max(new Date(), { message: 'Too young!' }),
+    confirm: z.string().min(1, 'Confirmação de senha é obrigatória'),
   })
   .refine((data) => data.password === data.confirm, {
-    message: "Passwords don't match",
+    message: 'As senhas não coincidem',
     path: ['confirm'],
   });
 

@@ -1,3 +1,4 @@
+// frontend/components/profile/security-tab.tsx
 'use client';
 
 import { useEffect, startTransition, useState } from 'react';
@@ -24,45 +25,7 @@ import { useAuth } from '@/providers/auth-provider';
 import { toast, Toaster } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-
-// Password strength indicator
-const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
-  if (!password) return { score: 0, label: 'Sem senha', color: 'text-muted-foreground' };
-
-  let score = 0;
-  if (password.length >= 8) score++;
-  if (/[A-Z]/.test(password)) score++;
-  if (/[a-z]/.test(password)) score++;
-  if (/[0-9]/.test(password)) score++;
-  if (/[^A-Za-z0-9]/.test(password)) score++;
-
-  if (score <= 2) return { score, label: 'Fraca', color: 'text-destructive' };
-  if (score <= 3) return { score, label: 'Média', color: 'text-yellow-600' };
-  if (score <= 4) return { score, label: 'Forte', color: 'text-green-600' };
-  return { score, label: 'Muito Forte', color: 'text-green-700' };
-};
-
-const PasswordStrengthIndicator = ({ password }: { password: string }) => {
-  const { score, label, color } = getPasswordStrength(password);
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="text-muted-foreground text-xs">Força da senha:</span>
-        <span className={`text-xs font-medium ${color}`}>{label}</span>
-      </div>
-      <div className="flex space-x-1">
-        {[...Array(5)].map((_, i) => (
-          <div
-            key={i}
-            className={`h-1 flex-1 rounded-full ${i < score ? 'bg-current' : 'bg-muted'} ${color}`}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
+import { PasswordStrengthIndicator } from '../common/auth/password-strength-indicator';
 
 // Form section wrapper
 const SecuritySection = ({

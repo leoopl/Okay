@@ -22,11 +22,12 @@ import {
   Clock,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/providers/auth-provider';
 import { formatDate } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Toaster } from 'sonner';
+import { ProfileCompletionDialog } from '@/components/profile/profile-completion-dialog';
 
 // Feature card component for better reusability
 interface FeatureCardProps {
@@ -98,9 +99,21 @@ const UserStats = ({ user }: { user: any }) => (
 );
 
 export default function Profile() {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('profile');
   const { user, isAuth, logout } = useAuth();
+  const [showDialog, setShowDialog] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    if (searchParams.get('showDialog') === 'true') {
+      setShowDialog(true);
+      // Clean up the URL so the dialog doesn't reappear on refresh
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('showDialog');
+      router.replace(`/profile?${params.toString()}`);
+    }
+  }, [searchParams, router]);
 
   const handleLogout = async () => {
     try {
@@ -156,133 +169,136 @@ export default function Profile() {
   ];
 
   return (
-    <div className="mx-auto max-w-7xl pb-5">
-      <Toaster richColors position="top-center" />
+    <>
+      <div className="mx-auto max-w-7xl pb-5">
+        <Toaster richColors position="top-center" />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        {/* Enhanced Profile Card */}
-        <Card className="overflow-hidden lg:col-span-3">
-          <CardHeader className="pb-2">
-            <div className="text-center">
-              <ProfilePictureUpload size="xl" className="transition-transform hover:scale-105" />
-            </div>
-          </CardHeader>
-
-          <CardContent className="pt-0">
-            <div className="space-y-4">
-              {/* User Info */}
-              <div className="space-y-2 text-center">
-                <h2 className="text-foreground text-xl font-semibold">
-                  {user?.name} {user?.surname}
-                </h2>
-
-                {/* Role Badges */}
-                <div className="flex flex-wrap justify-center gap-2">
-                  {user?.roles?.includes('admin') && (
-                    <Badge variant="outline" className="text-primary border-primary/50">
-                      <Star className="mr-1 size-3" />
-                      Administrador
-                    </Badge>
-                  )}
-                  {user?.roles?.includes('patient') && !user?.roles?.includes('admin') && (
-                    <Badge variant="outline" className="text-accent-foreground border-accent">
-                      Paciente
-                    </Badge>
-                  )}
-                </div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          {/* Enhanced Profile Card */}
+          <Card className="overflow-hidden lg:col-span-3">
+            <CardHeader className="pb-2">
+              <div className="text-center">
+                <ProfilePictureUpload size="xl" className="transition-transform hover:scale-105" />
               </div>
+            </CardHeader>
 
-              {/* User Details */}
-              <div className="space-y-3 text-sm">
-                <div className="border-border/50 flex items-center justify-between border-b py-2">
-                  <span className="text-muted-foreground">Membro desde</span>
-                  <span className="font-medium">{memberSince}</span>
+            <CardContent className="pt-0">
+              <div className="space-y-4">
+                {/* User Info */}
+                <div className="space-y-2 text-center">
+                  <h2 className="text-foreground text-xl font-semibold">
+                    {user?.name} {user?.surname}
+                  </h2>
+
+                  {/* Role Badges */}
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {user?.roles?.includes('admin') && (
+                      <Badge variant="outline" className="text-primary border-primary/50">
+                        <Star className="mr-1 size-3" />
+                        Administrador
+                      </Badge>
+                    )}
+                    {user?.roles?.includes('patient') && !user?.roles?.includes('admin') && (
+                      <Badge variant="outline" className="text-accent-foreground border-accent">
+                        Paciente
+                      </Badge>
+                    )}
+                  </div>
                 </div>
-                <div className="border-border/50 flex items-center justify-between border-b py-2">
-                  <span className="text-muted-foreground">E-mail</span>
-                  <span className="max-w-[150px] truncate font-medium" title={user?.email}>
-                    {user?.email}
-                  </span>
+
+                {/* User Details */}
+                <div className="space-y-3 text-sm">
+                  <div className="border-border/50 flex items-center justify-between border-b py-2">
+                    <span className="text-muted-foreground">Membro desde</span>
+                    <span className="font-medium">{memberSince}</span>
+                  </div>
+                  <div className="border-border/50 flex items-center justify-between border-b py-2">
+                    <span className="text-muted-foreground">E-mail</span>
+                    <span className="max-w-[150px] truncate font-medium" title={user?.email}>
+                      {user?.email}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-muted-foreground">Função</span>
+                    <span className="font-medium">
+                      {user?.roles?.includes('admin') ? 'Admin' : 'Paciente'}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-muted-foreground">Função</span>
-                  <span className="font-medium">
-                    {user?.roles?.includes('admin') ? 'Admin' : 'Paciente'}
-                  </span>
-                </div>
+
+                {/* User Stats */}
+                <UserStats user={user} />
+
+                {/* Logout Button */}
+                <Button
+                  variant="outline"
+                  className="border-destructive/50 text-destructive hover:bg-destructive mt-6 w-full transition-all duration-200 hover:text-black"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="mr-2 size-4" />
+                  Sair
+                </Button>
               </div>
+            </CardContent>
+          </Card>
 
-              {/* User Stats */}
-              <UserStats user={user} />
+          {/* Enhanced Tabs Section */}
+          <div className="space-y-6 lg:col-span-9">
+            <Tabs
+              defaultValue="profile"
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="w-full"
+            >
+              <Card className="overflow-hidden">
+                <CardContent className="p-6">
+                  <TabsList className="bg-grey-light/40 mb-8 grid w-full grid-cols-3">
+                    <TabsTrigger
+                      value="profile"
+                      className="data-[state=active]:bg-background data-[state=active]:text-blue-dark"
+                    >
+                      <User className="mr-2 size-4" />
+                      <span className="hidden sm:inline">Perfil</span>
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="security"
+                      className="data-[state=active]:bg-background data-[state=active]:text-blue-dark"
+                    >
+                      <Shield className="mr-2 size-4" />
+                      <span className="hidden sm:inline">Segurança</span>
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="notifications"
+                      className="data-[state=active]:bg-background data-[state=active]:text-blue-dark"
+                    >
+                      <Settings className="mr-2 size-4" />
+                      <span className="hidden sm:inline">Configurações</span>
+                    </TabsTrigger>
+                  </TabsList>
 
-              {/* Logout Button */}
-              <Button
-                variant="outline"
-                className="border-destructive/50 text-destructive hover:bg-destructive mt-6 w-full transition-all duration-200 hover:text-black"
-                onClick={handleLogout}
-              >
-                <LogOut className="mr-2 size-4" />
-                Sair
-              </Button>
+                  <TabsContent value="profile" className="mt-0">
+                    <ProfileTab />
+                  </TabsContent>
+                  <TabsContent value="security" className="mt-0">
+                    <SecurityTab />
+                  </TabsContent>
+                  <TabsContent value="notifications" className="mt-0">
+                    <NotificationsTab />
+                  </TabsContent>
+                </CardContent>
+              </Card>
+            </Tabs>
+
+            {/* Enhanced Feature Cards */}
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              {featureCards.map((card, index) => (
+                <FeatureCard key={index} {...card} />
+              ))}
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Enhanced Tabs Section */}
-        <div className="space-y-6 lg:col-span-9">
-          <Tabs
-            defaultValue="profile"
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="w-full"
-          >
-            <Card className="overflow-hidden">
-              <CardContent className="p-6">
-                <TabsList className="bg-grey-light/40 mb-8 grid w-full grid-cols-3">
-                  <TabsTrigger
-                    value="profile"
-                    className="data-[state=active]:bg-background data-[state=active]:text-blue-dark"
-                  >
-                    <User className="mr-2 size-4" />
-                    <span className="hidden sm:inline">Perfil</span>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="security"
-                    className="data-[state=active]:bg-background data-[state=active]:text-blue-dark"
-                  >
-                    <Shield className="mr-2 size-4" />
-                    <span className="hidden sm:inline">Segurança</span>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="notifications"
-                    className="data-[state=active]:bg-background data-[state=active]:text-blue-dark"
-                  >
-                    <Settings className="mr-2 size-4" />
-                    <span className="hidden sm:inline">Configurações</span>
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="profile" className="mt-0">
-                  <ProfileTab />
-                </TabsContent>
-                <TabsContent value="security" className="mt-0">
-                  <SecurityTab />
-                </TabsContent>
-                <TabsContent value="notifications" className="mt-0">
-                  <NotificationsTab />
-                </TabsContent>
-              </CardContent>
-            </Card>
-          </Tabs>
-
-          {/* Enhanced Feature Cards */}
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {featureCards.map((card, index) => (
-              <FeatureCard key={index} {...card} />
-            ))}
           </div>
         </div>
       </div>
-    </div>
+      {showDialog && <ProfileCompletionDialog />}
+    </>
   );
 }

@@ -1,3 +1,4 @@
+// frontend/app/layout.tsx
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Varela_Round } from 'next/font/google';
@@ -6,6 +7,7 @@ import Footer from '@/components/footer';
 import AuthProvider from '@/providers/auth-provider';
 import { getServerSession, logout } from '../lib/actions/server-auth';
 import SessionProvider from '@/providers/session-provider';
+import { ProfileCompletionProvider } from '@/providers/profile-completion-provider';
 import { cn } from '@/lib/utils';
 
 const varelaRound = Varela_Round({
@@ -48,7 +50,6 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: 'default',
     title: APP_DEFAULT_TITLE,
-    // startUpImage: [],
   },
   formatDetection: {
     telephone: false,
@@ -99,9 +100,11 @@ export default async function RootLayout({
         <AuthProvider initialUser={user} isAuthenticated={isAuth} logoutFunction={logout}>
           {isAuth ? (
             <SessionProvider>
-              <Headers />
-              {children}
-              <Footer />
+              <ProfileCompletionProvider>
+                <Headers />
+                {children}
+                <Footer />
+              </ProfileCompletionProvider>
             </SessionProvider>
           ) : (
             <>

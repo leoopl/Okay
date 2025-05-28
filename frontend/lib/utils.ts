@@ -6,6 +6,39 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export interface PasswordStrength {
+  score: number;
+  label: string;
+  color: string;
+}
+
+/**
+ * Analyzes password strength based on various criteria
+ * @param password - The password to analyze
+ * @returns Object containing score, label, and color for UI display
+ */
+export function getPasswordStrength(password: string): PasswordStrength {
+  if (!password) return { score: 0, label: 'Sem senha', color: 'text-muted-foreground' };
+
+  let score = 0;
+
+  // Length check
+  if (password.length >= 8) score++;
+  if (password.length >= 12) score++;
+
+  // Character type checks
+  if (/[A-Z]/.test(password)) score++;
+  if (/[a-z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+
+  // Determine strength label and color
+  if (score <= 2) return { score: 2, label: 'Fraca', color: 'text-destructive' };
+  if (score <= 3) return { score: 3, label: 'Média', color: 'text-yellow-600' };
+  if (score <= 4) return { score: 4, label: 'Forte', color: 'text-green-600' };
+  return { score: 5, label: 'Muito Forte', color: 'text-green-700' };
+}
+
 /**
  * Get User Profile Picture URL
  */

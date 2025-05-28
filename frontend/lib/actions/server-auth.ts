@@ -40,14 +40,49 @@ async function handleApiResponse(response: Response): Promise<any> {
       message: 'Authentication failed. Please try again.',
     };
   }
-
   return response.json();
+}
+
+/**
+ * Set authentication cookies after successful login/signup
+ */
+async function setAuthCookies(result: any): Promise<void> {
+  console.log('Setting auth cookies');
+
+  const cookieStore = await cookies();
+
+  // Set access token
+  cookieStore.set({
+    name: 'access_token',
+    value: result.accessToken,
+    httpOnly: false,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: result.expiresIn || 900,
+  });
+
+  // Set CSRF token if provided
+  if (result.csrfToken) {
+    cookieStore.set({
+      name: 'csrf_token',
+      value: result.csrfToken,
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 24 * 60 * 60,
+    });
+  }
 }
 
 /**
  * Production-ready server action for user signin
  */
-export async function signin(prevState: AuthActionResponse | undefined, formData: FormData) {
+export async function signin(
+  _: AuthActionResponse | undefined,
+  formData: FormData,
+): Promise<AuthActionResponse> {
   // Validate form data
   const validatedFields = SigninFormSchema.safeParse({
     email: formData.get('email'),
@@ -88,37 +123,7 @@ export async function signin(prevState: AuthActionResponse | undefined, formData
       };
     }
 
-    console.log('Login successful, setting cookies');
-
-    // Set the access token in a secure cookie for client retrieval
-    const cookieStore = await cookies();
-    cookieStore.set({
-      name: 'access_token',
-      value: result.accessToken,
-      httpOnly: false, // Must be false to be accessible by clientAuth
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: result.expiresIn || 900, // Default 15 min in seconds
-    });
-
-    // Store CSRF token for use in future requests
-    if (result.csrfToken) {
-      console.log('Setting CSRF token cookie');
-      cookieStore.set({
-        name: 'csrf_token',
-        value: result.csrfToken,
-        httpOnly: false, // Must be accessible from JavaScript
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 24 * 60 * 60, // 24 hours
-      });
-    } else {
-      console.warn('No CSRF token received from API');
-    }
-
-    // Refresh token is automatically handled by the API via HttpOnly cookie
+    await setAuthCookies(result);
   } catch (error: any) {
     console.error('Server-side login error:', error);
     return {
@@ -127,28 +132,23 @@ export async function signin(prevState: AuthActionResponse | undefined, formData
     };
   }
 
-  console.log('Redirecting to dashboard');
-  redirect('/profile');
+  console.log('Redirecting to profile');
+  redirect('/profile?showDialog=true');
 }
 
 /**
  * Production-ready server action for user signup
  */
 export async function signup(
-  prevState: AuthActionResponse | undefined,
+  _: AuthActionResponse | undefined,
   formData: FormData,
 ): Promise<AuthActionResponse> {
   // Validate form data
   const validatedFields = SignupFormSchema.safeParse({
     name: formData.get('name'),
-    surname: formData.get('surname'),
     email: formData.get('email'),
     password: formData.get('password'),
     confirm: formData.get('confirm'),
-    birthdate: formData.get('birthdate')
-      ? new Date(formData.get('birthdate') as string)
-      : undefined,
-    gender: formData.get('gender'),
   });
 
   // Return validation errors if any
@@ -177,7 +177,7 @@ export async function signup(
       return createResult;
     }
 
-    // Login with the new credentials
+    // Auto-login after signup
     const loginResponse = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -197,29 +197,7 @@ export async function signup(
       };
     }
 
-    // Set the access token in a secure cookie for client retrieval
-    (await cookies()).set({
-      name: 'access_token',
-      value: loginResult.accessToken,
-      httpOnly: false, // Must be false to be accessible by clientAuth
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: loginResult.expiresIn || 900, // Default 15 min in seconds
-    });
-
-    // Store CSRF token
-    if (loginResult.csrfToken) {
-      (await cookies()).set({
-        name: 'csrf_token',
-        value: loginResult.csrfToken,
-        httpOnly: false, // Must be accessible from JavaScript
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 24 * 60 * 60, // 24 hours
-      });
-    }
+    await setAuthCookies(loginResult);
   } catch (error: any) {
     console.error('Server-side signup error:', error);
     return {
@@ -228,7 +206,91 @@ export async function signup(
     };
   }
 
-  redirect('/dashboard');
+  // Redirect to profile where profile completion dialog will show
+  redirect('/profile?showDialog=true');
+}
+
+/**
+ * Complete user profile after initial signup
+ */
+export async function completeProfile(
+  prevState: AuthActionResponse | undefined,
+  formData: FormData,
+): Promise<AuthActionResponse> {
+  try {
+    const session = await getServerSession();
+    if (!session) {
+      return { success: false, message: 'You must be logged in to complete your profile' };
+    }
+
+    // Validate profile completion data
+    const profileData = {
+      name: formData.get('name') as string,
+      surname: formData.get('surname') as string,
+      gender: formData.get('gender') as string,
+      birthdate: formData.get('birthdate') as string,
+    };
+
+    // Basic validation
+    if (!profileData.name || profileData.name.length < 2) {
+      return {
+        success: false,
+        errors: { name: ['Nome deve ter pelo menos 2 caracteres'] },
+      };
+    }
+
+    const apiUrl = process.env.API_URL;
+    const userId = session.id;
+    const cookieStore = await cookies();
+    const csrfToken = cookieStore.get('csrf_token')?.value || '';
+    const accessToken = cookieStore.get('access_token')?.value;
+
+    if (!accessToken) {
+      const refreshed = await refreshServerToken();
+      if (!refreshed) {
+        return { success: false, message: 'Your session has expired. Please log in again.' };
+      }
+    }
+
+    const currentToken = cookieStore.get('access_token')?.value;
+
+    const response = await fetch(`${apiUrl}/users/${userId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrfToken,
+        Authorization: `Bearer ${currentToken}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify(profileData),
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        return {
+          success: false,
+          message: 'Your session has expired. Please log in again.',
+        };
+      }
+
+      const errorData = await response.json();
+      return {
+        success: false,
+        message: errorData.message || 'Error completing profile',
+      };
+    }
+
+    return {
+      success: true,
+      message: 'Profile completed successfully',
+    };
+  } catch (error) {
+    console.error('Error completing profile:', error);
+    return {
+      success: false,
+      message: 'An error occurred while completing your profile. Please try again later.',
+    };
+  }
 }
 
 /**
@@ -236,24 +298,24 @@ export async function signup(
  */
 export async function logout(): Promise<void> {
   try {
-    // Call the API to invalidate the token server-side
+    const cookieStore = await cookies();
+    const csrfToken = cookieStore.get('csrf_token')?.value || '';
+
     await fetch(`${API_URL}/auth/logout`, {
       method: 'POST',
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        // Include CSRF token from cookie
-        'X-CSRF-Token': (await cookies()).get('csrf_token')?.value || '',
+        'X-CSRF-Token': csrfToken,
       },
     });
   } catch (error) {
     console.error('Logout error:', error);
   }
 
-  // Clear the cookies
-  (await cookies()).delete('access_token');
-  (await cookies()).delete('csrf_token');
-  // refresh_token is cleared by the API via HttpOnly cookie
+  const cookieStore = await cookies();
+  cookieStore.delete('access_token');
+  cookieStore.delete('csrf_token');
 
   redirect('/');
 }
@@ -277,6 +339,7 @@ export async function getServerSession(): Promise<UserProfile | null> {
 
     // Check if token is expired
     const now = Math.floor(Date.now() / 1000);
+
     if (decoded.exp && decoded.exp < now) {
       // Token is expired - try to refresh
       const refreshed = await refreshServerToken();
@@ -351,6 +414,7 @@ export async function refreshServerToken(): Promise<boolean> {
 
     // Check if we already have an access token
     const currentToken = cookieStore.get('access_token');
+
     if (currentToken) {
       // Decode token to check expiration
       const decoded: any = jwtDecode(currentToken.value);
@@ -387,49 +451,10 @@ export async function refreshServerToken(): Promise<boolean> {
       return false;
     }
 
-    // Set the new access token in a cookie
-    cookieStore.set({
-      name: 'access_token',
-      value: data.accessToken,
-      httpOnly: false, // Must be false to be accessible by client JS
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: data.expiresIn || 1800, // Default 30 min in seconds
-    });
-
-    // Set the new CSRF token if provided
-    if (data.csrfToken) {
-      cookieStore.set({
-        name: 'csrf_token',
-        value: data.csrfToken,
-        httpOnly: false, // Must be accessible by client JS
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 24 * 60 * 60, // 24 hours
-      });
-    }
-
+    await setAuthCookies(data);
     return true;
   } catch (error) {
     console.error('Server token refresh error:', error);
     return false;
   }
 }
-
-// /**
-//  * Helper function to require authentication for a route
-//  * Use this in server components to ensure user is authenticated
-//  * @param redirectTo Optional redirect path if not authenticated
-//  * @returns User profile data
-//  */
-// export async function requireAuth(redirectTo: string = '/signin'): Promise<UserProfile> {
-//   const session = await getServerSession();
-
-//   if (!session) {
-//     redirect(redirectTo);
-//   }
-
-//   return session;
-// }
