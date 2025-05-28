@@ -115,10 +115,10 @@ export function ProfileTab() {
         birthdate: '', // This would need to be populated from the API if available
       });
 
-      // Set birthdate if available
+      // Set birthdate if available with proper timezone handling
       if (user.birthdate) {
         try {
-          setDate(new Date(user.birthdate));
+          setDate(new Date(`${user.birthdate}T00:00:00-03:00`));
         } catch (error) {
           console.error('Invalid birthdate format:', error);
         }
@@ -149,6 +149,7 @@ export function ProfileTab() {
     // Add the date from our date picker if it exists
     if (date) {
       formData.append('birthdate', date.toISOString());
+      console.log(date.toISOString());
     }
 
     // Submit the form within a transition

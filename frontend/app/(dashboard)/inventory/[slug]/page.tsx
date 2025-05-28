@@ -75,7 +75,7 @@ const ConsentForm = ({
     <Card className="bg-card/50 border-0 backdrop-blur-sm">
       <CardHeader className="space-y-4 text-center">
         <div className="bg-primary/10 mx-auto w-fit rounded-full p-4">
-          <Shield className="text-primary h-8 w-8" />
+          <Shield className="text-blue-dark size-8" />
         </div>
         <div className="space-y-2">
           <CardTitle className="text-2xl">Consentimento Informado</CardTitle>
@@ -90,7 +90,7 @@ const ConsentForm = ({
         {/* Inventory Info */}
         <div className="bg-muted/30 space-y-3 rounded-lg p-6">
           <h3 className="text-foreground flex items-center gap-2 font-semibold">
-            <FileText className="text-primary h-5 w-5" />
+            <FileText className="text-blue-dark size-5" />
             Sobre esta Avaliação
           </h3>
           <div className="grid gap-3 text-sm">
@@ -231,12 +231,9 @@ const QuestionCard = ({
 
         <div className="space-y-3">
           <Progress value={progress} className="h-2" />
-          <div className="text-right">
-            <span className="text-muted-foreground text-xs">{progress}% concluído</span>
-          </div>
         </div>
 
-        <CardTitle className="text-xl leading-relaxed">{question.title}</CardTitle>
+        <CardTitle className="mt-2 text-xl leading-relaxed">{question.title}</CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -248,6 +245,7 @@ const QuestionCard = ({
           {question.options.map((option, index) => (
             <div key={option.value} className="space-y-2">
               <RadioGroupItem
+                key={index}
                 value={option.value.toString()}
                 className={cn(
                   'w-full rounded-lg border-2 p-4 transition-all duration-200',
@@ -256,24 +254,7 @@ const QuestionCard = ({
                     'border-primary bg-primary/10 shadow-sm',
                 )}
               >
-                <div className="flex w-full items-start gap-3">
-                  <div
-                    className={cn(
-                      'mt-0.5 h-5 w-5 shrink-0 rounded-full border-2 transition-all duration-200',
-                      currentResponse?.optionValue === option.value
-                        ? 'border-primary bg-primary'
-                        : 'border-muted-foreground/30',
-                    )}
-                  >
-                    {currentResponse?.optionValue === option.value && (
-                      <div className="bg-primary-foreground h-full w-full scale-50 rounded-full transition-transform duration-200" />
-                    )}
-                  </div>
-                  <div className="text-left">
-                    <p className="text-sm leading-relaxed font-medium">{option.label}</p>
-                    <p className="text-muted-foreground mt-1 text-xs">Valor: {option.value}</p>
-                  </div>
-                </div>
+                <Label>{option.label}</Label>
               </RadioGroupItem>
             </div>
           ))}
@@ -451,7 +432,7 @@ export default function InventoryPage({ params }: { params: Promise<{ slug: stri
       <div className="container mx-auto max-w-4xl px-4 py-8">
         {/* Header */}
         <div className="mb-8 space-y-4 text-center">
-          <h1 className="font-varela text-foreground text-2xl font-bold lg:text-3xl">
+          <h1 className="font-varela text-green-dark font-varela text-2xl font-bold lg:text-3xl">
             {inventory.title}
           </h1>
           <p className="text-muted-foreground mx-auto max-w-2xl">

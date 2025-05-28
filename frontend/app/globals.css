@@ -349,39 +349,6 @@
     animation: scale-in 0.2s ease-out;
   }
 
-  /* Mental health friendly colors */
-  .text-calm {
-    @apply text-blue-600;
-  }
-
-  .text-hope {
-    @apply text-green-600;
-  }
-
-  .text-warmth {
-    @apply text-yellow-600;
-  }
-
-  .text-comfort {
-    @apply text-orange-600;
-  }
-
-  .bg-calm {
-    @apply bg-blue-50;
-  }
-
-  .bg-hope {
-    @apply bg-green-50;
-  }
-
-  .bg-warmth {
-    @apply bg-yellow-50;
-  }
-
-  .bg-comfort {
-    @apply bg-orange-50;
-  }
-
   /* Accessibility utilities */
   .sr-only-focusable {
     @apply focus:bg-background focus:text-foreground sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-2;

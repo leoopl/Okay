@@ -173,31 +173,6 @@ export default {
     // Custom plugin for additional utilities
     function ({ addUtilities }: { addUtilities: any }) {
       const newUtilities = {
-        // Mental health focused utilities
-        '.text-calm': {
-          color: '#1e40af', // blue-800
-        },
-        '.text-hope': {
-          color: '#16a34a', // green-600
-        },
-        '.text-warmth': {
-          color: '#d97706', // amber-600
-        },
-        '.text-comfort': {
-          color: '#ea580c', // orange-600
-        },
-        '.bg-calm': {
-          backgroundColor: '#dbeafe', // blue-100
-        },
-        '.bg-hope': {
-          backgroundColor: '#dcfce7', // green-100
-        },
-        '.bg-warmth': {
-          backgroundColor: '#fef3c7', // amber-100
-        },
-        '.bg-comfort': {
-          backgroundColor: '#fed7aa', // orange-100
-        },
         // Focus utilities for accessibility
         '.focus-ring': {
           '&:focus-visible': {

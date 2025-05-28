@@ -157,9 +157,6 @@ const ResponseDetails = ({ responses }: { responses: any[] }) => (
           <div className="space-y-2">
             <div className="flex items-start justify-between gap-4">
               <h4 className="text-sm leading-relaxed font-medium">{response.questionTitle}</h4>
-              <Badge variant="secondary" className="shrink-0 text-xs">
-                {response.optionValue}
-              </Badge>
             </div>
             <p className="text-muted-foreground text-sm">
               <span className="font-medium">Resposta:</span> {response.optionLabel}
@@ -298,16 +295,16 @@ export default function ResultPage({ params }: { params: Promise<{ slug: string 
       <div className="container mx-auto max-w-4xl px-4 py-8">
         {/* Header */}
         <div className="mb-8 space-y-4 text-center">
-          <div className="bg-primary/10 text-primary inline-flex items-center rounded-full px-4 py-2 text-sm font-medium">
-            <Award className="mr-2 h-4 w-4" />
+          <div className="text-yellow-dark inline-flex items-center rounded-full bg-white/80 px-4 py-2 text-sm font-medium shadow-2xl">
+            <Award className="mr-2 size-4" />
             Avaliação Concluída
           </div>
 
-          <h1 className="text-foreground text-3xl font-bold">Seus Resultados</h1>
+          <h1 className="text-green-dark font-varela text-4xl font-bold">Seus Resultados</h1>
 
           <div className="text-muted-foreground flex flex-col items-center justify-center gap-4 text-sm sm:flex-row">
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
+              <Calendar className="size-4" />
               <span>Realizado hoje</span>
             </div>
             {currentInventory && (
@@ -321,12 +318,18 @@ export default function ResultPage({ params }: { params: Promise<{ slug: string 
 
         {/* Results Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:mx-auto lg:w-fit">
-            <TabsTrigger value="overview" className="gap-2">
+          <TabsList className="bg-grey-light/40 grid w-full grid-cols-2">
+            <TabsTrigger
+              value="overview"
+              className="data-[state=active]:text-blue-dark data-[state=active]:bg-background gap-2"
+            >
               <BarChart4 className="h-4 w-4" />
               Visão Geral
             </TabsTrigger>
-            <TabsTrigger value="details" className="gap-2">
+            <TabsTrigger
+              value="details"
+              className="data-[state=active]:text-blue-dark data-[state=active]:bg-background gap-2"
+            >
               <Info className="h-4 w-4" />
               Detalhes
             </TabsTrigger>
@@ -400,8 +403,8 @@ export default function ResultPage({ params }: { params: Promise<{ slug: string 
           <TabsContent value="details" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Info className="text-primary h-5 w-5" />
+                <CardTitle className="font-varela flex items-center gap-2">
+                  <Info className="text-blue-dark h-5 w-5" />
                   Suas Respostas
                 </CardTitle>
                 <CardDescription>
