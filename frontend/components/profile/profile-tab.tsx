@@ -31,6 +31,7 @@ import { pt } from 'date-fns/locale';
 import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { toast, Toaster } from 'sonner';
+import { z } from 'zod';
 
 // Gender options with better localization
 const genderOptions = [
@@ -66,7 +67,7 @@ export function ProfileTab() {
   const [hasChanges, setHasChanges] = useState(false);
 
   // Create form with default values from user
-  const form = useForm({
+  const form = useForm<z.infer<typeof ProfileFormSchema>>({
     resolver: zodResolver(ProfileFormSchema),
     defaultValues: {
       name: user?.name || '',
@@ -75,6 +76,7 @@ export function ProfileTab() {
       gender: user?.gender || '',
       birthdate: '',
     },
+    mode: 'onChange',
   });
 
   // Watch form changes to enable/disable save button
@@ -165,7 +167,7 @@ export function ProfileTab() {
         gender: user.gender || '',
         birthdate: '',
       });
-      setDate(user.birthdate ? new Date(user.birthdate) : undefined);
+      setDate(user.birthdate ? new Date(`${user.birthdate}T00:00:00-03:00`) : undefined);
       setHasChanges(false);
     }
   };

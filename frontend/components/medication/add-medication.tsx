@@ -36,6 +36,7 @@ import {
   useMedicationStore,
 } from '@/store/medication-store';
 import { Label } from '../ui/label';
+import { toast } from 'sonner';
 
 // Constants
 const MEDICATION_FORMS = ['Capsule', 'Tablet', 'Drops', 'Injectable', 'Ointment', 'Other'] as const;
@@ -218,7 +219,8 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
 
           // Only update if there are changes
           if (Object.keys(changes).length > 0) {
-            await updateMedication(medication.id, changes as any);
+            const result = await updateMedication(medication.id, changes as any);
+            if (result) toast.success('Medication updated successfully');
           }
         } else {
           await createMedication(payload as any);

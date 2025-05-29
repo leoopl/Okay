@@ -432,7 +432,7 @@ export default function InventoryPage({ params }: { params: Promise<{ slug: stri
       <div className="container mx-auto max-w-4xl px-4 py-8">
         {/* Header */}
         <div className="mb-8 space-y-4 text-center">
-          <h1 className="font-varela text-green-dark font-varela text-2xl font-bold lg:text-3xl">
+          <h1 className="font-varela text-green-dark text-2xl font-bold lg:text-3xl">
             {inventory.title}
           </h1>
           <p className="text-muted-foreground mx-auto max-w-2xl">

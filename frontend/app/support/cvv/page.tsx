@@ -5,11 +5,11 @@ import Image from 'next/image';
 
 export default function Cvv() {
   return (
-    <main className="container mx-auto px-4 py-8 md:py-12">
+    <main className="flex min-h-screen flex-col p-10 lg:py-15">
       <div className="flex flex-col items-center text-center">
         <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2">
-          <div className="animate-fade-in flex flex-col gap-8 text-center">
-            <h1 className="font-varela text-green-dark text-3xl font-bold md:text-4xl">
+          <div className="animate-fade-in flex flex-col gap-8">
+            <h1 className="font-varela text-green-dark text-2xl leading-tight font-bold md:text-3xl lg:text-4xl">
               Centro de Valorização da Vida (CVV)
             </h1>
             <p className="text-beige-dark text-xl">Apoio emocional e prevenção do suicídio</p>

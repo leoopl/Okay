@@ -22,15 +22,13 @@ import type { z } from 'zod';
 import { SigninFormSchema } from '@/lib/definitions';
 import { signin } from '@/lib/actions/server-auth';
 
-export type SigninFormValues = z.infer<typeof SigninFormSchema>;
-
 const SigninPage: React.FC = () => {
   const searchParams = useSearchParams();
   // Derive session expiration without state or effects
   const sessionExpired = searchParams.get('expired') === 'true';
 
   // Initialize form with Zod schema
-  const form = useForm<SigninFormValues>({
+  const form = useForm<z.infer<typeof SigninFormSchema>>({
     resolver: zodResolver(SigninFormSchema),
     defaultValues: { email: '', password: '' },
     mode: 'onTouched',
@@ -114,11 +112,11 @@ const SigninPage: React.FC = () => {
                 </div>
               )}
 
-              <Button className="small-caps w-full py-2" disabled={isPending}>
+              <Button className="small-caps w-full font-semibold" disabled={isPending}>
                 {isPending ? 'Entrando...' : 'Entrar'}
               </Button>
 
-              <p className="small-caps mt-4 text-center text-sm text-gray-900">
+              <p className="small-caps text-center text-sm text-gray-900">
                 Ainda não tem conta?{' '}
                 <Link href="/signup" className="hover:text-beige-dark font-semibold">
                   Cadastre-se aqui

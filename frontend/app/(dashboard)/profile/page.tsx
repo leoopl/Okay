@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   Book,
   ClipboardList,
@@ -22,12 +21,11 @@ import {
   Clock,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/providers/auth-provider';
 import { formatDate } from '@/lib/utils';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Toaster } from 'sonner';
-import { ProfileCompletionDialog } from '@/components/profile/profile-completion-dialog';
 
 // Feature card component for better reusability
 interface FeatureCardProps {
@@ -99,21 +97,9 @@ const UserStats = ({ user }: { user: any }) => (
 );
 
 export default function Profile() {
-  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('profile');
   const { user, isAuth, logout } = useAuth();
-  const [showDialog, setShowDialog] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    if (searchParams.get('showDialog') === 'true') {
-      setShowDialog(true);
-      // Clean up the URL so the dialog doesn't reappear on refresh
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete('showDialog');
-      router.replace(`/profile?${params.toString()}`);
-    }
-  }, [searchParams, router]);
 
   const handleLogout = async () => {
     try {
@@ -298,7 +284,6 @@ export default function Profile() {
           </div>
         </div>
       </div>
-      {showDialog && <ProfileCompletionDialog />}
     </>
   );
 }

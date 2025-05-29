@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useTransition } from 'react';
+import { useCallback, useTransition, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   AlertDialog,
@@ -15,16 +15,16 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { UserCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/providers/auth-provider';
-import {
-  checkProfileCompletion,
-  dismissProfileCompletionPrompt,
-  getFieldDisplayName,
-  shouldShowProfileCompletionPrompt,
-} from '@/lib/profile-completion-utils';
-import type { UserProfile } from '@/lib/definitions';
+import { useProfileCompletionContext } from '@/providers/profile-completion-provider';
+import { useProfileCompletion } from '@/hooks/use-profile-completion';
 
-// Presentational subcomponent for missing fields
-function MissingFieldsAlert({ items }: { items: string[] }) {
+/**
+ * Presentational component for displaying missing fields
+ * Memoized to prevent unnecessary re-renders
+ */
+const MissingFieldsAlert = memo(({ items }: { items: string[] }) => {
+  if (!items.length) return null;
+
   return (
     <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3">
       <div className="flex gap-2">
@@ -40,52 +40,49 @@ function MissingFieldsAlert({ items }: { items: string[] }) {
       </div>
     </div>
   );
-}
+});
 
-// Hook to manage prompt visibility logic
-function useProfilePrompt(user: UserProfile | null) {
-  const [isOpen, setIsOpen] = useState(false);
+MissingFieldsAlert.displayName = 'MissingFieldsAlert';
 
-  useEffect(() => {
-    if (user && shouldShowProfileCompletionPrompt(user)) {
-      const timer = window.setTimeout(() => setIsOpen(true), 500);
-      return () => clearTimeout(timer);
-    }
-  }, [user]);
-
-  const dismiss = useCallback(() => {
-    if (user) dismissProfileCompletionPrompt(user.id);
-    setIsOpen(false);
-  }, [user]);
-
-  return { isOpen, dismiss };
-}
-
-export function ProfileCompletionDialog({ onComplete }: { onComplete?: () => void }) {
+/**
+ *  Profile Completion Dialog
+ *
+ * Features:
+ * - Uses centralized state from context
+ * - Memoized components to prevent unnecessary renders
+ * - Proper error handling and loading states
+ * - Accessibility improvements
+ * - Performance optimized with transitions
+ */
+export function ProfileCompletionDialog() {
   const { user } = useAuth();
   const router = useRouter();
-  const { isOpen, dismiss } = useProfilePrompt(user);
   const [isPending, startTransition] = useTransition();
 
-  if (!user) return null;
+  // Get all profile completion state from context
+  const { isDialogOpen, completionStatus, missingFieldsDisplay, closeDialog, dismissDialog } =
+    useProfileCompletionContext();
 
-  // Memoize computation for performance
-  const completionStatus = useMemo(() => checkProfileCompletion(user), [user]);
-  const missingDisplayNames = useMemo(
-    () => completionStatus.missingFields.map(getFieldDisplayName),
-    [completionStatus.missingFields],
-  );
-
+  // Handle navigation to profile completion
   const handleComplete = useCallback(() => {
-    dismiss();
     startTransition(() => {
+      dismissDialog();
       router.push('/profile?complete=true');
-      onComplete?.();
     });
-  }, [dismiss, router, onComplete]);
+  }, [dismissDialog, router]);
+
+  // Handle dialog dismissal
+  const handleDismiss = useCallback(() => {
+    dismissDialog();
+  }, [dismissDialog]);
+
+  // Don't render if no user or dialog shouldn't be open
+  if (!user || !isDialogOpen) {
+    return null;
+  }
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={dismiss}>
+    <AlertDialog open={isDialogOpen} onOpenChange={closeDialog}>
       <AlertDialogContent className="sm:max-w-md">
         <AlertDialogHeader>
           <div className="flex items-center gap-2">
@@ -103,14 +100,99 @@ export function ProfileCompletionDialog({ onComplete }: { onComplete?: () => voi
                 <span className="text-muted-foreground">Progresso do perfil</span>
                 <span className="font-medium">{completionStatus.completionPercentage}%</span>
               </div>
-              <Progress value={completionStatus.completionPercentage} className="h-2" />
+              <Progress
+                value={completionStatus.completionPercentage}
+                className="h-2"
+                aria-label={`Progresso do perfil: ${completionStatus.completionPercentage}%`}
+              />
             </div>
 
-            {missingDisplayNames.length > 0 && <MissingFieldsAlert items={missingDisplayNames} />}
+            <MissingFieldsAlert items={missingFieldsDisplay} />
           </AlertDialogDescription>
         </AlertDialogHeader>
+
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={dismiss}>Lembrar mais tarde</AlertDialogCancel>
+          <AlertDialogCancel onClick={handleDismiss} disabled={isPending}>
+            Lembrar mais tarde
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={handleComplete} disabled={isPending}>
+            {isPending ? 'Aguarde...' : 'Completar Perfil'}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+// Alternative component that accepts props directly (for cases where context isn't available)
+interface StandaloneProfileCompletionDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  onComplete?: () => void;
+  onDismiss?: () => void;
+}
+
+export function StandaloneProfileCompletionDialog({
+  isOpen,
+  onOpenChange,
+  onComplete,
+  onDismiss,
+}: StandaloneProfileCompletionDialogProps) {
+  const { user } = useAuth();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  // Use the hook directly if not using the provider
+  const { completionStatus, missingFieldsDisplay } = useProfileCompletion({ user });
+
+  const handleComplete = useCallback(() => {
+    startTransition(() => {
+      onComplete?.();
+      router.push('/profile?complete=true');
+    });
+  }, [onComplete, router]);
+
+  const handleDismiss = useCallback(() => {
+    onDismiss?.();
+    onOpenChange(false);
+  }, [onDismiss, onOpenChange]);
+
+  if (!user) return null;
+
+  return (
+    <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
+      <AlertDialogContent className="sm:max-w-md">
+        <AlertDialogHeader>
+          <div className="flex items-center gap-2">
+            <UserCircle className="text-primary h-6 w-6" />
+            <AlertDialogTitle>Complete seu Perfil</AlertDialogTitle>
+          </div>
+          <AlertDialogDescription className="space-y-3">
+            <p>
+              Bem-vindo ao Okay! Para personalizar sua experiência e fornecer o melhor suporte
+              possível, precisamos de algumas informações adicionais.
+            </p>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Progresso do perfil</span>
+                <span className="font-medium">{completionStatus.completionPercentage}%</span>
+              </div>
+              <Progress
+                value={completionStatus.completionPercentage}
+                className="h-2"
+                aria-label={`Progresso do perfil: ${completionStatus.completionPercentage}%`}
+              />
+            </div>
+
+            <MissingFieldsAlert items={missingFieldsDisplay} />
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={handleDismiss} disabled={isPending}>
+            Lembrar mais tarde
+          </AlertDialogCancel>
           <AlertDialogAction onClick={handleComplete} disabled={isPending}>
             {isPending ? 'Aguarde...' : 'Completar Perfil'}
           </AlertDialogAction>

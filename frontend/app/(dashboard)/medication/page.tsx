@@ -142,9 +142,9 @@ export default function MedicationPage({ className }: MedicationPageProps) {
                 className="gap-2"
               >
                 {isAnyLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="size-4 animate-spin" />
                 ) : (
-                  <RefreshCw className="h-4 w-4" />
+                  <RefreshCw className="size-4" />
                 )}
                 Try Again
               </Button>
@@ -160,6 +160,8 @@ export default function MedicationPage({ className }: MedicationPageProps) {
 
   return (
     <main className={cn('container mx-auto px-4 py-8 md:py-12', className)}>
+      {/* Global Toast Notifications */}
+      <Toaster position="top-center" richColors />
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
@@ -211,9 +213,6 @@ export default function MedicationPage({ className }: MedicationPageProps) {
           </Tabs>
         </div>
       </div>
-
-      {/* Global Toast Notifications */}
-      <Toaster position="top-center" richColors closeButton duration={4000} />
     </main>
   );
 }

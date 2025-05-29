@@ -1,7 +1,15 @@
 'use client';
 
-import React, { createContext, useContext, ReactNode, useMemo, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  ReactNode,
+  useMemo,
+  useCallback,
+  useEffect,
+} from 'react';
 import { UserProfile } from '@/lib/definitions';
+import { clearProfileCompletionOnLogin } from '@/lib/profile-completion-utils';
 
 type AuthContextType = {
   user: UserProfile | null;
@@ -29,6 +37,18 @@ export default function AuthProvider({
   const user: UserProfile | null = initialUser;
   const isAuth: boolean = isAuthenticated;
   const logout: () => Promise<void> = logoutFunction;
+
+  // Clear profile completion dismissals when user logs in
+  useEffect(() => {
+    if (user?.id && isAuth) {
+      // Small delay to ensure localStorage is ready
+      const timer = setTimeout(() => {
+        clearProfileCompletionOnLogin(user.id);
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
+  }, [user?.id, isAuth]);
 
   // Function to check if user has a specific role
   const hasRole = useCallback(

@@ -1,5 +1,12 @@
 import { z } from 'zod';
 
+export const TestimonialFormSchema = z.object({
+  message: z.string().min(10, 'O depoimento deve ter pelo menos 10 caracteres.'),
+  email: z.string().email('Por favor, insira um e-mail válido.'),
+  location: z.string().optional(),
+  newsletter: z.boolean().optional(),
+});
+
 // Signup form schema with validation rules
 export const SignupFormSchema = z
   .object({
@@ -27,15 +34,15 @@ export const SigninFormSchema = z.object({
 
 // Validation schema for profile updates (moved from server-profile.ts)
 export const ProfileFormSchema = z.object({
-  name: z.string().min(2, { message: 'Nome deve ter pelo menos 2 caracteres' }).max(50),
+  name: z.string().min(3, { message: 'Nome precisa ter ao menos 3 caracteres' }).trim(),
   surname: z
     .string()
     .min(2, { message: 'Sobrenome deve ter pelo menos 2 caracteres' })
     .max(50)
     .optional(),
-  email: z.string().email({ message: 'Email inválido' }),
+  email: z.string().min(1, 'E-mail é obrigatório').email('E-mail inválido'),
   gender: z.string().optional(),
-  birthdate: z.string().optional(), // Assuming birthdate is submitted as string, handle conversion in action
+  birthdate: z.string().optional(),
 });
 
 // Validation schema for password change (moved from server-profile.ts)

@@ -107,7 +107,7 @@ export default function SignupPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-foreground">Nome *</FormLabel>
+                      <FormLabel className="text-foreground">Nome</FormLabel>
                       <FormControl>
                         <Input
                           type="text"
@@ -127,7 +127,7 @@ export default function SignupPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>E-mail *</FormLabel>
+                      <FormLabel>E-mail</FormLabel>
                       <FormControl>
                         <Input
                           type="email"
@@ -147,7 +147,7 @@ export default function SignupPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Senha *</FormLabel>
+                      <FormLabel>Senha</FormLabel>
                       <FormControl>
                         <PasswordInput
                           {...field}
@@ -161,7 +161,6 @@ export default function SignupPage() {
                       <FormDescription>
                         Use ao menos 8 caracteres, números e símbolos.
                       </FormDescription>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -184,7 +183,11 @@ export default function SignupPage() {
                   )}
                 />
 
-                <Button type="submit" disabled={isPending} className="small-caps w-full">
+                <Button
+                  type="submit"
+                  disabled={isPending}
+                  className="small-caps w-full font-semibold"
+                >
                   {isPending ? (
                     <>
                       <Loader2 className="mr-2 size-4 animate-spin" />

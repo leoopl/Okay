@@ -22,7 +22,6 @@ export async function generateMetadata({
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  // Move use() outside of try/catch
   const { slug } = await params;
 
   if (!slug) {
@@ -56,7 +55,6 @@ export async function generateMetadata({
 }
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
-  // Move use() outside of try/catch
   const { slug } = await params;
 
   console.log('Accessing blog post with slug:', slug);

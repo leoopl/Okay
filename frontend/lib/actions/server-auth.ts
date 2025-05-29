@@ -74,6 +74,16 @@ async function setAuthCookies(result: any): Promise<void> {
       maxAge: 24 * 60 * 60,
     });
   }
+  // Set a flag to indicate fresh login for profile completion
+  cookieStore.set({
+    name: 'fresh_login',
+    value: 'true',
+    httpOnly: false,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60, // 1 minute - just enough for the client to detect it
+  });
 }
 
 /**
@@ -133,7 +143,7 @@ export async function signin(
   }
 
   console.log('Redirecting to profile');
-  redirect('/profile?showDialog=true');
+  redirect('/profile');
 }
 
 /**
@@ -207,7 +217,7 @@ export async function signup(
   }
 
   // Redirect to profile where profile completion dialog will show
-  redirect('/profile?showDialog=true');
+  redirect('/profile');
 }
 
 /**

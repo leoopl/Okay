@@ -27,14 +27,14 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   });
 
   return (
-    <div className="min-h-screen px-4 py-8">
-      <div className="mx-auto max-w-7xl">
-        <div className="grid gap-8 md:grid-cols-2 md:items-center">
-          <div className="animate-fade-in space-y-6 text-center md:text-left">
-            <h1 className="font-varela small-caps text-green-dark text-4xl font-bold">
+    <div className="flex min-h-screen flex-col p-10 lg:py-15">
+      <div className="container mx-auto">
+        <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2">
+          <div className="animate-fade-in flex flex-col gap-5">
+            <h1 className="font-varela text-green-dark text-3xl leading-tight font-bold md:text-4xl lg:text-5xl">
               Recursos e informações
             </h1>
-            <p className="text-base text-gray-700">
+            <p className="text-beige-dark text-base md:text-lg">
               Encontre informações sobre diversas condições de saúde mental.
             </p>
             <nav className="flex flex-wrap gap-2">
@@ -43,7 +43,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
             </nav>
           </div>
 
-          <div className="flex justify-center">
+          <div className="hidden md:flex md:justify-center">
             <Image
               src="/thinking.svg"
               alt="Ilustração"

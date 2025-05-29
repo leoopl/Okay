@@ -2,7 +2,7 @@ import Image from 'next/image';
 import tree from '../public/tree.png';
 import type { NextPage } from 'next';
 import FeaturesSection from '@/components/home/features-section';
-import Testimonials from '@/components/home/testimonials-section';
+import Testimonials from '@/components/home/testimonials/testimonials-section';
 
 const Home: NextPage = () => {
   return (

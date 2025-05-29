@@ -75,10 +75,9 @@ function Calendar({
     props.weekdayClassName,
   );
   const _captionLabelClassName = cn('truncate text-sm font-medium', props.captionLabelClassName);
-  const buttonNavClassName = buttonVariants({
-    variant: 'outline',
-    className: 'z-10 size-7 bg-transparent p-0 opacity-50 hover:opacity-100',
-  });
+  const buttonNavClassName = cn(
+    'z-10 size-7 bg-transparent cursor-pointer p-0 opacity-50 hover:opacity-100 hover:bg-accent/30 rounded-md',
+  );
   const _buttonNextClassName = cn(buttonNavClassName, props.buttonNextClassName);
   const _buttonPreviousClassName = cn(buttonNavClassName, props.buttonPreviousClassName);
   const _navClassName = cn('absolute flex w-full items-center justify-between', props.navClassName);
