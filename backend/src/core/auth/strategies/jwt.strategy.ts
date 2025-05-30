@@ -1,13 +1,12 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy } from 'passport-jwt';
+import { ExtractJwt, Strategy } from 'passport-jwt';
 import { TokenPayload } from '../services/token.service';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TokenBlacklist } from '../entities/token-blacklist.entity';
 import { AuthenticatedUser } from '../../../common/interfaces/auth-request.interface';
-import { Request } from 'express';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -19,10 +18,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     private tokenBlacklistRepository: Repository<TokenBlacklist>,
   ) {
     super({
-      // Extract JWT from secure HttpOnly cookie instead of Authorization header
-      jwtFromRequest: (req: Request) => {
-        return req.cookies['__Secure-access-token'] || null;
-      },
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('JWT_SECRET'),
       audience: configService.get<string>('JWT_AUDIENCE'),
@@ -34,6 +30,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     this.logger.debug(`Validating JWT payload: ${JSON.stringify(payload)}`);
 
     try {
+      // Check if token is blacklisted
       if (payload.jti) {
         const blacklistedToken = await this.tokenBlacklistRepository.findOne({
           where: { jti: payload.jti },
@@ -44,12 +41,13 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         }
       }
 
+      // Return normalized AuthenticatedUser object
       return {
-        userId: payload.sub,
+        userId: payload.sub, // Normalize: JWT uses 'sub', we want 'userId'
         email: payload.email,
-        roles: payload.roles || [],
+        roles: payload.roles || [], // Ensure it's always an array of strings
         permissions: payload.permissions || [],
-        jti: payload.jti,
+        jti: payload.jti, // Keep JWT-specific fields
         exp: payload.exp,
       };
     } catch (error) {

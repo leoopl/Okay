@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Body,
   Controller,
@@ -17,13 +18,12 @@ import { Response } from 'express';
 import { ApiOperation, ApiTags, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { OAuthService, PKCEParams } from '../services/oauth.service';
 import { TokenService } from '../services/token.service';
-import { SecureTokenService } from '../services/secure-token.service';
-import { TokenRefreshService } from '../services/token-refresh.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { AuditService } from '../../audit/audit.service';
 import { AuditAction } from '../../audit/entities/audit-log.entity';
 import { Public } from '../../../common/decorators/is-public.decorator';
 import { IAuthenticatedRequest } from '../../../common/interfaces/auth-request.interface';
+import { AuthGuard } from '@nestjs/passport';
 import {
   GoogleOAuthCallbackDto,
   GoogleOAuthResponseDto,
@@ -31,29 +31,18 @@ import {
 import { GoogleOAuthService } from '../services/google-oauth.service';
 import { UserService } from 'src/modules/user/user.service';
 import { AuthService } from '../services/auth.service';
-import { OAuthStateService } from '../services/oauth-state.service';
-import { CsrfMiddleware } from 'src/common/middleware/csrf.middleware';
-import {
-  OAuthException,
-  OAuthStateException,
-} from '../exceptions/oauth-exceptions';
 
 @ApiTags('authentication')
 @Controller('auth')
 export class AuthController {
   private readonly logger: Logger = new Logger(AuthController.name);
-
   constructor(
     private readonly authService: AuthService,
     private readonly oauthService: OAuthService,
     private readonly tokenService: TokenService,
-    private readonly secureTokenService: SecureTokenService,
-    private readonly tokenRefreshService: TokenRefreshService,
     private readonly auditService: AuditService,
     private readonly googleOAuthService: GoogleOAuthService,
     private readonly userService: UserService,
-    private readonly oauthStateService: OAuthStateService,
-    private readonly csrfMiddleware: CsrfMiddleware,
   ) {}
 
   @Public()
@@ -79,44 +68,28 @@ export class AuthController {
     const ip = this.getIpAddress(req);
     const userAgent = req.headers['user-agent'] || 'unknown';
 
-    try {
-      // Validate credentials and generate tokens
-      const tokenResult =
-        await this.oauthService.validateCredentialsAndGenerateTokens(
-          loginData.email,
-          loginData.password,
-          ip,
-          userAgent,
-        );
-
-      // Set secure authentication cookies and get session ID
-      const sessionId = this.secureTokenService.setSecureAuthCookies(
-        res,
-        tokenResult.accessToken,
-        tokenResult.refreshToken,
-        tokenResult.expiresIn,
+    // Validate credentials and generate tokens
+    const tokenResult =
+      await this.oauthService.validateCredentialsAndGenerateTokens(
+        loginData.email,
+        loginData.password,
+        ip,
+        userAgent,
       );
 
-      // Generate CSRF token tied to the session
-      const csrfToken = this.csrfMiddleware.generateSecureToken(sessionId, res);
+    // Set refresh token in HttpOnly cookie
+    this.tokenService.setRefreshTokenCookie(res, tokenResult.refreshToken);
 
-      // Return success response (no sensitive tokens in response body)
-      return {
-        success: true,
-        message: 'Login successful',
-        sessionId, // Safe to return - not sensitive
-        csrfToken, // Safe to return - needed by client for future requests
-        expiresIn: tokenResult.expiresIn,
-      };
-    } catch (error) {
-      this.logger.error(`Login error: ${error.message}`, error.stack);
+    // Generate CSRF token and set in cookie
+    const csrfToken = req['csrfMiddleware'].generateToken(res);
 
-      if (error instanceof UnauthorizedException) {
-        throw error;
-      }
-
-      throw new BadRequestException('Login failed');
-    }
+    // Return access token in response body
+    return {
+      accessToken: tokenResult.accessToken,
+      tokenType: tokenResult.tokenType,
+      expiresIn: tokenResult.expiresIn,
+      csrfToken: csrfToken, // Return CSRF token to client
+    };
   }
 
   @Public()
@@ -198,48 +171,39 @@ export class AuthController {
         userAgent,
       );
 
-      // Set secure authentication cookies
-      const sessionId = this.secureTokenService.setSecureAuthCookies(
-        res,
-        tokenResult.accessToken,
-        tokenResult.refreshToken,
-        tokenResult.expiresIn,
-      );
+      // Set refresh token in HttpOnly cookie
+      this.tokenService.setRefreshTokenCookie(res, tokenResult.refreshToken);
 
-      // Generate CSRF token
-      const csrfToken = this.csrfMiddleware.generateSecureToken(sessionId, res);
-
-      // Return response without sensitive tokens
-      return {
-        success: true,
-        tokenType: tokenResult.tokenType,
-        expiresIn: tokenResult.expiresIn,
-        scope: tokenResult.scope,
-        sessionId,
-        csrfToken,
-      };
+      // Remove refresh token from response body for security
+      const { refreshToken, ...responseBody } = tokenResult;
+      return responseBody;
     } else if (tokenData.grant_type === 'refresh_token') {
-      // Use the new TokenRefreshService
-      const refreshResult = await this.tokenRefreshService.refreshTokens(
-        req,
-        res,
-      );
+      // Handle refresh token grant
+      // Extract refresh token from cookie or body
+      const refreshToken =
+        this.tokenService.extractRefreshToken(req) || tokenData.refresh_token;
 
-      if (!refreshResult.success) {
-        if (refreshResult.requiresReauth) {
-          throw new UnauthorizedException('Re-authentication required');
-        }
-        throw new BadRequestException(
-          refreshResult.error || 'Token refresh failed',
-        );
+      if (!refreshToken) {
+        throw new UnauthorizedException('Refresh token is required');
       }
 
+      const {
+        user,
+        accessToken,
+        refreshToken: newRefreshToken,
+      } = await this.tokenService.rotateRefreshToken(
+        refreshToken,
+        ip,
+        userAgent,
+      );
+
+      // Set new refresh token in HttpOnly cookie
+      this.tokenService.setRefreshTokenCookie(res, newRefreshToken);
+
       return {
-        success: true,
+        accessToken,
         tokenType: 'Bearer',
-        expiresIn: refreshResult.expiresIn,
-        sessionId: refreshResult.sessionId,
-        csrfToken: refreshResult.csrfToken,
+        expiresIn: parseInt(process.env.JWT_ACCESS_EXPIRATION || '900', 10), // 15 minutes in seconds
       };
     } else {
       throw new UnauthorizedException('Unsupported grant type');
@@ -256,33 +220,42 @@ export class AuthController {
     @Req() req: IAuthenticatedRequest,
     @Res({ passthrough: true }) res: Response,
   ) {
-    // Use the new TokenRefreshService for comprehensive security checks
-    const refreshResult = await this.tokenRefreshService.refreshTokens(
-      req,
-      res,
-    );
+    const ip = this.getIpAddress(req);
+    const userAgent = req.headers['user-agent'] || 'unknown';
 
-    if (!refreshResult.success) {
-      if (refreshResult.requiresReauth) {
-        // Clear any existing cookies and require full re-authentication
-        this.secureTokenService.clearAuthCookies(res);
-        throw new UnauthorizedException(
-          'Re-authentication required for security',
-        );
-      }
-      throw new UnauthorizedException(
-        refreshResult.error || 'Token refresh failed',
-      );
+    // Extract refresh token from cookie
+    const refreshToken = this.tokenService.extractRefreshToken(req);
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token is missing');
     }
 
-    return {
-      success: true,
-      message: 'Token refreshed successfully',
-      tokenType: 'Bearer',
-      expiresIn: refreshResult.expiresIn,
-      sessionId: refreshResult.sessionId,
-      csrfToken: refreshResult.csrfToken,
-    };
+    try {
+      const {
+        user,
+        accessToken,
+        refreshToken: newRefreshToken,
+      } = await this.tokenService.rotateRefreshToken(
+        refreshToken,
+        ip,
+        userAgent,
+      );
+
+      // Set new refresh token in HttpOnly cookie
+      this.tokenService.setRefreshTokenCookie(res, newRefreshToken);
+
+      // Generate new CSRF token
+      const csrfToken = req['csrfMiddleware'].generateToken(res);
+
+      return {
+        accessToken,
+        tokenType: 'Bearer',
+        expiresIn: parseInt(process.env.JWT_ACCESS_EXPIRATION || '900', 10), // 15 minutes in seconds
+        csrfToken: csrfToken, // Return new CSRF token
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
   }
 
   @UseGuards(JwtAuthGuard)
@@ -295,22 +268,19 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const ip = this.getIpAddress(req);
-    const sessionId = req.cookies['session-id'];
 
-    // Clear secure authentication cookies
-    this.secureTokenService.clearAuthCookies(res);
+    // Clear refresh token cookie
+    this.tokenService.clearRefreshTokenCookie(res);
 
-    // Clear CSRF token
-    if (sessionId) {
-      this.csrfMiddleware.clearToken(sessionId, res);
-    }
+    // Clear CSRF token cookie
+    req['csrfMiddleware'].clearToken(res);
 
     // Revoke user's refresh tokens
     await this.tokenService.revokeUserRefreshTokens(req.user.userId, ip);
 
-    // Add token to blacklist if JWT ID is available
+    // Add token to blacklist if JWT ID is available (only for JWT tokens)
     if (req.user.jti && req.user.exp) {
-      const expiresAt = new Date(req.user.exp * 1000);
+      const expiresAt = new Date(req.user.exp * 1000); // Convert to milliseconds
       await this.tokenService.blacklistToken(req.user.jti, expiresAt);
     }
 
@@ -319,13 +289,10 @@ export class AuthController {
       userId: req.user.userId,
       action: AuditAction.LOGOUT,
       resource: 'auth',
-      details: { ip, sessionId },
+      details: { ip },
     });
 
-    return {
-      success: true,
-      message: 'Logout successful',
-    };
+    return { message: 'Logout successful' };
   }
 
   @UseGuards(JwtAuthGuard)
@@ -350,7 +317,20 @@ export class AuthController {
   }
 
   /**
-   * Initiates Google OAuth authentication flow with secure state
+   * Helper method to get client IP address
+   */
+  private getIpAddress(req: IAuthenticatedRequest): string {
+    const forwarded = req.headers['x-forwarded-for'];
+    if (forwarded) {
+      return Array.isArray(forwarded)
+        ? forwarded[0]
+        : forwarded.split(',')[0].trim();
+    }
+    return req.ip || 'unknown';
+  }
+
+  /**
+   * Initiates Google OAuth authentication flow
    */
   @Public()
   @ApiOperation({ summary: 'Initiate Google OAuth authentication' })
@@ -359,51 +339,14 @@ export class AuthController {
     description: 'Redirects to Google OAuth consent screen',
   })
   @Get('google')
-  async googleOAuth(
-    @Req() req: IAuthenticatedRequest,
-    @Res() res: Response,
-    @Query('redirect_url') redirectUrl?: string,
-  ) {
-    const ip = this.getIpAddress(req);
-    const userAgent = req.headers['user-agent'] || 'unknown';
-
-    try {
-      // Generate secure OAuth state with metadata
-      const state = await this.oauthStateService.generateState({
-        redirectUrl,
-        linkMode: false,
-        ipAddress: ip,
-        userAgent,
-      });
-
-      // Build Google OAuth URL with secure state
-      const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-      authUrl.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID);
-      authUrl.searchParams.set('redirect_uri', process.env.GOOGLE_CALLBACK_URL);
-      authUrl.searchParams.set('response_type', 'code');
-      authUrl.searchParams.set('scope', 'openid profile email');
-      authUrl.searchParams.set('state', state);
-      authUrl.searchParams.set('access_type', 'offline');
-      authUrl.searchParams.set('prompt', 'consent');
-
-      // Redirect to Google OAuth
-      res.redirect(authUrl.toString());
-    } catch (error) {
-      this.logger.error(
-        `Error initiating Google OAuth: ${error.message}`,
-        error.stack,
-      );
-      throw new OAuthException(
-        'Failed to initiate Google OAuth',
-        'OAUTH_INITIATION_FAILED',
-        500,
-        'Unable to start Google authentication. Please try again.',
-      );
-    }
+  @UseGuards(AuthGuard('google'))
+  async googleOAuth() {
+    // This method is handled by the GoogleOAuthStrategy
+    // The guard will redirect to Google OAuth consent screen
   }
 
   /**
-   * Handles Google OAuth callback with enhanced security
+   * Handles Google OAuth callback
    */
   @Public()
   @ApiOperation({ summary: 'Handle Google OAuth callback' })
@@ -415,65 +358,44 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Invalid OAuth callback' })
   @ApiResponse({ status: 401, description: 'OAuth authentication failed' })
   @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
   async googleOAuthCallback(
     @Req() req: IAuthenticatedRequest,
     @Res({ passthrough: true }) res: Response,
     @Query() query: GoogleOAuthCallbackDto,
   ) {
-    const ip = this.getIpAddress(req);
-    const userAgent = req.headers['user-agent'] || 'unknown';
-
     try {
-      // Validate OAuth state with enhanced security checks
-      const stateValidation =
-        await this.oauthStateService.validateAndConsumeState(
-          query.state,
-          ip,
-          userAgent,
-        );
-
-      if (!stateValidation.valid) {
-        throw new OAuthStateException('Invalid OAuth state parameter');
-      }
-
-      // Log security warnings if any
-      if (stateValidation.securityWarnings?.length > 0) {
-        this.logger.warn(
-          `OAuth security warnings for callback: ${stateValidation.securityWarnings.join(', ')}`,
-        );
-      }
-
-      // Handle the OAuth callback using existing strategy
-      // The GoogleOAuthStrategy will be triggered by the AuthGuard
       const authenticatedUser = req.user;
 
       if (!authenticatedUser) {
         throw new UnauthorizedException('Google authentication failed');
       }
 
-      // Get the full user object from database
+      // Get the full user object from database using the normalized user ID
       const user = await this.userService.findOne(authenticatedUser.userId);
 
       if (!user) {
         throw new UnauthorizedException('User not found after authentication');
       }
 
+      const ip = this.getIpAddress(req);
+      const userAgent = req.headers['user-agent'] || 'unknown';
+
       // Generate JWT tokens
       const { accessToken, refreshToken } =
-        await this.googleOAuthService.generateAuthTokens(user, ip, userAgent);
+        await this.googleOAuthService.generateAuthTokens(
+          user, // Using the full User entity
+          ip,
+          userAgent,
+        );
 
-      // Set secure authentication cookies
-      const sessionId = this.secureTokenService.setSecureAuthCookies(
-        res,
-        accessToken,
-        refreshToken,
-        parseInt(process.env.JWT_ACCESS_EXPIRATION || '900', 10),
-      );
+      // Set refresh token in HttpOnly cookie
+      this.tokenService.setRefreshTokenCookie(res, refreshToken);
 
       // Generate CSRF token
-      const csrfToken = this.csrfMiddleware.generateSecureToken(sessionId, res);
+      const csrfToken = req['csrfMiddleware'].generateToken(res);
 
-      // Determine if this is a new user
+      // Determine if this is a new user (created in the last 5 minutes)
       const isNewUser = user.createdAt > new Date(Date.now() - 5 * 60 * 1000);
 
       // Audit successful OAuth login
@@ -487,50 +409,32 @@ export class AuthController {
           isNewUser,
           ip,
           userAgent,
-          securityWarnings: stateValidation.securityWarnings,
         },
       });
 
-      // Redirect to frontend with success (or return JSON for API clients)
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-      const callbackUrl = new URL('/auth/success', frontendUrl);
+      // Return authentication response
+      const response: GoogleOAuthResponseDto = {
+        accessToken,
+        tokenType: 'Bearer',
+        expiresIn: parseInt(process.env.JWT_ACCESS_EXPIRATION || '900', 10),
+        csrfToken,
+        isNewUser,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          surname: user.surname,
+          roles: user.roles?.map((role) => role.name) || [],
+          profilePictureUrl: user.profilePictureUrl,
+        },
+      };
 
-      // Add success parameters
-      callbackUrl.searchParams.set('session_id', sessionId);
-      callbackUrl.searchParams.set('is_new_user', isNewUser.toString());
-
-      if (stateValidation.redirectUrl) {
-        callbackUrl.searchParams.set(
-          'redirect_to',
-          stateValidation.redirectUrl,
-        );
-      }
-
-      res.redirect(callbackUrl.toString());
+      return response;
     } catch (error) {
       this.logger.error(
         `Google OAuth callback error: ${error.message}`,
         error.stack,
       );
-
-      // Audit failed OAuth attempt
-      await this.auditService.logAction({
-        userId: 'unknown',
-        action: AuditAction.FAILED_LOGIN,
-        resource: 'auth',
-        details: {
-          provider: 'google',
-          error: error.message,
-          method: 'oauth_callback',
-          ip,
-          userAgent,
-        },
-      });
-
-      if (error instanceof OAuthException) {
-        throw error;
-      }
-
       throw new BadRequestException('OAuth authentication failed');
     }
   }
@@ -547,41 +451,33 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Google account already linked' })
   @ApiResponse({ status: 401, description: 'User not authenticated' })
   @Get('google/link')
+  @UseGuards(AuthGuard('google'))
   async linkGoogleAccount(
     @Req() req: IAuthenticatedRequest,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    const ip = this.getIpAddress(req);
-    const userAgent = req.headers['user-agent'] || 'unknown';
-
     try {
-      // Generate secure OAuth state for account linking
-      const state = await this.oauthStateService.generateState({
-        userId: req.user.userId,
-        linkMode: true,
-        ipAddress: ip,
-        userAgent,
-      });
+      // This endpoint would require the user to be already authenticated
+      // and then go through Google OAuth to link their account
+      const authenticatedUser = req.user;
 
-      // Build Google OAuth URL for linking
-      const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-      authUrl.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID);
-      authUrl.searchParams.set('redirect_uri', process.env.GOOGLE_CALLBACK_URL);
-      authUrl.searchParams.set('response_type', 'code');
-      authUrl.searchParams.set('scope', 'openid profile email');
-      authUrl.searchParams.set('state', state);
-      authUrl.searchParams.set('access_type', 'offline');
-      authUrl.searchParams.set('prompt', 'consent');
+      if (!authenticatedUser) {
+        throw new UnauthorizedException(
+          'User must be authenticated to link Google account',
+        );
+      }
 
-      res.redirect(authUrl.toString());
+      // The Google strategy would have populated req.user with Google data
+      // We need to handle this differently - possibly by storing the linking intent
+      // and then processing it after Google OAuth completion
+
+      return { message: 'Google account linking initiated' };
     } catch (error) {
       this.logger.error(
         `Google account linking error: ${error.message}`,
         error.stack,
       );
-      throw new BadRequestException(
-        'Failed to initiate Google account linking',
-      );
+      throw new BadRequestException('Failed to link Google account');
     }
   }
 
@@ -626,10 +522,7 @@ export class AuthController {
         },
       });
 
-      return {
-        success: true,
-        message: 'Google account unlinked successfully',
-      };
+      return { message: 'Google account unlinked successfully' };
     } catch (error) {
       this.logger.error(
         `Google account unlinking error: ${error.message}`,
@@ -658,18 +551,5 @@ export class AuthController {
       primaryProvider: user.getPrimaryOAuthProvider(),
       canUnlinkOAuth: user.password ? true : false,
     };
-  }
-
-  /**
-   * Helper method to get client IP address
-   */
-  private getIpAddress(req: IAuthenticatedRequest): string {
-    const forwarded = req.headers['x-forwarded-for'];
-    if (forwarded) {
-      return Array.isArray(forwarded)
-        ? forwarded[0]
-        : forwarded.split(',')[0].trim();
-    }
-    return req.ip || 'unknown';
   }
 }

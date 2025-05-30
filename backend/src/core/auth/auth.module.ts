@@ -8,29 +8,21 @@ import { AuthController } from './controllers/auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleOAuthStrategy } from './strategies/google-oauth.strategy';
 import { TokenService } from './services/token.service';
-import { SecureTokenService } from './services/secure-token.service';
 import { OAuthService } from './services/oauth.service';
 import { GoogleOAuthService } from './services/google-oauth.service';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { TokenBlacklist } from './entities/token-blacklist.entity';
 import { AuthorizationCode } from './entities/authorization-code.entity';
-import { OAuthState } from './entities/oauth-state.entity';
 import { UserModule } from '../../modules/user/user.module';
 import { AuditModule } from '../audit/audit.module';
 import { getJwtModuleOptions } from './auth-module.config';
 import googleOAuthConfig from '../../config/google-oauth.config';
 import { AuthService } from './services/auth.service';
-import { TokenRefreshService } from './services/token-refresh.service';
 
 @Global()
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      RefreshToken,
-      TokenBlacklist,
-      AuthorizationCode,
-      OAuthState,
-    ]),
+    TypeOrmModule.forFeature([RefreshToken, TokenBlacklist, AuthorizationCode]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -46,8 +38,6 @@ import { TokenRefreshService } from './services/token-refresh.service';
   providers: [
     AuthService,
     TokenService,
-    SecureTokenService,
-    TokenRefreshService,
     OAuthService,
     GoogleOAuthService,
     JwtStrategy,
@@ -56,8 +46,6 @@ import { TokenRefreshService } from './services/token-refresh.service';
   exports: [
     AuthService,
     TokenService,
-    SecureTokenService,
-    TokenRefreshService,
     OAuthService,
     GoogleOAuthService,
     JwtStrategy,

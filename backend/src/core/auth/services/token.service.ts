@@ -11,7 +11,6 @@ import { TokenBlacklist } from '../entities/token-blacklist.entity';
 import { User } from '../../../modules/user/entities/user.entity';
 import { AuditService } from '../../audit/audit.service';
 import { AuditAction } from '../../audit/entities/audit-log.entity';
-import { SecureTokenService } from './secure-token.service'; // NEW IMPORT
 
 export interface TokenPayload {
   sub: string;
@@ -19,28 +18,26 @@ export interface TokenPayload {
   roles: string[];
   permissions?: string[];
   scopes?: string[];
-  jti?: string;
-  aud?: string;
-  iss?: string;
-  exp?: number;
+  jti?: string; // JWT ID for revocation tracking
+  aud?: string; // Audience
+  iss?: string; // Issuer
+  exp?: number; // Expiration time
 }
 
 @Injectable()
 export class TokenService {
-  clearRefreshTokenCookie(res: Response<any, Record<string, any>>) {
-    throw new Error('Method not implemented.');
-  }
   private readonly logger = new Logger(TokenService.name);
   private readonly accessTokenExpiration: string;
   private readonly refreshTokenExpiration: string;
   private readonly jwtSecret: string;
+  private readonly secureCookies: boolean;
+  private readonly cookieDomain: string;
 
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly userService: UserService,
     private readonly auditService: AuditService,
-    private readonly secureTokenService: SecureTokenService, // NEW DEPENDENCY
     @InjectRepository(RefreshToken)
     private readonly refreshTokenRepository: Repository<RefreshToken>,
     @InjectRepository(TokenBlacklist)
@@ -53,15 +50,18 @@ export class TokenService {
       'JWT_REFRESH_EXPIRATION',
     );
     this.jwtSecret = configService.get<string>('JWT_SECRET');
+    this.secureCookies = configService.get<boolean>('SECURE_COOKIES');
+    this.cookieDomain = configService.get<string>('COOKIE_DOMAIN');
   }
 
   /**
-   * Generate JWT access token (unchanged)
+   * Generate JWT access token
    */
   async generateAccessToken(user: User): Promise<string> {
     const tokenId = crypto.randomUUID();
     const roles = user.roles?.map((role) => role.name) || [];
 
+    // Extract permissions from roles
     const permissions = new Set<string>();
     user.roles?.forEach((role) => {
       role.permissions?.forEach((permission) => {
@@ -75,6 +75,7 @@ export class TokenService {
       roles,
       permissions: Array.from(permissions),
       jti: tokenId,
+      // Remove audience and issuer from payload to avoid duplication
     };
 
     return this.jwtService.signAsync(payload, {
@@ -86,15 +87,17 @@ export class TokenService {
   }
 
   /**
-   * Generate refresh token and store it in the database (unchanged)
+   * Generate refresh token and store it in the database
    */
   async generateRefreshToken(
     userId: string,
     ip: string,
     userAgent: string,
   ): Promise<string> {
+    // Generate a random token
     const tokenValue = crypto.randomBytes(64).toString('hex');
 
+    // Create refresh token record
     const refreshToken = this.refreshTokenRepository.create({
       userId,
       token: tokenValue,
@@ -106,51 +109,47 @@ export class TokenService {
     });
 
     await this.refreshTokenRepository.save(refreshToken);
+
     return tokenValue;
   }
 
   /**
-   * Set authentication cookies using secure service (UPDATED)
+   * Set refresh token in HttpOnly cookie
    */
-  setAuthCookies(
-    response: Response,
-    accessToken: string,
-    refreshToken: string,
-    expiresIn: number,
-    csrfToken?: string,
-  ): string {
-    return this.secureTokenService.setSecureAuthCookies(
-      response,
-      accessToken,
-      refreshToken,
-      expiresIn,
-      csrfToken,
-    );
+  setRefreshTokenCookie(response: Response, token: string): void {
+    response.cookie('refresh_token', token, {
+      httpOnly: true,
+      secure: this.secureCookies,
+      sameSite: 'lax',
+      domain: this.cookieDomain,
+      maxAge: this.parseTimeToMs(this.refreshTokenExpiration),
+      path: '/',
+    });
   }
 
   /**
-   * Extract access token from secure cookie (UPDATED)
-   */
-  extractAccessToken(request: Request): string | null {
-    return this.secureTokenService.extractAccessToken(request);
-  }
-
-  /**
-   * Extract refresh token from secure cookie (UPDATED)
+   * Extract refresh token from request cookies
    */
   extractRefreshToken(request: Request): string | null {
-    return this.secureTokenService.extractRefreshToken(request);
+    return request.cookies?.refresh_token || null;
   }
 
   /**
-   * Clear authentication cookies (UPDATED)
+   * Clear refresh token cookie
    */
-  clearAuthCookies(response: Response): void {
-    this.secureTokenService.clearAuthCookies(response);
+  clearRefreshTokenCookie(response: Response): void {
+    response.cookie('refresh_token', '', {
+      httpOnly: true,
+      secure: this.secureCookies,
+      sameSite: 'lax',
+      domain: this.cookieDomain,
+      maxAge: 0,
+      path: '/',
+    });
   }
 
   /**
-   * Verify access token (unchanged)
+   * Verify access token
    */
   async verifyAccessToken(token: string): Promise<TokenPayload> {
     try {
@@ -158,7 +157,9 @@ export class TokenService {
         secret: this.jwtSecret,
       });
 
+      // Check if token is blacklisted
       const isBlacklisted = await this.isTokenBlacklisted(payload.jti);
+
       if (isBlacklisted) {
         throw new Error('Token has been revoked');
       }

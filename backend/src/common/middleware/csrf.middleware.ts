@@ -11,140 +11,110 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class CsrfMiddleware implements NestMiddleware {
   private readonly logger = new Logger(CsrfMiddleware.name);
-  private readonly tokenStore = new Map<
-    string,
-    { token: string; expires: number }
-  >();
+  private readonly debug: boolean;
 
   constructor(private configService: ConfigService) {
-    // Clean expired tokens every hour
-    setInterval(() => this.cleanExpiredTokens(), 60 * 60 * 1000);
+    this.debug = configService.get<boolean>('DEBUG_CSRF');
   }
 
   use(req: Request, res: Response, next: NextFunction) {
-    // Add CSRF methods to request
+    // Add the middleware instance to the request so controllers can use it
     req['csrfMiddleware'] = this;
 
-    // Skip CSRF for safe methods
+    // Skip CSRF check for non-mutation methods
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+      if (this.debug) {
+        this.logger.debug(
+          `[CSRF] Skipping check for ${req.method} ${req.originalUrl}`,
+        );
+      }
       return next();
     }
 
-    // Skip for excluded paths
+    // List of paths explicitly excluded from CSRF protection
     const excludedPaths = [
-      '/api/auth/google/callback', // OAuth callbacks are state-protected
+      '/api/auth/login',
+      '/api/auth/token',
+      '/api/auth/refresh',
+      '/api/auth/authorize',
+      '/api/users',
       '/api/health',
       '/api/info',
     ];
 
-    if (excludedPaths.some((path) => req.originalUrl.includes(path))) {
+    // Check BOTH originalUrl and path against excluded paths
+    if (
+      excludedPaths.some(
+        (path) => req.originalUrl.includes(path) || req.path.includes(path),
+      )
+    ) {
+      if (this.debug) {
+        this.logger.debug(
+          `[CSRF] Skipping check for excluded path: ${req.originalUrl}`,
+        );
+      }
       return next();
     }
 
-    // Extract tokens
-    const headerToken = req.headers['x-csrf-token'] as string;
-    const cookieToken = req.cookies['csrf-token'];
-    const sessionId = req.cookies['session-id'];
+    // For mutation endpoints, check CSRF token
+    const csrfToken = req.headers['x-csrf-token'] as string;
+    const cookieToken = req.cookies['csrf_token'];
 
-    // Validate CSRF protection
-    if (!this.validateCsrfTokens(headerToken, cookieToken, sessionId)) {
+    // Verify CSRF token existence and match
+    if (!csrfToken || !cookieToken || csrfToken !== cookieToken) {
       this.logger.warn(
-        `CSRF validation failed for ${req.ip} on ${req.originalUrl}`,
+        `CSRF validation failed: ${req.ip}, path: ${req.originalUrl}, method: ${req.method}`,
       );
 
-      if (this.configService.get('NODE_ENV') === 'production') {
-        throw new UnauthorizedException('Invalid CSRF token');
-      } else {
+      // During development, allow requests to pass through for debugging
+      if (process.env.NODE_ENV === 'development') {
         this.logger.warn(
-          'CSRF validation failed but allowing in development mode',
+          '[CSRF] Allowing request in development mode despite CSRF failure',
         );
+        return next();
       }
+
+      throw new UnauthorizedException('Invalid CSRF token');
+    }
+
+    if (this.debug) {
+      this.logger.debug(`[CSRF] Validation successful for ${req.originalUrl}`);
     }
 
     next();
   }
 
   /**
-   * Generate cryptographically secure CSRF token tied to session
+   * Generate a new CSRF token and set it in the response cookies
+   * Call this after authentication
    */
-  generateSecureToken(sessionId: string, res: Response): string {
-    const token = crypto.randomBytes(32).toString('base64url');
-    const expires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+  generateToken(res: Response): string {
+    const token = crypto.randomBytes(32).toString('hex');
 
-    // Store token tied to session
-    this.tokenStore.set(sessionId, { token, expires });
-
-    // Set in cookie
-    res.cookie('csrf-token', token, {
-      httpOnly: false, // Needs to be readable by client for headers
-      secure: this.configService.get('NODE_ENV') === 'production',
-      sameSite: 'strict',
+    res.cookie('csrf_token', token, {
+      httpOnly: true,
+      secure: this.configService.get<boolean>('SECURE_COOKIES'),
+      sameSite: 'lax',
+      domain: this.configService.get<string>('COOKIE_DOMAIN'),
       path: '/',
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
     });
 
     return token;
   }
 
   /**
-   * Validate CSRF tokens with session binding
+   * Clear the CSRF token cookie
+   * Call this during logout
    */
-  private validateCsrfTokens(
-    headerToken: string,
-    cookieToken: string,
-    sessionId: string,
-  ): boolean {
-    if (!headerToken || !cookieToken || !sessionId) {
-      return false;
-    }
-
-    // Tokens must match
-    if (headerToken !== cookieToken) {
-      return false;
-    }
-
-    // Token must be tied to current session
-    const storedData = this.tokenStore.get(sessionId);
-    if (!storedData) {
-      return false;
-    }
-
-    // Check expiration
-    if (Date.now() > storedData.expires) {
-      this.tokenStore.delete(sessionId);
-      return false;
-    }
-
-    // Verify token matches
-    return crypto.timingSafeEqual(
-      Buffer.from(headerToken),
-      Buffer.from(storedData.token),
-    );
-  }
-
-  /**
-   * Clear CSRF token for session
-   */
-  clearToken(sessionId: string, res: Response): void {
-    this.tokenStore.delete(sessionId);
-    res.cookie('csrf-token', '', {
-      httpOnly: false,
-      secure: this.configService.get('NODE_ENV') === 'production',
-      sameSite: 'strict',
+  clearToken(res: Response): void {
+    res.cookie('csrf_token', '', {
+      httpOnly: true,
+      secure: this.configService.get<boolean>('SECURE_COOKIES'),
+      sameSite: 'lax',
+      domain: this.configService.get<string>('COOKIE_DOMAIN'),
       path: '/',
-      maxAge: 0,
+      maxAge: 0, // Expires immediately
     });
-  }
-
-  /**
-   * Clean expired tokens from memory
-   */
-  private cleanExpiredTokens(): void {
-    const now = Date.now();
-    for (const [sessionId, data] of this.tokenStore.entries()) {
-      if (now > data.expires) {
-        this.tokenStore.delete(sessionId);
-      }
-    }
   }
 }

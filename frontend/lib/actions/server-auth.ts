@@ -51,11 +51,10 @@ async function setAuthCookies(result: any): Promise<void> {
 
   const cookieStore = await cookies();
 
-  // The backend now handles setting secure cookies
-  // We just need to set a client-accessible session indicator
+  // Set access token
   cookieStore.set({
-    name: 'session-active',
-    value: 'true',
+    name: 'access_token',
+    value: result.accessToken,
     httpOnly: false,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -63,7 +62,19 @@ async function setAuthCookies(result: any): Promise<void> {
     maxAge: result.expiresIn || 900,
   });
 
-  // Set fresh login flag
+  // Set CSRF token if provided
+  if (result.csrfToken) {
+    cookieStore.set({
+      name: 'csrf_token',
+      value: result.csrfToken,
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 24 * 60 * 60,
+    });
+  }
+  // Set a flag to indicate fresh login for profile completion
   cookieStore.set({
     name: 'fresh_login',
     value: 'true',
@@ -71,7 +82,7 @@ async function setAuthCookies(result: any): Promise<void> {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
-    maxAge: 60,
+    maxAge: 60, // 1 minute - just enough for the client to detect it
   });
 }
 
