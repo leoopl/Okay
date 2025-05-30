@@ -1,13 +1,49 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { InjectRepository } from '@nestjs/typeorm';
 import * as crypto from 'crypto';
 
-export interface OAuthState {
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  Index,
+  Repository,
+  LessThan,
+} from 'typeorm';
+
+@Entity('oauth_states')
+export class OAuthState {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column()
+  @Index({ unique: true })
   state: string;
+
+  @Column({ nullable: true })
+  userId?: string; // For account linking
+
+  @Column({ nullable: true })
   redirectUrl?: string;
-  linkMode?: boolean; // true when linking account to existing user
-  userId?: string; // for account linking
+
+  @Column({ default: false })
+  linkMode: boolean;
+
+  @Column()
+  @Index()
   expiresAt: Date;
+
+  @Column()
+  ipAddress: string;
+
+  @Column()
+  userAgent: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
 }
 
 /**
@@ -17,131 +53,182 @@ export interface OAuthState {
 @Injectable()
 export class OAuthStateService {
   private readonly logger = new Logger(OAuthStateService.name);
-  private readonly states = new Map<string, OAuthState>();
   private readonly stateExpirationMs = 10 * 60 * 1000; // 10 minutes
+  states: any;
 
-  constructor(private readonly configService: ConfigService) {
-    // Clean up expired states every 5 minutes
-    setInterval(() => this.cleanupExpiredStates(), 5 * 60 * 1000);
-  }
+  constructor(
+    @InjectRepository(OAuthState)
+    private stateRepository: Repository<OAuthState>,
+    private configService: ConfigService,
+  ) {}
 
   /**
    * Generates a new OAuth state parameter with optional metadata
    */
-  generateState(
-    options: {
-      redirectUrl?: string;
-      linkMode?: boolean;
-      userId?: string;
-    } = {},
-  ): string {
-    const state = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + this.stateExpirationMs);
+  async generateState(options: {
+    userId?: string;
+    redirectUrl?: string;
+    linkMode?: boolean;
+    ipAddress: string;
+    userAgent: string;
+  }): Promise<string> {
+    // Generate cryptographically secure state
+    const stateBytes = crypto.randomBytes(32);
+    const timestamp = Date.now().toString(36);
+    const random = stateBytes.toString('base64url');
+    const state = `${timestamp}.${random}`;
 
-    const stateData: OAuthState = {
+    // Store in database with metadata
+    const stateEntity = this.stateRepository.create({
       state,
-      expiresAt,
-      ...options,
-    };
+      userId: options.userId,
+      redirectUrl: options.redirectUrl,
+      linkMode: options.linkMode || false,
+      ipAddress: options.ipAddress,
+      userAgent: options.userAgent,
+      expiresAt: new Date(Date.now() + this.stateExpirationMs),
+    });
 
-    this.states.set(state, stateData);
+    await this.stateRepository.save(stateEntity);
 
-    this.logger.debug(`Generated OAuth state: ${state}`);
-
+    this.logger.debug(`Generated OAuth state: ${state.substring(0, 8)}...`);
     return state;
   }
 
   /**
    * Validates and consumes an OAuth state parameter
    */
-  validateAndConsumeState(state: string): OAuthState | null {
-    const stateData = this.states.get(state);
-
-    if (!stateData) {
-      this.logger.warn(`Invalid OAuth state received: ${state}`);
-      return null;
+  async validateAndConsumeState(
+    state: string,
+    ipAddress: string,
+    userAgent: string,
+  ): Promise<{
+    valid: boolean;
+    userId?: string;
+    redirectUrl?: string;
+    linkMode?: boolean;
+    securityWarnings?: string[];
+  }> {
+    if (!state) {
+      return { valid: false };
     }
 
-    // Check expiration
-    if (new Date() > stateData.expiresAt) {
-      this.logger.warn(`Expired OAuth state received: ${state}`);
-      this.states.delete(state);
-      return null;
+    try {
+      // Find and remove state (atomic operation)
+      const stateEntity = await this.stateRepository.findOne({
+        where: { state },
+      });
+
+      if (!stateEntity) {
+        this.logger.warn(
+          `Invalid OAuth state received: ${state.substring(0, 8)}...`,
+        );
+        return { valid: false };
+      }
+
+      // Remove state immediately (one-time use)
+      await this.stateRepository.remove(stateEntity);
+
+      // Check expiration
+      if (new Date() > stateEntity.expiresAt) {
+        this.logger.warn(
+          `Expired OAuth state received: ${state.substring(0, 8)}...`,
+        );
+        return { valid: false };
+      }
+
+      // Security checks
+      const securityWarnings: string[] = [];
+
+      // Check IP address consistency (warning, not blocking)
+      if (stateEntity.ipAddress !== ipAddress) {
+        securityWarnings.push('IP address changed during OAuth flow');
+        this.logger.warn(
+          `IP address mismatch in OAuth flow: ${stateEntity.ipAddress} -> ${ipAddress}`,
+        );
+      }
+
+      // Check user agent consistency (warning, not blocking)
+      if (stateEntity.userAgent !== userAgent) {
+        securityWarnings.push('User agent changed during OAuth flow');
+        this.logger.warn('User agent mismatch in OAuth flow');
+      }
+
+      // Validate state format
+      if (!this.validateStateFormat(state)) {
+        return { valid: false };
+      }
+
+      this.logger.debug(
+        `Validated and consumed OAuth state: ${state.substring(0, 8)}...`,
+      );
+
+      return {
+        valid: true,
+        userId: stateEntity.userId,
+        redirectUrl: stateEntity.redirectUrl,
+        linkMode: stateEntity.linkMode,
+        securityWarnings:
+          securityWarnings.length > 0 ? securityWarnings : undefined,
+      };
+    } catch (error) {
+      this.logger.error(`Error validating OAuth state: ${error.message}`);
+      return { valid: false };
     }
-
-    // Consume the state (one-time use)
-    this.states.delete(state);
-
-    this.logger.debug(`Validated and consumed OAuth state: ${state}`);
-
-    return stateData;
   }
 
   /**
-   * Checks if a state exists and is valid (without consuming it)
+   * Validate state format and age
    */
-  isValidState(state: string): boolean {
-    const stateData = this.states.get(state);
+  private validateStateFormat(state: string): boolean {
+    try {
+      const [timestampPart] = state.split('.');
+      const timestamp = parseInt(timestampPart, 36);
+      const age = Date.now() - timestamp;
 
-    if (!stateData) {
+      // State shouldn't be older than max expiration
+      return age <= this.stateExpirationMs && age >= 0;
+    } catch {
       return false;
     }
-
-    return new Date() <= stateData.expiresAt;
   }
 
   /**
-   * Generates OAuth authorization URL with state parameter
+   * Clean up expired states (runs every hour)
    */
-  generateAuthorizationUrl(
-    baseUrl: string,
-    clientId: string,
-    redirectUri: string,
-    scopes: string[],
-    options: {
-      redirectUrl?: string;
-      linkMode?: boolean;
-      userId?: string;
-    } = {},
-  ): string {
-    const state = this.generateState(options);
+  @Cron(CronExpression.EVERY_HOUR)
+  async cleanupExpiredStates(): Promise<void> {
+    try {
+      const result = await this.stateRepository.delete({
+        expiresAt: LessThan(new Date()),
+      });
 
-    const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      response_type: 'code',
-      scope: scopes.join(' '),
-      state,
-      access_type: 'offline',
-      prompt: 'consent',
+      if (result.affected && result.affected > 0) {
+        this.logger.log(`Cleaned up ${result.affected} expired OAuth states`);
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to cleanup expired OAuth states: ${error.message}`,
+      );
+    }
+  }
+
+  /**
+   * Get state statistics for monitoring
+   */
+  async getStateStatistics(): Promise<{
+    totalStates: number;
+    expiredStates: number;
+    linkModeStates: number;
+  }> {
+    const totalStates = await this.stateRepository.count();
+    const expiredStates = await this.stateRepository.count({
+      where: { expiresAt: LessThan(new Date()) },
+    });
+    const linkModeStates = await this.stateRepository.count({
+      where: { linkMode: true },
     });
 
-    return `${baseUrl}?${params.toString()}`;
-  }
-
-  /**
-   * Cleans up expired state entries
-   */
-  private cleanupExpiredStates(): void {
-    const now = new Date();
-    let cleanedCount = 0;
-
-    for (const [state, stateData] of this.states.entries()) {
-      if (now > stateData.expiresAt) {
-        this.states.delete(state);
-        cleanedCount++;
-      }
-    }
-
-    if (cleanedCount > 0) {
-      this.logger.debug(`Cleaned up ${cleanedCount} expired OAuth states`);
-    }
-  }
-
-  /**
-   * Gets the current number of stored states (for monitoring)
-   */
-  getStateCount(): number {
-    return this.states.size;
+    return { totalStates, expiredStates, linkModeStates };
   }
 }
