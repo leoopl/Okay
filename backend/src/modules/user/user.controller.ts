@@ -36,17 +36,13 @@ import { IAuthenticatedRequest } from '../../common/interfaces/auth-request.inte
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileUploadInterceptor } from 'src/common/storage/interceptors/file-upload.interceptor';
-import { AuthService } from 'src/core/auth/services/auth.service';
 
 @ApiTags('users')
 @Controller('users')
 @UseInterceptors(ClassSerializerInterceptor)
 @ApiBearerAuth('JWT')
 export class UserController {
-  constructor(
-    private readonly userService: UserService,
-    private readonly authService: AuthService,
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
   @Public()
   @ApiOperation({ summary: 'Create a new user' })
@@ -218,13 +214,12 @@ export class UserController {
     @Body() passwordData: ChangePasswordDto,
     @Req() req: IAuthenticatedRequest,
   ) {
-    // Verify current password first
-    const user = await this.authService.validateUser(
-      req.user.email,
+    const isValid = await this.userService.validatePassword(
+      req.user.userId,
       passwordData.currentPassword,
     );
 
-    if (!user) {
+    if (!isValid) {
       throw new UnauthorizedException('Current password is incorrect');
     }
 

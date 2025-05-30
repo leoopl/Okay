@@ -22,9 +22,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import type { z } from 'zod';
 import { SignupFormSchema } from '@/lib/definitions';
-import { GoogleOAuthButton } from '@/components/oauth/google-button';
 import { PasswordInput } from '@/components/ui/password-input';
 import { PasswordStrengthIndicator } from '@/components/common/auth/password-strength-indicator';
+import { GoogleOAuthButton } from '@/components/oauth/google-button';
+import { toast, Toaster } from 'sonner';
 
 export type SignupFormData = z.infer<typeof SignupFormSchema>;
 
@@ -56,6 +57,7 @@ export default function SignupPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
+      <Toaster richColors position="top-center" />
       <div className="grid w-full max-w-4xl gap-8 md:grid-cols-2 md:items-center">
         <div className="px-4">
           <h2 className="small-caps font-varela text-green-dark mb-8 text-center text-4xl font-bold tracking-tight">
@@ -63,7 +65,13 @@ export default function SignupPage() {
           </h2>
 
           <div className="mx-auto w-full max-w-md space-y-6">
-            <GoogleOAuthButton className="w-full" />
+            <GoogleOAuthButton
+              className="w-full"
+              redirectUrl="/profile?welcome=true"
+              onError={(error) => {
+                toast.error('Erro na autenticação: ' + error);
+              }}
+            />
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">

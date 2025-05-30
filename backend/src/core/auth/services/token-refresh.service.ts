@@ -11,6 +11,7 @@ import { AuditService } from '../../audit/audit.service';
 import { AuditAction } from '../../audit/entities/audit-log.entity';
 import { SecureTokenService } from './secure-token.service';
 import { CsrfMiddleware } from 'src/common/middleware/csrf.middleware';
+import { UserService } from 'src/modules/user/user.service';
 
 export interface TokenRefreshResult {
   success: boolean;
@@ -34,8 +35,7 @@ export class TokenRefreshService {
   constructor(
     @InjectRepository(RefreshToken)
     private refreshTokenRepository: Repository<RefreshToken>,
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
+    private userService: UserService,
     private jwtService: JwtService,
     private configService: ConfigService,
     private auditService: AuditService,
@@ -110,7 +110,6 @@ export class TokenRefreshService {
       // Find and validate refresh token
       const tokenEntity = await this.refreshTokenRepository.findOne({
         where: { token: refreshToken, revoked: false },
-        relations: ['user'],
       });
 
       if (!tokenEntity) {
@@ -139,7 +138,6 @@ export class TokenRefreshService {
           `Expired refresh token used by user ${tokenEntity.userId}`,
         );
 
-        // Revoke expired token
         tokenEntity.revoked = true;
         tokenEntity.revokedByIp = ipAddress;
         await this.refreshTokenRepository.save(tokenEntity);
@@ -151,13 +149,12 @@ export class TokenRefreshService {
         };
       }
 
-      // Get user with roles
-      const user = await this.userRepository.findOne({
-        where: { id: tokenEntity.userId },
-        relations: ['roles', 'roles.permissions'],
-      });
+      // Get user data for token generation
+      const userTokenData = await this.userService.getUserForTokenGeneration(
+        tokenEntity.userId,
+      );
 
-      if (!user) {
+      if (!userTokenData) {
         this.logger.error(
           `User not found for refresh token: ${tokenEntity.userId}`,
         );
@@ -167,6 +164,8 @@ export class TokenRefreshService {
           requiresReauth: true,
         };
       }
+
+      const { user } = userTokenData;
 
       // Security checks
       const securityIssues = await this.performSecurityChecks(
@@ -180,7 +179,6 @@ export class TokenRefreshService {
           `Security issues during token refresh for user ${user.id}: ${securityIssues.join(', ')}`,
         );
 
-        // For high-risk issues, require re-authentication
         if (
           securityIssues.some(
             (issue) =>
@@ -203,7 +201,7 @@ export class TokenRefreshService {
       await this.refreshTokenRepository.save(tokenEntity);
 
       // Generate new tokens
-      const accessToken = await this.generateAccessToken(user);
+      const accessToken = await this.generateAccessToken(userTokenData);
       const newRefreshToken = await this.generateRefreshToken(
         user.id,
         ipAddress,
@@ -251,7 +249,6 @@ export class TokenRefreshService {
       };
     } catch (error) {
       this.logger.error(`Token refresh error: ${error.message}`, error.stack);
-
       return {
         success: false,
         error: 'Token refresh failed',
@@ -338,21 +335,18 @@ export class TokenRefreshService {
   /**
    * Generate new access token with all claims
    */
-  private async generateAccessToken(user: User): Promise<string> {
-    const roles = user.roles?.map((role) => role.name) || [];
-    const permissions = new Set<string>();
-
-    user.roles?.forEach((role) => {
-      role.permissions?.forEach((permission) => {
-        permissions.add(permission.name);
-      });
-    });
+  private async generateAccessToken(userTokenData: {
+    user: User;
+    roles: string[];
+    permissions: string[];
+  }): Promise<string> {
+    const { user, roles, permissions } = userTokenData;
 
     const payload = {
       sub: user.id,
       email: user.email,
       roles,
-      permissions: Array.from(permissions),
+      permissions,
       jti: crypto.randomUUID(),
     };
 

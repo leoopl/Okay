@@ -3,12 +3,12 @@
 import { Button } from '@/components/ui/button';
 import { useState, useTransition, useEffect } from 'react';
 import { initiateGoogleOAuth } from '@/lib/actions/server-oauth';
-import { Loader2, AlertCircle, Shield, Wifi, WifiOff } from 'lucide-react';
+import { Loader2, AlertCircle, Shield, WifiOff } from 'lucide-react';
 import GoogleIcon from '../common/GoogleIcon';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useRouter } from 'next/navigation';
 
-interface EnhancedGoogleOAuthButtonProps {
+interface GoogleOAuthButtonProps {
   linkMode?: boolean;
   disabled?: boolean;
   className?: string;
@@ -19,14 +19,14 @@ interface EnhancedGoogleOAuthButtonProps {
 
 type ButtonState = 'idle' | 'loading' | 'error' | 'offline' | 'security_check';
 
-export function EnhancedGoogleOAuthButton({
+export function GoogleOAuthButton({
   linkMode = false,
   disabled = false,
   className = '',
   onError,
   onSuccess,
   redirectUrl,
-}: EnhancedGoogleOAuthButtonProps) {
+}: GoogleOAuthButtonProps) {
   const [isPending, startTransition] = useTransition();
   const [buttonState, setButtonState] = useState<ButtonState>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');

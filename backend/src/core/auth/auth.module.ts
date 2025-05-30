@@ -21,6 +21,8 @@ import { getJwtModuleOptions } from './auth-module.config';
 import googleOAuthConfig from '../../config/google-oauth.config';
 import { AuthService } from './services/auth.service';
 import { TokenRefreshService } from './services/token-refresh.service';
+import { CsrfMiddleware } from 'src/common/middleware/csrf.middleware';
+import { OAuthStateService } from './services/oauth-state.service';
 
 @Global()
 @Module({
@@ -52,6 +54,8 @@ import { TokenRefreshService } from './services/token-refresh.service';
     GoogleOAuthService,
     JwtStrategy,
     GoogleOAuthStrategy,
+    CsrfMiddleware,
+    OAuthStateService,
   ],
   exports: [
     AuthService,
@@ -62,6 +66,8 @@ import { TokenRefreshService } from './services/token-refresh.service';
     GoogleOAuthService,
     JwtStrategy,
     GoogleOAuthStrategy,
+    CsrfMiddleware,
+    OAuthStateService,
   ],
 })
 export class AuthModule {}
