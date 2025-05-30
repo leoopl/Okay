@@ -130,12 +130,8 @@ export async function unlinkGoogleAccount(
 
 /**
  * Generate state parameter and redirect to Google OAuth
- * Updated to handle redirectUrl properly
  */
-export async function initiateGoogleOAuth(
-  linkMode: boolean = false,
-  redirectUrl?: string,
-): Promise<never> {
+export async function initiateGoogleOAuth(linkMode: boolean = false): Promise<never> {
   try {
     // Generate state parameter for CSRF protection
     const state = generateSecureState();
@@ -165,27 +161,10 @@ export async function initiateGoogleOAuth(
       });
     }
 
-    // Store redirect URL in cookie if provided
-    if (redirectUrl) {
-      cookieStore.set({
-        name: 'oauth_redirect_url',
-        value: redirectUrl,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 10 * 60, // 10 minutes
-      });
-    }
-
     // Construct Google OAuth URL
     const baseUrl = linkMode ? `${API_URL}/auth/google/link` : `${API_URL}/auth/google`;
     const oauthUrl = new URL(baseUrl);
     oauthUrl.searchParams.set('state', state);
-
-    if (redirectUrl) {
-      oauthUrl.searchParams.set('redirect_url', redirectUrl);
-    }
 
     // Redirect to Google OAuth
     redirect(oauthUrl.toString());

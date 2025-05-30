@@ -9,25 +9,6 @@ export default async function middleware(req: NextRequest) {
   const isProtectedRoute = protectedRoutes.includes(path);
   const isAuthRoute = authRoutes.includes(path);
 
-  // Handle OAuth callback security
-  if (path === '/auth/callback') {
-    const state = req.nextUrl.searchParams.get('state');
-    const error = req.nextUrl.searchParams.get('error');
-
-    // Basic validation
-    if (!state && !error) {
-      return NextResponse.redirect(new URL('/signin?error=invalid_request', req.url));
-    }
-
-    // Add security headers for OAuth callback
-    const response = NextResponse.next();
-    response.headers.set('X-Frame-Options', 'DENY');
-    response.headers.set('X-Content-Type-Options', 'nosniff');
-    response.headers.set('Referrer-Policy', 'no-referrer');
-
-    return response;
-  }
-
   // Check for session indicator (since access token is now HttpOnly)
   const sessionActive = req.cookies.get('session-active');
 
