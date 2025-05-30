@@ -16,7 +16,7 @@ export class OAuthStateGuard implements CanActivate {
 
   constructor(private readonly oauthStateService: OAuthStateService) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
     const state = request.query?.state;
 
@@ -25,53 +25,16 @@ export class OAuthStateGuard implements CanActivate {
       throw new BadRequestException('Missing state parameter');
     }
 
-    // Extract IP address and user agent from request
-    const ipAddress = this.getIpAddress(request);
-    const userAgent = request.headers['user-agent'] || 'unknown';
+    const stateData = this.oauthStateService.validateAndConsumeState(state);
 
-    // Validate and consume state with all required parameters
-    const stateValidation =
-      await this.oauthStateService.validateAndConsumeState(
-        state,
-        ipAddress,
-        userAgent,
-      );
-
-    if (!stateValidation.valid) {
-      this.logger.warn(
-        `Invalid or expired OAuth state: ${state.substring(0, 8)}...`,
-      );
+    if (!stateData) {
+      this.logger.warn(`Invalid or expired OAuth state: ${state}`);
       throw new BadRequestException('Invalid or expired state parameter');
     }
 
-    // Log security warnings if any
-    if (stateValidation.securityWarnings?.length > 0) {
-      this.logger.warn(
-        `OAuth security warnings: ${stateValidation.securityWarnings.join(', ')}`,
-      );
-    }
-
-    // Add state validation result to request for use in controller
-    request.oauthState = {
-      userId: stateValidation.userId,
-      redirectUrl: stateValidation.redirectUrl,
-      linkMode: stateValidation.linkMode,
-      securityWarnings: stateValidation.securityWarnings,
-    };
+    // Add state data to request for use in controller
+    request.oauthState = stateData;
 
     return true;
-  }
-
-  /**
-   * Extract client IP address from request
-   */
-  private getIpAddress(request: any): string {
-    const forwarded = request.headers['x-forwarded-for'];
-    if (forwarded) {
-      return Array.isArray(forwarded)
-        ? forwarded[0]
-        : forwarded.split(',')[0].trim();
-    }
-    return request.ip || 'unknown';
   }
 }

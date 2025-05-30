@@ -26,7 +26,6 @@ import { toast, Toaster } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { PasswordStrengthIndicator } from '../common/auth/password-strength-indicator';
-import { ProfileOAuthSection } from '../oauth/profile-oauth-section';
 
 // Form section wrapper
 const SecuritySection = ({
@@ -254,9 +253,6 @@ export function SecurityTab() {
           </form>
         </Form>
       </SecuritySection>
-
-      {/* OAuth Section */}
-      <ProfileOAuthSection />
 
       {/* Privacy Preferences Section */}
       <SecuritySection
