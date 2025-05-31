@@ -92,6 +92,7 @@ export const RolePermissions = {
     // Inventory response
     Permissions.INVENTORY_RESPONSE_CREATE,
     Permissions.INVENTORY_RESPONSE_READ,
+    Permissions.INVENTORY_RESPONSE_DELETE,
 
     // Medication access
     Permissions.MEDICATION_READ,

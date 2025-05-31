@@ -15,8 +15,8 @@ export const dataSourceOptions: DataSourceOptions = {
   database: process.env.DB_NAME,
   entities: ['src/**/*.entity{.ts,.js}'], // Using compiled entities
   migrations: ['src/database/migrations/*{.ts,.js}'], // Using compiled migrations
-  // synchronize: process.env.NODE_ENV === 'development',
-  synchronize: true,
+  synchronize: process.env.NODE_ENV === 'development',
+  // synchronize: true,
   logging: process.env.DB_LOGGING === 'true',
   namingStrategy: new SnakeNamingStrategy(),
   extra: {

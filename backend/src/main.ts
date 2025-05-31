@@ -9,6 +9,7 @@ import * as cookieParser from 'cookie-parser';
 import { AuditMiddleware } from './common/middleware/audit.middleware';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import * as session from 'express-session';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -128,6 +129,21 @@ async function bootstrap() {
   // Apply audit middleware globally using the middleware consumer
   const auditMiddleware = app.get(AuditMiddleware);
   app.use(auditMiddleware.use.bind(auditMiddleware));
+
+  // Apply session support for PKCE flow
+  app.use(
+    session({
+      secret: configService.get('SESSION_SECRET'),
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: configService.get('NODE_ENV') === 'production',
+        httpOnly: true,
+        maxAge: parseInt(configService.get('SESSION_MAX_AGE', '600000')),
+        sameSite: 'lax', // Important for OAuth redirects
+      },
+    }),
+  );
 
   // Start the server
   const port = configService.get<number>('PORT');

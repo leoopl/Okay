@@ -258,7 +258,7 @@ export class OAuthService {
 
     // Parse the expiration time
     const expiresInMs = this.parseTimeToSeconds(
-      this.configService.get<string>('JWT_ACCESS_EXPIRATION', '15m'),
+      this.configService.get<string>('JWT_ACCESS_EXPIRATION'),
     );
 
     // Audit successful login

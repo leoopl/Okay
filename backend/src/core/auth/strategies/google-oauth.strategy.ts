@@ -8,6 +8,11 @@ import { AuditService } from '../../audit/audit.service';
 import { AuditAction } from '../../audit/entities/audit-log.entity';
 import { User } from '../../../modules/user/entities/user.entity';
 import { AuthenticatedUser } from '../../../common/interfaces/auth-request.interface';
+import { OAuthPKCEService } from '../services/oauth-pkce.service';
+import {
+  OIDCClaims,
+  OIDCDiscoveryService,
+} from '../services/oidc-discovery.service';
 
 export interface GoogleProfile {
   id: string;
@@ -24,6 +29,17 @@ export interface GoogleProfile {
     value: string;
   }>;
   provider: string;
+  _json: {
+    sub: string;
+    email: string;
+    email_verified: boolean;
+    name: string;
+    given_name: string;
+    family_name: string;
+    picture: string;
+    locale: string;
+    hd?: string;
+  };
 }
 
 export interface GoogleUser {
@@ -41,21 +57,25 @@ export interface GoogleUser {
  * Returns normalized AuthenticatedUser object for consistency
  */
 @Injectable()
-export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
-  private readonly logger = new Logger(GoogleOAuthStrategy.name);
+export class GoogleOIDCStrategy extends PassportStrategy(
+  Strategy,
+  'google-oidc',
+) {
+  private readonly logger = new Logger(GoogleOIDCStrategy.name);
 
   constructor(
     private readonly configService: ConfigService,
     private readonly googleOAuthService: GoogleOAuthService,
+    private readonly oidcDiscoveryService: OIDCDiscoveryService,
+    private readonly pkceService: OAuthPKCEService,
     private readonly auditService: AuditService,
   ) {
-    const googleConfig = configService.get<GoogleOAuthConfig>('googleOAuth');
-
     super({
-      clientID: googleConfig.clientId,
-      clientSecret: googleConfig.clientSecret,
-      callbackURL: googleConfig.callbackUrl,
-      scope: googleConfig.scope,
+      clientID: configService.get('GOOGLE_CLIENT_ID'),
+      clientSecret: configService.get('GOOGLE_CLIENT_SECRET'),
+      callbackURL: configService.get('GOOGLE_CALLBACK_URL'),
+      scope: ['openid', 'profile', 'email'],
+      passReqToCallback: true,
     });
   }
 
@@ -64,105 +84,137 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
    * Returns normalized AuthenticatedUser object for consistent controller access
    */
   async validate(
+    req: any,
     accessToken: string,
     refreshToken: string,
+    params: any,
     profile: GoogleProfile,
     done: VerifyCallback,
   ): Promise<void> {
     try {
-      const googleUser = this.extractUserFromProfile(profile);
+      // Extract ID token from params
+      const idToken = params.id_token;
+      if (!idToken) {
+        throw new Error('No ID token received from Google');
+      }
 
-      this.logger.debug(
-        `Google OAuth validation for user: ${googleUser.email}`,
+      // Get state from request
+      const state = req.query.state;
+      if (!state) {
+        throw new Error('No state parameter in callback');
+      }
+
+      // Validate PKCE if code_verifier exists in session
+      let pkceMetadata;
+      if (req.session?.code_verifier) {
+        const pkceResult = await this.pkceService.validatePKCEChallenge(
+          state,
+          req.session.code_verifier,
+        );
+
+        if (!pkceResult.valid) {
+          throw new Error(`PKCE validation failed: ${pkceResult.error}`);
+        }
+
+        pkceMetadata = pkceResult.metadata;
+        delete req.session.code_verifier; // Clean up
+      }
+
+      // Validate ID token with nonce if available
+      const nonce = pkceMetadata?.nonce || req.session?.nonce;
+      const validatedClaims = await this.oidcDiscoveryService.validateIDToken(
+        idToken,
+        nonce,
       );
 
-      // Process the Google user through our service to get User entity
-      const user: User = await this.googleOAuthService.validateGoogleUser(
-        googleUser,
+      // Verify profile data matches ID token claims
+      this.verifyProfileConsistency(profile, validatedClaims);
+
+      // Process user through service
+      const user = await this.googleOAuthService.validateGoogleUser({
+        googleId: profile.id,
+        email: validatedClaims.email,
+        firstName: validatedClaims.given_name || profile.name.givenName,
+        lastName: validatedClaims.family_name || profile.name.familyName,
+        picture: validatedClaims.picture || profile.photos?.[0]?.value,
+        emailVerified: validatedClaims.email_verified,
+      });
+
+      // Create authenticated user object
+      const authenticatedUser: AuthenticatedUser = {
+        userId: user.id,
+        email: user.email,
+        roles: user.roles?.map((role) => role.name) || [],
+        permissions: this.extractPermissions(user),
+      };
+
+      // Store tokens securely
+      await this.storeTokensSecurely(user.id, {
         accessToken,
         refreshToken,
-      );
+        idToken,
+        expiresIn: params.expires_in || 3600,
+        scope: params.scope,
+      });
 
-      // Audit successful OAuth validation
+      // Audit successful authentication
       await this.auditService.logAction({
         userId: user.id,
         action: AuditAction.LOGIN,
         resource: 'auth',
         details: {
           provider: 'google',
-          googleId: googleUser.googleId,
-          method: 'oauth_validation',
+          method: 'oidc',
+          emailVerified: validatedClaims.email_verified,
+          hostedDomain: validatedClaims.hd,
         },
       });
-
-      // Convert User entity to normalized AuthenticatedUser object
-      const authenticatedUser: AuthenticatedUser = {
-        userId: user.id, // Normalize: User uses 'id', we want 'userId'
-        email: user.email,
-        roles: user.roles?.map((role) => role.name) || [], // Convert Role objects to string array
-        permissions: this.extractPermissions(user), // Extract permissions from roles
-        // Note: No jti or exp for OAuth users since they're not JWT tokens
-      };
 
       done(null, authenticatedUser);
     } catch (error) {
       this.logger.error(
-        `Google OAuth validation failed: ${error.message}`,
+        `Google OIDC validation failed: ${error.message}`,
         error.stack,
       );
 
-      // Audit failed OAuth attempt
+      // Audit failed attempt
       await this.auditService.logAction({
         userId: 'unknown',
         action: AuditAction.FAILED_LOGIN,
         resource: 'auth',
         details: {
           provider: 'google',
+          method: 'oidc',
           error: error.message,
-          method: 'oauth_validation',
+          profileId: profile?.id,
         },
       });
 
-      done(new UnauthorizedException('Google authentication failed'), null);
+      done(error, null);
     }
   }
 
   /**
-   * Extracts user information from Google profile
+   * Verify profile data consistency with ID token claims
    */
-  private extractUserFromProfile(profile: GoogleProfile): GoogleUser {
-    const primaryEmail = this.findPrimaryEmail(profile.emails);
-
-    return {
-      googleId: profile.id,
-      email: primaryEmail.value,
-      firstName:
-        profile.name?.givenName || profile.displayName.split(' ')[0] || '',
-      lastName:
-        profile.name?.familyName ||
-        profile.displayName.split(' ').slice(1).join(' ') ||
-        '',
-      picture: profile.photos?.[0]?.value,
-      emailVerified: primaryEmail.verified,
-    };
-  }
-
-  /**
-   * Finds the primary email from Google profile emails
-   */
-  private findPrimaryEmail(emails: GoogleProfile['emails']) {
-    if (!emails || emails.length === 0) {
-      throw new Error('No email found in Google profile');
+  private verifyProfileConsistency(
+    profile: GoogleProfile,
+    claims: OIDCClaims,
+  ): void {
+    if (profile.id !== claims.sub) {
+      throw new Error('Profile ID does not match ID token subject');
     }
 
-    // Return the first verified email, or the first email if none are verified
-    return emails.find((email) => email.verified) || emails[0];
+    const profileEmail = profile.emails?.[0]?.value;
+    if (profileEmail && claims.email && profileEmail !== claims.email) {
+      throw new Error('Email mismatch between profile and ID token');
+    }
   }
 
   /**
-   * Extracts permissions from user roles
+   * Extract permissions from user roles
    */
-  private extractPermissions(user: User): string[] {
+  private extractPermissions(user: any): string[] {
     const permissions = new Set<string>();
 
     if (user.roles) {
@@ -176,5 +228,16 @@ export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
     }
 
     return Array.from(permissions);
+  }
+
+  /**
+   * Store tokens securely
+   */
+  private async storeTokensSecurely(
+    userId: string,
+    tokens: any,
+  ): Promise<void> {
+    // TODO: integrate with token storage service
+    this.logger.debug(`Storing tokens for user ${userId}`);
   }
 }
