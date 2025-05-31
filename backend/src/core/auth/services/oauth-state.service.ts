@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
+import { error } from 'console';
 import * as crypto from 'crypto';
 
 import {
@@ -12,6 +13,7 @@ import {
   Index,
   Repository,
   LessThan,
+  EntityMetadata,
 } from 'typeorm';
 
 @Entity('oauth_states')
@@ -93,6 +95,21 @@ export class OAuthStateService {
 
     this.logger.debug(`Generated OAuth state: ${state.substring(0, 8)}...`);
     return state;
+  }
+
+  /**
+   * Validates and consumes an OAuth state parameter
+   */
+  async getStateMetadata(state: string): Promise<OAuthState> {
+    try {
+      const stateEntity = await this.stateRepository.findOne({
+        where: { state },
+      });
+
+      return stateEntity;
+    } catch (error) {
+      this.logger.error('Try to get Metadata from a Invalid OAuth state');
+    }
   }
 
   /**

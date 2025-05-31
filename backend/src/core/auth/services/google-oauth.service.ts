@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { UserService } from '../../../modules/user/user.service';
 import { User, UserStatus } from '../../../modules/user/entities/user.entity';
 import { AuditService } from '../../audit/audit.service';
@@ -35,17 +34,12 @@ export class GoogleOAuthService {
     private readonly userService: UserService,
     private readonly tokenService: TokenService,
     private readonly auditService: AuditService,
-    private readonly configService: ConfigService,
   ) {}
 
   /**
    * Validates and processes a Google user through OAuth flow
    */
-  async validateGoogleUser(
-    googleUser: GoogleUser,
-    googleAccessToken: string,
-    googleRefreshToken?: string,
-  ): Promise<User> {
+  async validateGoogleUser(googleUser: GoogleUser): Promise<User> {
     try {
       this.validateGoogleUserData(googleUser);
 
@@ -59,13 +53,6 @@ export class GoogleOAuthService {
       } else {
         user = await this.updateExistingUserWithGoogle(user, googleUser);
       }
-
-      // Store Google OAuth tokens if needed (for future API calls)
-      await this.storeGoogleTokens(
-        user.id,
-        googleAccessToken,
-        googleRefreshToken,
-      );
 
       // Audit the authentication
       await this.auditService.logAction({
@@ -222,30 +209,5 @@ export class GoogleOAuthService {
       picture: googleUser.picture,
       emailVerified: googleUser.emailVerified,
     };
-  }
-
-  /**
-   * Stores Google OAuth tokens for future API calls (optional)
-   * This could be used for accessing Google APIs on behalf of the user
-   */
-  private async storeGoogleTokens(
-    userId: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    accessToken: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    refreshToken?: string,
-  ): Promise<void> {
-    // Implementation depends on requirements
-    // Could store in a separate table for Google tokens
-    // For now, we'll just log that tokens were received
-    this.logger.debug(`Received Google tokens for user ${userId}`);
-
-    // TODO: Implement token storage if needed for Google API access
-    // Example: await this.googleTokenRepository.save({
-    //   userId,
-    //   accessToken: await this.encryptionService.encrypt(accessToken),
-    //   refreshToken: refreshToken ? await this.encryptionService.encrypt(refreshToken) : null,
-    //   expiresAt: new Date(Date.now() + 3600 * 1000), // 1 hour
-    // });
   }
 }

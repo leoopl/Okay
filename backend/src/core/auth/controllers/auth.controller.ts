@@ -12,6 +12,7 @@ import {
   BadRequestException,
   Query,
   Logger,
+  Session,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ApiOperation, ApiTags, ApiResponse, ApiBody } from '@nestjs/swagger';
@@ -24,19 +25,13 @@ import { AuditService } from '../../audit/audit.service';
 import { AuditAction } from '../../audit/entities/audit-log.entity';
 import { Public } from '../../../common/decorators/is-public.decorator';
 import { IAuthenticatedRequest } from '../../../common/interfaces/auth-request.interface';
-import {
-  GoogleOAuthCallbackDto,
-  GoogleOAuthResponseDto,
-} from '../dto/google-oauth.dto';
 import { GoogleOAuthService } from '../services/google-oauth.service';
 import { UserService } from 'src/modules/user/user.service';
 import { AuthService } from '../services/auth.service';
 import { OAuthStateService } from '../services/oauth-state.service';
 import { CsrfMiddleware } from 'src/common/middleware/csrf.middleware';
-import {
-  OAuthException,
-  OAuthStateException,
-} from '../exceptions/oauth-exceptions';
+import { OAuthPKCEService } from '../services/oauth-pkce.service';
+import { GoogleOAuthGuard } from '../guards/google-oauth.guard';
 
 @ApiTags('authentication')
 @Controller('auth')
@@ -54,6 +49,7 @@ export class AuthController {
     private readonly userService: UserService,
     private readonly oauthStateService: OAuthStateService,
     private readonly csrfMiddleware: CsrfMiddleware,
+    private readonly pkceService: OAuthPKCEService,
   ) {}
 
   @Public()
@@ -353,22 +349,27 @@ export class AuthController {
    * Initiates Google OAuth authentication flow with secure state
    */
   @Public()
-  @ApiOperation({ summary: 'Initiate Google OAuth authentication' })
+  @ApiOperation({ summary: 'Initiate Google OAuth authentication with PKCE' })
   @ApiResponse({
     status: 302,
     description: 'Redirects to Google OAuth consent screen',
   })
   @Get('google')
-  async googleOAuth(
-    @Req() req: IAuthenticatedRequest,
+  async googleOAuthWithPKCE(
+    @Req() req: any,
     @Res() res: Response,
+    @Session() session: Record<string, any>,
     @Query('redirect_url') redirectUrl?: string,
   ) {
     const ip = this.getIpAddress(req);
     const userAgent = req.headers['user-agent'] || 'unknown';
 
     try {
-      // Generate secure OAuth state with metadata
+      // Generate PKCE challenge
+      const pkceChallenge = this.pkceService.generatePKCEChallenge();
+      const nonce = this.pkceService.generateNonce();
+
+      // Generate secure state
       const state = await this.oauthStateService.generateState({
         redirectUrl,
         linkMode: false,
@@ -376,7 +377,21 @@ export class AuthController {
         userAgent,
       });
 
-      // Build Google OAuth URL with secure state
+      // Store PKCE challenge with state
+      await this.pkceService.storePKCEChallenge(state, pkceChallenge, {
+        redirectUrl,
+        linkMode: false,
+        ipAddress: ip,
+        userAgent,
+        nonce,
+        state,
+      });
+
+      // Store code verifier in session for callback
+      session.code_verifier = pkceChallenge.codeVerifier;
+      session.nonce = nonce;
+
+      // Build Google OAuth URL with PKCE parameters
       const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
       authUrl.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID);
       authUrl.searchParams.set('redirect_uri', process.env.GOOGLE_CALLBACK_URL);
@@ -385,154 +400,178 @@ export class AuthController {
       authUrl.searchParams.set('state', state);
       authUrl.searchParams.set('access_type', 'offline');
       authUrl.searchParams.set('prompt', 'consent');
+      authUrl.searchParams.set('include_granted_scopes', 'true');
 
-      // Redirect to Google OAuth
+      // PKCE parameters
+      authUrl.searchParams.set('code_challenge', pkceChallenge.codeChallenge);
+      authUrl.searchParams.set(
+        'code_challenge_method',
+        pkceChallenge.codeChallengeMethod,
+      );
+
+      // OpenID Connect parameters
+      authUrl.searchParams.set('nonce', nonce);
+
+      // Optional: Add login hint if user email is known
+      if (req.query.login_hint) {
+        authUrl.searchParams.set('login_hint', req.query.login_hint);
+      }
+
+      // Optional: Force account selection
+      if (req.query.select_account === 'true') {
+        authUrl.searchParams.set('prompt', 'consent select_account');
+      }
+
+      this.logger.log(
+        `Redirecting to Google OAuth with PKCE and state: ${state.substring(0, 8)}...`,
+      );
       res.redirect(authUrl.toString());
     } catch (error) {
       this.logger.error(
         `Error initiating Google OAuth: ${error.message}`,
         error.stack,
       );
-      throw new OAuthException(
-        'Failed to initiate Google OAuth',
-        'OAUTH_INITIATION_FAILED',
-        500,
-        'Unable to start Google authentication. Please try again.',
-      );
+
+      const frontendUrl = process.env.FRONTEND_URL;
+      const errorUrl = new URL('/auth/error', frontendUrl);
+      errorUrl.searchParams.set('error', 'oauth_initiation_failed');
+      errorUrl.searchParams.set('message', 'Failed to start authentication');
+
+      res.redirect(errorUrl.toString());
     }
   }
 
   /**
-   * Handles Google OAuth callback with enhanced security
+   * Enhanced Google OAuth callback with PKCE validation
    */
   @Public()
-  @ApiOperation({ summary: 'Handle Google OAuth callback' })
-  @ApiResponse({
-    status: 200,
-    description: 'Google OAuth authentication successful',
-    type: GoogleOAuthResponseDto,
-  })
-  @ApiResponse({ status: 400, description: 'Invalid OAuth callback' })
-  @ApiResponse({ status: 401, description: 'OAuth authentication failed' })
+  @ApiOperation({ summary: 'Handle Google OAuth callback with PKCE' })
+  @UseGuards(GoogleOAuthGuard)
   @Get('google/callback')
   async googleOAuthCallback(
-    @Req() req: IAuthenticatedRequest,
+    @Req() req: any,
     @Res({ passthrough: true }) res: Response,
-    @Query() query: GoogleOAuthCallbackDto,
+    @Query() query: any,
+    @Session() session: Record<string, any>,
   ) {
     const ip = this.getIpAddress(req);
     const userAgent = req.headers['user-agent'] || 'unknown';
 
     try {
-      // Validate OAuth state with enhanced security checks
-      const stateValidation =
-        await this.oauthStateService.validateAndConsumeState(
-          query.state,
-          ip,
-          userAgent,
-        );
-
-      if (!stateValidation.valid) {
-        throw new OAuthStateException('Invalid OAuth state parameter');
+      // Validate state parameter
+      if (!query.state) {
+        throw new BadRequestException('Missing state parameter');
       }
 
-      // Log security warnings if any
-      if (stateValidation.securityWarnings?.length > 0) {
-        this.logger.warn(
-          `OAuth security warnings for callback: ${stateValidation.securityWarnings.join(', ')}`,
-        );
+      // The GoogleOAuthGuard and strategy handle the authentication
+      // At this point, req.user should be populated
+      if (!req.user) {
+        throw new BadRequestException('Authentication failed');
       }
 
-      // Handle the OAuth callback using existing strategy
-      // The GoogleOAuthStrategy will be triggered by the AuthGuard
-      const authenticatedUser = req.user;
+      const user = req.user;
 
-      if (!authenticatedUser) {
-        throw new UnauthorizedException('Google authentication failed');
-      }
-
-      // Get the full user object from database
-      const user = await this.userService.findOne(authenticatedUser.userId);
-
-      if (!user) {
-        throw new UnauthorizedException('User not found after authentication');
-      }
-
-      // Generate JWT tokens
+      // Generate new session tokens
       const { accessToken, refreshToken } =
         await this.googleOAuthService.generateAuthTokens(user, ip, userAgent);
 
-      // Set secure authentication cookies
+      // Set secure cookies
       const sessionId = this.secureTokenService.setSecureAuthCookies(
         res,
         accessToken,
         refreshToken,
-        parseInt(process.env.JWT_ACCESS_EXPIRATION || '900', 10),
+        900, // 15 minutes
       );
 
       // Generate CSRF token
       const csrfToken = this.csrfMiddleware.generateSecureToken(sessionId, res);
 
-      // Determine if this is a new user
-      const isNewUser = user.createdAt > new Date(Date.now() - 5 * 60 * 1000);
+      // Clean up session
+      delete session.code_verifier;
+      delete session.nonce;
 
-      // Audit successful OAuth login
-      await this.auditService.logAction({
-        userId: user.id,
-        action: AuditAction.LOGIN,
-        resource: 'auth',
-        details: {
-          provider: 'google',
-          method: 'oauth_callback',
+      // Prepare success response
+      const isNewUser = await this.checkIfNewUser(user.userId);
+
+      // Get redirect URL from state
+      const stateData = await this.oauthStateService.getStateMetadata(
+        query.state,
+      );
+      const redirectUrl = stateData?.redirectUrl || '/dashboard';
+
+      // For API response
+      if (req.headers.accept?.includes('application/json')) {
+        return {
+          success: true,
+          user: {
+            id: user.userId,
+            email: user.email,
+            roles: user.roles,
+          },
+          sessionId,
+          csrfToken,
           isNewUser,
-          ip,
-          userAgent,
-          securityWarnings: stateValidation.securityWarnings,
-        },
-      });
-
-      // Redirect to frontend with success (or return JSON for API clients)
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-      const callbackUrl = new URL('/auth/success', frontendUrl);
-
-      // Add success parameters
-      callbackUrl.searchParams.set('session_id', sessionId);
-      callbackUrl.searchParams.set('is_new_user', isNewUser.toString());
-
-      if (stateValidation.redirectUrl) {
-        callbackUrl.searchParams.set(
-          'redirect_to',
-          stateValidation.redirectUrl,
-        );
+          redirectUrl,
+        };
       }
 
-      res.redirect(callbackUrl.toString());
+      // For browser redirect
+      const frontendUrl = process.env.FRONTEND_URL;
+      const successUrl = new URL('/auth/success', frontendUrl);
+      successUrl.searchParams.set('session_id', sessionId);
+      successUrl.searchParams.set('is_new_user', isNewUser.toString());
+
+      if (redirectUrl) {
+        successUrl.searchParams.set('redirect_to', redirectUrl);
+      }
+
+      res.redirect(successUrl.toString());
     } catch (error) {
       this.logger.error(
         `Google OAuth callback error: ${error.message}`,
         error.stack,
       );
 
-      // Audit failed OAuth attempt
-      await this.auditService.logAction({
-        userId: 'unknown',
-        action: AuditAction.FAILED_LOGIN,
-        resource: 'auth',
-        details: {
-          provider: 'google',
-          error: error.message,
-          method: 'oauth_callback',
-          ip,
-          userAgent,
-        },
-      });
+      // Clean up session
+      delete session.code_verifier;
+      delete session.nonce;
 
-      if (error instanceof OAuthException) {
-        throw error;
-      }
+      // Redirect to error page
+      const frontendUrl = process.env.FRONTEND_URL;
+      const errorUrl = new URL('/auth/error', frontendUrl);
+      errorUrl.searchParams.set('error', 'authentication_failed');
+      errorUrl.searchParams.set(
+        'message',
+        error.message || 'Authentication failed',
+      );
 
-      throw new BadRequestException('OAuth authentication failed');
+      res.redirect(errorUrl.toString());
     }
+  }
+
+  /**
+   * Revoke Google OAuth tokens
+   */
+  // @UseGuards(JwtAuthGuard)
+  // @ApiOperation({ summary: 'Revoke Google OAuth tokens' })
+  // @Post('google/revoke')
+  // async revokeGoogleTokens(@Req() req: IAuthenticatedRequest) {
+  //   try {
+  //     await this.googleOAuthService.revokeTokens(req.user.userId);
+
+  //     return {
+  //       success: true,
+  //       message: 'Google OAuth tokens revoked successfully',
+  //     };
+  //   } catch (error) {
+  //     this.logger.error(`Failed to revoke Google tokens: ${error.message}`);
+  //     throw new BadRequestException('Failed to revoke tokens');
+  //   }
+  // }
+
+  private async checkIfNewUser(userId: string): Promise<boolean> {
+    const user = await this.userService.findOne(userId);
+    return user.createdAt > new Date(Date.now() - 5 * 60 * 1000);
   }
 
   /**

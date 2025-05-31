@@ -8,21 +8,55 @@ import {
   IsBoolean,
 } from 'class-validator';
 
+export class InitiateGoogleOAuthDto {
+  @ApiProperty({
+    description: 'URL to redirect after authentication',
+    required: false,
+  })
+  @IsOptional()
+  @IsUrl()
+  redirect_url?: string;
+
+  @ApiProperty({
+    description: 'Email hint for Google account selection',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  login_hint?: string;
+
+  @ApiProperty({ description: 'Force account selection', required: false })
+  @IsOptional()
+  @IsBoolean()
+  select_account?: boolean;
+}
+
 export class GoogleOAuthCallbackDto {
   @ApiProperty({ description: 'Authorization code from Google' })
   @IsString()
-  @IsNotEmpty()
-  readonly code: string;
+  code: string;
 
   @ApiProperty({ description: 'State parameter for CSRF protection' })
   @IsString()
-  @IsNotEmpty()
-  readonly state: string;
+  state: string;
 
   @ApiProperty({ description: 'Scope granted by user', required: false })
-  @IsString()
   @IsOptional()
-  readonly scope?: string;
+  @IsString()
+  scope?: string;
+
+  @ApiProperty({
+    description: 'Error code if authentication failed',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  error?: string;
+
+  @ApiProperty({ description: 'Error description', required: false })
+  @IsOptional()
+  @IsString()
+  error_description?: string;
 }
 
 export class GoogleUserInfoDto {

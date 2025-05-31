@@ -6,7 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { AuthController } from './controllers/auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { GoogleOAuthStrategy } from './strategies/google-oauth.strategy';
+import { GoogleOIDCStrategy } from './strategies/google-oauth.strategy';
 import { TokenService } from './services/token.service';
 import { SecureTokenService } from './services/secure-token.service';
 import { OAuthService } from './services/oauth.service';
@@ -23,6 +23,10 @@ import { AuthService } from './services/auth.service';
 import { TokenRefreshService } from './services/token-refresh.service';
 import { CsrfMiddleware } from 'src/common/middleware/csrf.middleware';
 import { OAuthStateService } from './services/oauth-state.service';
+import { GoogleOAuthGuard } from './guards/google-oauth.guard';
+import { OAuthPKCEService } from './services/oauth-pkce.service';
+import { OIDCDiscoveryService } from './services/oidc-discovery.service';
+import { OAuthCacheService } from './services/oauth-cache.service';
 
 @Global()
 @Module({
@@ -40,7 +44,10 @@ import { OAuthStateService } from './services/oauth-state.service';
       useFactory: getJwtModuleOptions,
     }),
     ConfigModule.forFeature(googleOAuthConfig),
-    HttpModule,
+    HttpModule.register({
+      timeout: 5000,
+      maxRedirects: 5,
+    }),
     UserModule,
     AuditModule,
   ],
@@ -53,9 +60,14 @@ import { OAuthStateService } from './services/oauth-state.service';
     OAuthService,
     GoogleOAuthService,
     JwtStrategy,
-    GoogleOAuthStrategy,
+    GoogleOIDCStrategy,
     CsrfMiddleware,
     OAuthStateService,
+    GoogleOIDCStrategy,
+    OAuthPKCEService,
+    OIDCDiscoveryService,
+    GoogleOAuthGuard,
+    OAuthCacheService,
   ],
   exports: [
     AuthService,
@@ -65,9 +77,12 @@ import { OAuthStateService } from './services/oauth-state.service';
     OAuthService,
     GoogleOAuthService,
     JwtStrategy,
-    GoogleOAuthStrategy,
+    GoogleOIDCStrategy,
     CsrfMiddleware,
     OAuthStateService,
+    OAuthPKCEService,
+    OIDCDiscoveryService,
+    OAuthCacheService,
   ],
 })
 export class AuthModule {}
