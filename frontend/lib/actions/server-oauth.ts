@@ -33,16 +33,14 @@ export async function getOAuthStatus(): Promise<OAuthStatusResponse | null> {
     }
 
     const cookieStore = await cookies();
-    const accessToken = cookieStore.get('access_token')?.value;
+    const currentToken = cookieStore.get('__Secure-access-token')?.value;
 
-    if (!accessToken) {
+    if (!currentToken) {
       const refreshed = await refreshServerToken();
       if (!refreshed) {
         return null;
       }
     }
-
-    const currentToken = cookieStore.get('access_token')?.value;
 
     const response = await fetch(`${API_URL}/auth/oauth/status`, {
       headers: {
@@ -79,23 +77,20 @@ export async function unlinkGoogleAccount(
 
     const cookieStore = await cookies();
     const csrfToken = cookieStore.get('csrf_token')?.value || '';
-    const accessToken = cookieStore.get('access_token')?.value;
 
-    if (!accessToken) {
+    const currentToken = cookieStore.get('__Secure-access-token')?.value; // Check the HttpOnly cookie
+    if (!currentToken) {
       const refreshed = await refreshServerToken();
       if (!refreshed) {
         return { success: false, error: 'Sua sessão expirou. Por favor, faça login novamente.' };
       }
     }
 
-    const currentToken = cookieStore.get('access_token')?.value;
-
     const response = await fetch(`${API_URL}/auth/google/unlink`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-CSRF-Token': csrfToken,
-        Authorization: `Bearer ${currentToken}`,
       },
       credentials: 'include',
     });

@@ -1,5 +1,7 @@
+// frontend/middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { jwtDecode } from 'jwt-decode';
 
 const protectedRoutes = ['/dashboard', '/journal', '/inventory', '/medication', '/profile'];
 const authRoutes = ['/signin', '/signup'];
@@ -9,38 +11,34 @@ export default async function middleware(req: NextRequest) {
   const isProtectedRoute = protectedRoutes.includes(path);
   const isAuthRoute = authRoutes.includes(path);
 
-  // Handle OAuth callback security
-  if (path === '/auth/callback') {
-    const state = req.nextUrl.searchParams.get('state');
-    const error = req.nextUrl.searchParams.get('error');
+  // Get the secure access token
+  const accessToken = req.cookies.get('__Secure-access-token')?.value;
+  const sessionActive = req.cookies.get('session-active')?.value === 'true';
 
-    // Basic validation
-    if (!state && !error) {
-      return NextResponse.redirect(new URL('/signin?error=invalid_request', req.url));
+  // Check if user is authenticated
+  let isAuthenticated = false;
+
+  if (accessToken) {
+    try {
+      const decoded: any = jwtDecode(accessToken);
+      const now = Math.floor(Date.now() / 1000);
+      isAuthenticated = decoded.exp > now;
+    } catch {
+      isAuthenticated = false;
     }
-
-    // Add security headers for OAuth callback
-    const response = NextResponse.next();
-    response.headers.set('X-Frame-Options', 'DENY');
-    response.headers.set('X-Content-Type-Options', 'nosniff');
-    response.headers.set('Referrer-Policy', 'no-referrer');
-
-    return response;
   }
 
-  // Check for session indicator (since access token is now HttpOnly)
-  const sessionActive = req.cookies.get('session-active');
+  // Also check session-active cookie as fallback
+  isAuthenticated = isAuthenticated || sessionActive;
 
-  if (sessionActive && isAuthRoute && !req.nextUrl.pathname.startsWith('/dashboard')) {
-    return NextResponse.redirect(new URL('/dashboard', req.nextUrl));
+  // Redirect authenticated users away from auth routes
+  if (isAuthenticated && isAuthRoute) {
+    return NextResponse.redirect(new URL('/dashboard', req.url));
   }
 
-  if (!isProtectedRoute) {
-    return NextResponse.next();
-  }
-
-  if (!sessionActive && isProtectedRoute) {
-    return NextResponse.redirect(new URL('/signin', req.nextUrl));
+  // Redirect unauthenticated users to signin
+  if (!isAuthenticated && isProtectedRoute) {
+    return NextResponse.redirect(new URL('/signin', req.url));
   }
 
   return NextResponse.next();

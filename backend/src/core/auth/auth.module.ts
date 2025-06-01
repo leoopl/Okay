@@ -14,6 +14,7 @@ import { GoogleOAuthService } from './services/google-oauth.service';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { TokenBlacklist } from './entities/token-blacklist.entity';
 import { AuthorizationCode } from './entities/authorization-code.entity';
+import { OAuthToken } from './entities/oauth-token.entity';
 import { OAuthState } from './entities/oauth-state.entity';
 import { UserModule } from '../../modules/user/user.module';
 import { AuditModule } from '../audit/audit.module';
@@ -27,6 +28,9 @@ import { GoogleOAuthGuard } from './guards/google-oauth.guard';
 import { OAuthPKCEService } from './services/oauth-pkce.service';
 import { OIDCDiscoveryService } from './services/oidc-discovery.service';
 import { OAuthCacheService } from './services/oauth-cache.service';
+import { OAuthTokenManagerService } from './services/oauth-token-manager.service';
+import { OAuthTokenEncryptionService } from './services/oauth-token-encryption.service';
+import { EncryptionModule } from 'src/common/encryption/encryption.module';
 
 @Global()
 @Module({
@@ -36,6 +40,7 @@ import { OAuthCacheService } from './services/oauth-cache.service';
       TokenBlacklist,
       AuthorizationCode,
       OAuthState,
+      OAuthToken, // Add OAuthToken here
     ]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
@@ -50,6 +55,7 @@ import { OAuthCacheService } from './services/oauth-cache.service';
     }),
     UserModule,
     AuditModule,
+    EncryptionModule,
   ],
   controllers: [AuthController],
   providers: [
@@ -60,7 +66,6 @@ import { OAuthCacheService } from './services/oauth-cache.service';
     OAuthService,
     GoogleOAuthService,
     JwtStrategy,
-    GoogleOIDCStrategy,
     CsrfMiddleware,
     OAuthStateService,
     GoogleOIDCStrategy,
@@ -68,6 +73,8 @@ import { OAuthCacheService } from './services/oauth-cache.service';
     OIDCDiscoveryService,
     GoogleOAuthGuard,
     OAuthCacheService,
+    OAuthTokenManagerService,
+    OAuthTokenEncryptionService,
   ],
   exports: [
     AuthService,
@@ -83,6 +90,8 @@ import { OAuthCacheService } from './services/oauth-cache.service';
     OAuthPKCEService,
     OIDCDiscoveryService,
     OAuthCacheService,
+    OAuthTokenManagerService,
+    OAuthTokenEncryptionService,
   ],
 })
 export class AuthModule {}

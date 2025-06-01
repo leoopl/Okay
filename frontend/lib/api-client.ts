@@ -57,15 +57,6 @@ export class ApiClient {
       credentials: 'include', // Include cookies for refresh token
     };
 
-    // Add Authorization header if we have a token
-    const token = getAccessToken();
-    if (token) {
-      requestOptions.headers = {
-        ...requestOptions.headers,
-        Authorization: `Bearer ${token}`,
-      };
-    }
-
     // Add CSRF token if available
     const csrfToken = getCsrfToken();
     if (csrfToken) {
@@ -151,7 +142,7 @@ export class ApiClient {
    * GET request
    */
   static async get<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    return this.request<T>(endpoint, { ...options, method: 'GET' }, true);
+    return this.request<T>(endpoint, { ...options, method: 'GET', credentials: 'include' }, true);
   }
 
   /**

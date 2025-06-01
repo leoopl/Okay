@@ -48,10 +48,9 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       configService.get<string>('CORS_ORIGIN'),
-      'http://localhost:3000', // Frontend
-      'http://localhost:3001', // Backend (for file serving)
-    ],
-    credentials: true, // Required for cookies
+      configService.get<string>('FRONTEND_URL'),
+    ].filter(Boolean),
+    credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
     allowedHeaders: [
       'Content-Type',
@@ -60,15 +59,11 @@ async function bootstrap() {
       'X-Requested-With',
       'X-CSRF-Token',
       'Range', // Important for image serving
+      'Cookie',
     ],
-    exposedHeaders: [
-      'Authorization',
-      'Content-Length',
-      'Content-Type',
-      'X-File-Key', // Custom debug header
-    ],
-    maxAge: 86400, // 24 hours
-    optionsSuccessStatus: 200, // Some legacy browsers choke on 204
+    exposedHeaders: ['Authorization', 'Set-Cookie'],
+    maxAge: 86400,
+    optionsSuccessStatus: 200,
   });
 
   // Set global API prefix

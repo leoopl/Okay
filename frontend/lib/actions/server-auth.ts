@@ -114,8 +114,9 @@ export async function signin(
       return result;
     }
 
-    // Handle invalid or unexpected response format
-    if (!result.accessToken) {
+    // FIXED: Check for success instead of accessToken
+    // The backend sets secure cookies and returns sessionId/csrfToken
+    if (!result.success || !result.sessionId) {
       return {
         success: false,
         message: 'Unexpected server response. Please try again later.',
@@ -189,7 +190,7 @@ export async function signup(
 
     const loginResult = await handleApiResponse(loginResponse);
 
-    if (!loginResult.success && (loginResult.message || loginResult.errors)) {
+    if (!loginResult.success || !loginResult.sessionId) {
       return {
         success: false,
         message: loginResult.message || 'Account created but login failed. Please try signing in.',
@@ -325,9 +326,10 @@ export async function logout(): Promise<void> {
  */
 export async function getServerSession(): Promise<UserProfile | null> {
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get('access_token')?.value;
 
-  // No token, no session
+  // Check for the secure access token
+  const accessToken = cookieStore.get('__Secure-access-token')?.value;
+
   if (!accessToken) {
     return null;
   }
@@ -335,8 +337,6 @@ export async function getServerSession(): Promise<UserProfile | null> {
   try {
     // Decode token to get basic info and check expiration
     const decoded: any = jwtDecode(accessToken);
-
-    // Check if token is expired
     const now = Math.floor(Date.now() / 1000);
 
     if (decoded.exp && decoded.exp < now) {
@@ -345,57 +345,18 @@ export async function getServerSession(): Promise<UserProfile | null> {
       if (!refreshed) {
         return null;
       }
-
       // If refresh succeeded, try again with the new token
       return getServerSession();
     }
 
-    // Get full user profile data from API
-    const apiUrl = process.env.API_URL;
-    const userId = decoded.sub;
-
-    // Fetch the user profile data
-    const response = await fetch(`${apiUrl}/users/${userId}`, {
-      headers: {
-        Cookie: cookieStore
-          .getAll()
-          .map((cookie) => `${cookie.name}=${cookie.value}`)
-          .join('; '),
-        Authorization: `Bearer ${accessToken}`,
-      },
-      next: { tags: ['user-profile'] },
-    });
-
-    if (!response.ok) {
-      // If API call fails, create a basic profile from the token
-      return {
-        id: decoded.sub,
-        email: decoded.email,
-        name: decoded.name || '',
-        surname: decoded.surname || '',
-        roles: decoded.roles || [],
-        permissions: decoded.permissions || [],
-      };
-    }
-
-    // Return the full user profile
-    const userData = await response.json();
+    // Build user profile from token
     return {
-      id: userData.id,
-      email: userData.email,
-      name: userData.name,
-      surname: userData.surname,
-      gender: userData.gender,
-      birthdate: userData.birthdate,
-      roles: userData.roles || decoded.roles || [],
+      id: decoded.sub,
+      email: decoded.email,
+      name: decoded.name || '',
+      surname: decoded.surname || '',
+      roles: decoded.roles || [],
       permissions: decoded.permissions || [],
-      consentToDataProcessing: userData.consentToDataProcessing,
-      consentToResearch: userData.consentToResearch,
-      consentToMarketing: userData.consentToMarketing,
-      createdAt: userData.createdAt,
-      updatedAt: userData.updatedAt,
-      profilePictureUrl: userData.profilePictureUrl,
-      profilePictureUpdatedAt: userData.profilePictureUpdatedAt,
     };
   } catch (error) {
     console.error('Error validating token:', error);
@@ -411,18 +372,12 @@ export async function refreshServerToken(): Promise<boolean> {
   try {
     const cookieStore = await cookies();
 
-    // Check if we already have an access token
-    const currentToken = cookieStore.get('access_token');
+    // Get the secure refresh token
+    const refreshToken = cookieStore.get('__Secure-refresh-token')?.value;
 
-    if (currentToken) {
-      // Decode token to check expiration
-      const decoded: any = jwtDecode(currentToken.value);
-      const now = Math.floor(Date.now() / 1000);
-
-      // If token is not expired and has more than 5 minutes left, don't refresh
-      if (decoded.exp && decoded.exp > now + 300) {
-        return true;
-      }
+    if (!refreshToken) {
+      console.error('No refresh token found');
+      return false;
     }
 
     // Make server-to-server request to refresh token
@@ -439,18 +394,23 @@ export async function refreshServerToken(): Promise<boolean> {
     });
 
     if (!response.ok) {
-      console.error('Token refresh failed:', response.status, response.statusText);
+      console.error('Token refresh failed:', response.status);
       return false;
     }
 
     const data = await response.json();
 
-    if (!data.accessToken) {
-      console.error('No access token in refresh response');
-      return false;
-    }
+    // Set the session-active cookie that frontend can read
+    cookieStore.set({
+      name: 'session-active',
+      value: 'true',
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: data.expiresIn || 900,
+    });
 
-    await setAuthCookies(data);
     return true;
   } catch (error) {
     console.error('Server token refresh error:', error);

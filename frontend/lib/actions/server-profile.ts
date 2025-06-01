@@ -1,6 +1,5 @@
 'use server';
 
-import { z } from 'zod';
 import { cookies } from 'next/headers';
 import { getServerSession, refreshServerToken } from './server-auth';
 import { revalidatePath } from 'next/cache';
@@ -55,19 +54,15 @@ export async function updateProfile(
     const userId = session.id;
     const cookieStore = await cookies();
     const csrfToken = cookieStore.get('csrf_token')?.value || '';
-    const accessToken = cookieStore.get('access_token')?.value;
 
-    // Check if we have an access token
-    if (!accessToken) {
+    const currentToken = cookieStore.get('__Secure-access-token')?.value; // Check the HttpOnly cookie
+    if (!currentToken) {
       // Try to refresh the token
       const refreshed = await refreshServerToken();
       if (!refreshed) {
         return { success: false, message: 'Sua sessão expirou. Por favor, faça login novamente.' };
       }
     }
-
-    // Get the potentially refreshed token
-    const currentToken = cookieStore.get('access_token')?.value;
 
     const response = await fetch(`${apiUrl}/users/${userId}`, {
       method: 'PATCH',
@@ -145,10 +140,9 @@ export async function changePassword(
     const apiUrl = process.env.API_URL;
     const cookieStore = await cookies();
     const csrfToken = cookieStore.get('csrf_token')?.value || '';
-    const accessToken = cookieStore.get('access_token')?.value;
 
-    // Check if we have an access token
-    if (!accessToken) {
+    const currentToken = cookieStore.get('__Secure-access-token')?.value; // Check the HttpOnly cookie
+    if (!currentToken) {
       // Try to refresh the token
       const refreshed = await refreshServerToken();
       if (!refreshed) {
@@ -156,16 +150,11 @@ export async function changePassword(
       }
     }
 
-    // Get the potentially refreshed token
-    const currentToken = cookieStore.get('access_token')?.value;
-
     const response = await fetch(`${apiUrl}/users/update-password`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-CSRF-Token': csrfToken,
-        // Add Authorization header with the Bearer token
-        Authorization: `Bearer ${currentToken}`,
       },
       credentials: 'include', // This sends cookies automatically
       body: JSON.stringify({
@@ -225,10 +214,9 @@ export async function updateConsent(
     const userId = session.id;
     const cookieStore = await cookies();
     const csrfToken = cookieStore.get('csrf_token')?.value || '';
-    const accessToken = cookieStore.get('access_token')?.value;
 
-    // Check if we have an access token
-    if (!accessToken) {
+    const currentToken = cookieStore.get('__Secure-access-token')?.value; // Check the HttpOnly cookie
+    if (!currentToken) {
       // Try to refresh the token
       const refreshed = await refreshServerToken();
       if (!refreshed) {
@@ -236,16 +224,11 @@ export async function updateConsent(
       }
     }
 
-    // Get the potentially refreshed token
-    const currentToken = cookieStore.get('access_token')?.value;
-
     const response = await fetch(`${apiUrl}/users/${userId}/consent`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
         'X-CSRF-Token': csrfToken,
-        // Add Authorization header with the Bearer token
-        Authorization: `Bearer ${currentToken}`,
       },
       credentials: 'include', // This sends cookies automatically
       body: JSON.stringify({
@@ -301,7 +284,7 @@ export async function getUserProfile() {
     const apiUrl = process.env.API_URL;
     const userId = session.id;
     const cookieStore = await cookies();
-    const accessToken = cookieStore.get('access_token')?.value;
+    const accessToken = cookieStore.get('__Secure-access-token')?.value;
 
     if (!accessToken) {
       return null;
@@ -330,7 +313,7 @@ export async function getUserProfile() {
  * Upload user profile picture
  */
 export async function uploadProfilePicture(
-  prevState: ProfilePictureActionResponse | undefined,
+  _: ProfilePictureActionResponse | undefined,
   formData: FormData,
 ): Promise<ProfilePictureActionResponse> {
   try {
@@ -369,19 +352,15 @@ export async function uploadProfilePicture(
     const userId = session.id;
     const cookieStore = await cookies();
     const csrfToken = cookieStore.get('csrf_token')?.value || '';
-    const accessToken = cookieStore.get('access_token')?.value;
 
-    // Check if we have an access token
-    if (!accessToken) {
+    const currentToken = cookieStore.get('__Secure-access-token')?.value; // Check the HttpOnly cookie
+    if (!currentToken) {
       // Try to refresh the token
       const refreshed = await refreshServerToken();
       if (!refreshed) {
         return { success: false, message: 'Sua sessão expirou. Por favor, faça login novamente.' };
       }
     }
-
-    // Get the potentially refreshed token
-    const currentToken = cookieStore.get('access_token')?.value;
 
     // Create form data for the API
     const uploadFormData = new FormData();
@@ -391,7 +370,6 @@ export async function uploadProfilePicture(
       method: 'POST',
       headers: {
         'X-CSRF-Token': csrfToken,
-        Authorization: `Bearer ${currentToken}`,
       },
       credentials: 'include',
       body: uploadFormData, // Don't set Content-Type for FormData
@@ -454,10 +432,9 @@ export async function deleteProfilePicture(
     const userId = session.id;
     const cookieStore = await cookies();
     const csrfToken = cookieStore.get('csrf_token')?.value || '';
-    const accessToken = cookieStore.get('access_token')?.value;
 
-    // Check if we have an access token
-    if (!accessToken) {
+    const currentToken = cookieStore.get('__Secure-access-token')?.value; // Check the HttpOnly cookie
+    if (!currentToken) {
       // Try to refresh the token
       const refreshed = await refreshServerToken();
       if (!refreshed) {
@@ -465,14 +442,10 @@ export async function deleteProfilePicture(
       }
     }
 
-    // Get the potentially refreshed token
-    const currentToken = cookieStore.get('access_token')?.value;
-
     const response = await fetch(`${apiUrl}/users/${userId}/profile-picture`, {
       method: 'DELETE',
       headers: {
         'X-CSRF-Token': csrfToken,
-        Authorization: `Bearer ${currentToken}`,
       },
       credentials: 'include',
     });

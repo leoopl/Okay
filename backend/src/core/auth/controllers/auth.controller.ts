@@ -32,6 +32,7 @@ import { OAuthStateService } from '../services/oauth-state.service';
 import { CsrfMiddleware } from 'src/common/middleware/csrf.middleware';
 import { OAuthPKCEService } from '../services/oauth-pkce.service';
 import { GoogleOAuthGuard } from '../guards/google-oauth.guard';
+import { ConfigService } from '@nestjs/config';
 
 @ApiTags('authentication')
 @Controller('auth')
@@ -50,6 +51,7 @@ export class AuthController {
     private readonly oauthStateService: OAuthStateService,
     private readonly csrfMiddleware: CsrfMiddleware,
     private readonly pkceService: OAuthPKCEService,
+    private readonly configService: ConfigService,
   ) {}
 
   @Public()
@@ -464,7 +466,6 @@ export class AuthController {
       }
 
       // The GoogleOAuthGuard and strategy handle the authentication
-      // At this point, req.user should be populated
       if (!req.user) {
         throw new BadRequestException('Authentication failed');
       }
@@ -486,11 +487,25 @@ export class AuthController {
       // Generate CSRF token
       const csrfToken = this.csrfMiddleware.generateSecureToken(sessionId, res);
 
-      // Clean up session
-      delete session.code_verifier;
-      delete session.nonce;
+      // IMPORTANT: Set a session indicator cookie that frontend can read
+      res.cookie('session-active', 'true', {
+        httpOnly: false, // Frontend needs to read this
+        secure: this.configService.get('NODE_ENV') === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 900 * 1000, // 15 minutes in milliseconds
+      });
 
-      // Prepare success response
+      // Also set CSRF token in a readable cookie
+      res.cookie('csrf-token', csrfToken, {
+        httpOnly: false,
+        secure: this.configService.get('NODE_ENV') === 'production',
+        sameSite: 'strict',
+        path: '/',
+        maxAge: 24 * 60 * 60 * 1000,
+      });
+
+      // Check if this is a new user
       const isNewUser = await this.checkIfNewUser(user.userId);
 
       // Get redirect URL from state
@@ -499,33 +514,23 @@ export class AuthController {
       );
       const redirectUrl = stateData?.redirectUrl || '/dashboard';
 
-      // For API response
-      if (req.headers.accept?.includes('application/json')) {
-        return {
-          success: true,
-          user: {
-            id: user.userId,
-            email: user.email,
-            roles: user.roles,
-          },
-          sessionId,
-          csrfToken,
-          isNewUser,
-          redirectUrl,
-        };
-      }
+      // Build frontend callback URL
+      const frontendUrl = this.configService.get('FRONTEND_URL');
+      const callbackUrl = new URL('/auth/callback', frontendUrl);
 
-      // For browser redirect
-      const frontendUrl = process.env.FRONTEND_URL;
-      const successUrl = new URL('/auth/success', frontendUrl);
-      successUrl.searchParams.set('session_id', sessionId);
-      successUrl.searchParams.set('is_new_user', isNewUser.toString());
+      // Add all necessary parameters
+      callbackUrl.searchParams.set('success', 'true');
+      callbackUrl.searchParams.set('session_id', sessionId);
+      callbackUrl.searchParams.set('is_new_user', isNewUser.toString());
+      callbackUrl.searchParams.set('redirect_to', redirectUrl);
+      callbackUrl.searchParams.set('state', query.state);
 
-      if (redirectUrl) {
-        successUrl.searchParams.set('redirect_to', redirectUrl);
-      }
+      // Clean up session
+      delete session.code_verifier;
+      delete session.nonce;
 
-      res.redirect(successUrl.toString());
+      // Redirect to frontend
+      res.redirect(callbackUrl.toString());
     } catch (error) {
       this.logger.error(
         `Google OAuth callback error: ${error.message}`,
@@ -537,7 +542,7 @@ export class AuthController {
       delete session.nonce;
 
       // Redirect to error page
-      const frontendUrl = process.env.FRONTEND_URL;
+      const frontendUrl = this.configService.get('FRONTEND_URL');
       const errorUrl = new URL('/auth/error', frontendUrl);
       errorUrl.searchParams.set('error', 'authentication_failed');
       errorUrl.searchParams.set(

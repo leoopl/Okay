@@ -13,6 +13,7 @@ import {
   OIDCClaims,
   OIDCDiscoveryService,
 } from '../services/oidc-discovery.service';
+import { OAuthTokenManagerService } from '../services/oauth-token-manager.service';
 
 export interface GoogleProfile {
   id: string;
@@ -69,6 +70,7 @@ export class GoogleOIDCStrategy extends PassportStrategy(
     private readonly oidcDiscoveryService: OIDCDiscoveryService,
     private readonly pkceService: OAuthPKCEService,
     private readonly auditService: AuditService,
+    private readonly oauthTokenManager: OAuthTokenManagerService,
   ) {
     super({
       clientID: configService.get('GOOGLE_CLIENT_ID'),
@@ -235,9 +237,24 @@ export class GoogleOIDCStrategy extends PassportStrategy(
    */
   private async storeTokensSecurely(
     userId: string,
-    tokens: any,
+    tokens: {
+      accessToken: string;
+      refreshToken?: string;
+      idToken: string;
+      expiresIn: number;
+      scope: string;
+    },
   ): Promise<void> {
-    // TODO: integrate with token storage service
-    this.logger.debug(`Storing tokens for user ${userId}`);
+    await this.oauthTokenManager.storeOAuthTokens(
+      userId,
+      'google',
+      tokens.accessToken,
+      tokens.refreshToken,
+      tokens.expiresIn,
+      tokens.scope,
+    );
+    this.logger.debug(
+      `Stored Google OAuth tokens for user ${userId} via OAuthTokenManagerService.`,
+    );
   }
 }

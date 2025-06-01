@@ -28,7 +28,7 @@ export class SecureTokenService {
     response.cookie('__Secure-access-token', accessToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'strict',
+      sameSite: 'lax',
       path: '/',
       maxAge: expiresIn * 1000,
       domain: this.configService.get('COOKIE_DOMAIN'),
@@ -38,7 +38,7 @@ export class SecureTokenService {
     response.cookie('__Secure-refresh-token', refreshToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'strict',
+      sameSite: 'lax',
       path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       domain: this.configService.get('COOKIE_DOMAIN'),
@@ -48,7 +48,7 @@ export class SecureTokenService {
     response.cookie('session-id', sessionId, {
       httpOnly: false,
       secure: isProduction,
-      sameSite: 'strict',
+      sameSite: 'lax',
       path: '/',
       maxAge: expiresIn * 1000,
     });
@@ -58,7 +58,7 @@ export class SecureTokenService {
       response.cookie('csrf-token', csrfToken, {
         httpOnly: false,
         secure: isProduction,
-        sameSite: 'strict',
+        sameSite: 'lax',
         path: '/',
         maxAge: 24 * 60 * 60 * 1000,
       });
@@ -74,7 +74,7 @@ export class SecureTokenService {
     const cookieOptions = {
       httpOnly: true,
       secure: this.configService.get('NODE_ENV') === 'production',
-      sameSite: 'strict' as const,
+      sameSite: 'lax' as const,
       path: '/',
       maxAge: 0,
     };
