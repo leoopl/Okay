@@ -1,4 +1,3 @@
-// frontend/app/layout.tsx
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Varela_Round } from 'next/font/google';
@@ -94,6 +93,7 @@ export default async function RootLayout({
       suppressHydrationWarning
       className={cn(varelaRound.variable, 'scroll-smooth', 'focus-within:scroll-auto')}
     >
+      <meta name="apple-mobile-web-app-title" content="Okay" />
       <link rel="manifest" href="/manifest.json" />
       <head />
       <body className={`gradient-background min-h-screen antialiased`}>

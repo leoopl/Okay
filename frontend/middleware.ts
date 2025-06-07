@@ -10,7 +10,7 @@ const authRoutes = ['/signin', '/signup'];
 export default async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
-  const isProtectedRoute = protectedRoutes.includes(path);
+  const isProtectedRoute = protectedRoutes.some((route) => path.startsWith(route));
 
   const isAuthRoute = authRoutes.includes(path);
 

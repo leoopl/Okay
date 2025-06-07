@@ -42,6 +42,7 @@ export class UserService {
       const user = this.usersRepository.create({
         ...createUserDto,
         status: UserStatus.ACTIVE, // Set as active for direct registrations
+        consentUpdatedAt: new Date(),
       });
 
       // Assign default role (patient by default)
@@ -66,7 +67,15 @@ export class UserService {
         action: AuditAction.CREATE,
         resource: 'user',
         resourceId: savedUser.id,
-        details: { email: savedUser.email },
+        details: {
+          email: savedUser.email,
+          registrationMethod: 'local',
+          consentGiven: {
+            dataProcessing: createUserDto.consentToDataProcessing,
+            research: createUserDto.consentToResearch,
+            marketing: createUserDto.consentToMarketing,
+          },
+        },
       });
 
       return savedUser;
@@ -320,7 +329,7 @@ export class UserService {
           // Audit the link
           await this.auditService.logAction({
             userId: user.id,
-            action: 'ACCOUNT_LINKED' as any,
+            action: AuditAction.ACCOUNT_LINKED,
             resource: 'user',
             resourceId: user.id,
             details: {
@@ -447,7 +456,7 @@ export class UserService {
     // Audit role assignment
     await this.auditService.logAction({
       userId: actorId,
-      action: 'ROLE_ASSIGNED' as any,
+      action: AuditAction.ROLE_ASSIGNED,
       resource: 'user',
       resourceId: userId,
       details: { roleName },
@@ -477,7 +486,7 @@ export class UserService {
     // Audit role removal
     await this.auditService.logAction({
       userId: actorId,
-      action: 'ROLE_REMOVED' as any,
+      action: AuditAction.ROLE_REMOVED,
       resource: 'user',
       resourceId: userId,
       details: { roleName },
@@ -508,7 +517,7 @@ export class UserService {
     // Audit role assignment
     await this.auditService.logAction({
       userId: actorId,
-      action: 'ROLE_ASSIGNED' as any,
+      action: AuditAction.ROLE_ASSIGNED,
       resource: 'user',
       resourceId: userId,
       details: { roleName, isExclusive: true },

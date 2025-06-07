@@ -7,6 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../../../common/decorators/roles.decorator';
 import { AuditService } from '../../../core/audit/audit.service';
+import { AuditAction } from 'src/core/audit/entities/audit-log.entity';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -58,7 +59,7 @@ export class RolesGuard implements CanActivate {
     if (userId) {
       await this.auditService.logAction({
         userId,
-        action: 'ACCESS_DENIED' as any,
+        action: AuditAction.ACCESS_DENIED,
         resource: request.path,
         resourceId: request.params?.id,
         details: {

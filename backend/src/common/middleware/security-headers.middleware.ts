@@ -1,60 +1,38 @@
-import { Injectable, NestMiddleware, Logger } from '@nestjs/common';
+import { Injectable, Logger, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { ConfigService } from '@nestjs/config';
 
-/**
- * Security middleware for OAuth endpoints
- * Adds additional security headers and protections
- */
 @Injectable()
-export class OAuthSecurityMiddleware implements NestMiddleware {
-  private readonly logger: Logger = new Logger(OAuthSecurityMiddleware.name);
-  private readonly isProduction: boolean;
-
-  constructor(private readonly configService: ConfigService) {
-    this.isProduction = configService.get('NODE_ENV') === 'production';
-  }
+export class SecurityHeadersMiddleware implements NestMiddleware {
+  private readonly logger = new Logger(SecurityHeadersMiddleware.name);
+  constructor(private readonly configService: ConfigService) {}
 
   use(req: Request, res: Response, next: NextFunction) {
-    // Apply security headers for OAuth endpoints
-    if (this.isOAuthEndpoint(req.path)) {
-      this.setOAuthSecurityHeaders(res);
-      this.logOAuthRequest(req);
+    const isProduction = this.configService.get('NODE_ENV') === 'production';
+
+    // HIPAA Compliance: Secure transport
+    // HSTS header for production
+    if (isProduction) {
+      res.setHeader(
+        'Strict-Transport-Security',
+        'max-age=31536000; includeSubDomains; preload',
+      );
     }
 
-    next();
-  }
+    // Prevent clickjacking
+    // Prevent OAuth responses from being embedded
+    res.setHeader('X-Frame-Options', 'DENY');
 
-  /**
-   * Checks if the current path is an OAuth endpoint
-   */
-  private isOAuthEndpoint(path: string): boolean {
-    const oauthPaths = [
-      '/auth/google',
-      '/auth/google/callback',
-      '/auth/google/link',
-      '/auth/google/unlink',
-      '/auth/authorize',
-      '/auth/token',
-      '/auth/refresh',
-    ];
+    // Prevent MIME type sniffing
+    res.setHeader('X-Content-Type-Options', 'nosniff');
 
-    return oauthPaths.some((oauthPath) => path.includes(oauthPath));
-  }
+    // XSS Protection
+    res.setHeader('X-XSS-Protection', '1; mode=block');
 
-  /**
-   * Sets OAuth-specific security headers
-   */
-  private setOAuthSecurityHeaders(res: Response): void {
-    // Prevent caching of OAuth responses
-    res.setHeader(
-      'Cache-Control',
-      'no-store, no-cache, must-revalidate, private',
-    );
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
+    // Referrer Policy for PHI protection
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-    // Content Security Policy for OAuth endpoints
+    // Content Security Policy
     res.setHeader(
       'Content-Security-Policy',
       "default-src 'self'; " +
@@ -62,29 +40,29 @@ export class OAuthSecurityMiddleware implements NestMiddleware {
         "style-src 'self' 'unsafe-inline'; " +
         "img-src 'self' data: https:; " +
         "connect-src 'self' accounts.google.com; " +
-        "frame-src 'self' accounts.google.com; " +
+        "font-src 'self'; " +
         "object-src 'none'; " +
-        "base-uri 'self';",
+        "base-uri 'self'; " +
+        "form-action 'self'; " +
+        "frame-ancestors 'none'; " +
+        'upgrade-insecure-requests;',
     );
 
-    // Prevent OAuth responses from being embedded
-    res.setHeader('X-Frame-Options', 'DENY');
-
-    // Additional security headers
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-
-    // HSTS header for production
-    if (this.isProduction) {
+    // HIPAA: Prevent caching of sensitive data
+    if (req.path.includes('/api/')) {
       res.setHeader(
-        'Strict-Transport-Security',
-        'max-age=31536000; includeSubDomains; preload',
+        'Cache-Control',
+        'no-store, no-cache, must-revalidate, private',
       );
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
     }
 
     // Prevent OAuth credentials from being sent with requests to other origins
-    res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
-    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    // res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+    // res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+
+    next();
   }
 
   /**

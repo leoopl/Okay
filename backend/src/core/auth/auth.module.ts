@@ -1,55 +1,99 @@
-import { Module, Global } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { HttpModule } from '@nestjs/axios';
+import { ThrottlerModule } from '@nestjs/throttler';
+
+// Controllers
 import { AuthController } from './controllers/auth.controller';
-import { JwtStrategy } from './strategies/jwt.strategy';
-import { GoogleOAuthStrategy } from './strategies/google-oauth.strategy';
-import { TokenService } from './services/token.service';
-import { OAuthService } from './services/oauth.service';
+import { OAuthController } from './controllers/oauth.controller';
+
+// Services
+import { AuthService } from './services/auth.service';
 import { GoogleOAuthService } from './services/google-oauth.service';
+import { TokenService } from './services/token.service';
+import { SessionService } from './services/session.service';
+import { AccountLinkingService } from './services/account-linking.service';
+
+// Strategies
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
+import { LocalStrategy } from './strategies/local.strategy';
+import { GoogleOAuthStrategy } from './strategies/google-oauth.strategy';
+
+// Guards
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
+import { LocalAuthGuard } from './guards/local-auth.guard';
+import { GoogleOAuthGuard } from './guards/google-oauth.guard';
+
+// Entities
 import { RefreshToken } from './entities/refresh-token.entity';
-import { TokenBlacklist } from './entities/token-blacklist.entity';
-import { AuthorizationCode } from './entities/authorization-code.entity';
+import { AuthSession } from './entities/auth-session.entity';
+
+// Related modules
 import { UserModule } from '../../modules/user/user.module';
 import { AuditModule } from '../audit/audit.module';
-import { getJwtModuleOptions } from './auth-module.config';
-import googleOAuthConfig from '../../config/google-oauth.config';
-import { AuthService } from './services/auth.service';
+import { EncryptionModule } from '../../common/encryption/encryption.module';
 
-@Global()
 @Module({
   imports: [
-    TypeOrmModule.forFeature([RefreshToken, TokenBlacklist, AuthorizationCode]),
+    TypeOrmModule.forFeature([RefreshToken, AuthSession]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: getJwtModuleOptions,
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_ACCESS_EXPIRATION'),
+          audience: configService.get<string>('JWT_AUDIENCE'),
+          issuer: configService.get<string>('JWT_ISSUER'),
+        },
+      }),
     }),
-    ConfigModule.forFeature(googleOAuthConfig),
-    HttpModule,
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => [
+        {
+          name: 'auth',
+          ttl: config.get('OAUTH_THROTTLE_TTL'),
+          limit: config.get('OAUTH_THROTTLE_LIMIT'),
+        },
+      ],
+    }),
     UserModule,
     AuditModule,
+    EncryptionModule,
+    ConfigModule,
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, OAuthController],
   providers: [
+    // Services
     AuthService,
-    TokenService,
-    OAuthService,
     GoogleOAuthService,
+    TokenService,
+    SessionService,
+    AccountLinkingService,
+    // Strategies
+    LocalStrategy,
     JwtStrategy,
+    JwtRefreshStrategy,
     GoogleOAuthStrategy,
+    // Guards
+    LocalAuthGuard,
+    JwtAuthGuard,
+    JwtRefreshGuard,
+    GoogleOAuthGuard,
   ],
   exports: [
     AuthService,
     TokenService,
-    OAuthService,
-    GoogleOAuthService,
-    JwtStrategy,
-    GoogleOAuthStrategy,
+    SessionService,
+    JwtAuthGuard,
+    JwtRefreshGuard,
   ],
 })
 export class AuthModule {}

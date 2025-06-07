@@ -1,89 +1,101 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from '../../../modules/user/user.service';
-import { User, UserStatus } from '../../../modules/user/entities/user.entity';
+import { AuthService } from './auth.service';
 import { AuditService } from '../../audit/audit.service';
+import { PKCEUtil } from '../utils/pkce.util';
+import { TokenUtil } from '../utils/token.util';
+import { GoogleUser } from '../interfaces/google-user.interface';
+import { OAuthStateDto } from '../dto/oauth-state.dto';
 import { AuditAction } from '../../audit/entities/audit-log.entity';
-import { GoogleUser } from '../strategies/google-oauth.strategy';
-import { TokenService } from './token.service';
-
-export interface GoogleUserCreationData {
-  googleId: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  picture?: string;
-  emailVerified: boolean;
-}
-
-export interface GoogleAuthResult {
-  user: User;
-  isNewUser: boolean;
-  accessToken: string;
-  refreshToken: string;
-}
-
+import { AuthResponse } from '../interfaces/auth-response.interface';
+import { DeviceInfo } from '../interfaces/device-info.interface';
+import { Issuer, Client, TokenSet } from 'openid-client';
 /**
- * Service for handling Google OAuth authentication and user management
- * Manages user creation, linking, and token generation for Google OAuth flow
+ * Service for handling Google OAuth 2.0 with PKCE
  */
 @Injectable()
 export class GoogleOAuthService {
   private readonly logger = new Logger(GoogleOAuthService.name);
+  private googleClient: Client;
+  private readonly stateStore: Map<string, OAuthStateDto> = new Map();
 
   constructor(
-    private readonly userService: UserService,
-    private readonly tokenService: TokenService,
-    private readonly auditService: AuditService,
     private readonly configService: ConfigService,
-  ) {}
+    private readonly userService: UserService,
+    private readonly authService: AuthService,
+    private readonly auditService: AuditService,
+  ) {
+    this.initializeGoogleClient();
+  }
 
   /**
-   * Validates and processes a Google user through OAuth flow
+   * Initialize Google OpenID Connect client
    */
-  async validateGoogleUser(
-    googleUser: GoogleUser,
-    googleAccessToken: string,
-    googleRefreshToken?: string,
-  ): Promise<User> {
+  private async initializeGoogleClient() {
     try {
-      this.validateGoogleUserData(googleUser);
+      const googleIssuer = await Issuer.discover('https://accounts.google.com');
 
-      // Try to find existing user
-      let user = await this.findExistingUser(googleUser);
-      let isNewUser = false;
-
-      if (!user) {
-        user = await this.createUserFromGoogle(googleUser);
-        isNewUser = true;
-      } else {
-        user = await this.updateExistingUserWithGoogle(user, googleUser);
-      }
-
-      // Store Google OAuth tokens if needed (for future API calls)
-      await this.storeGoogleTokens(
-        user.id,
-        googleAccessToken,
-        googleRefreshToken,
-      );
-
-      // Audit the authentication
-      await this.auditService.logAction({
-        userId: user.id,
-        action: AuditAction.LOGIN,
-        resource: 'auth',
-        details: {
-          provider: 'google',
-          googleId: googleUser.googleId,
-          isNewUser,
-          method: 'google_oauth',
-        },
+      this.googleClient = new googleIssuer.Client({
+        client_id: this.configService.get<string>('GOOGLE_CLIENT_ID'),
+        client_secret: this.configService.get<string>('GOOGLE_CLIENT_SECRET'),
+        redirect_uris: [this.configService.get<string>('GOOGLE_CALLBACK_URL')],
+        response_types: ['code'],
       });
 
-      return user;
+      this.logger.log('Google OAuth client initialized successfully');
     } catch (error) {
       this.logger.error(
-        `Error validating Google user: ${error.message}`,
+        `Failed to initialize Google OAuth client: ${error.message}`,
+        error.stack,
+      );
+    }
+  }
+
+  /**
+   * Generate authorization URL with PKCE
+   */
+  async generateAuthorizationUrl(
+    redirectUri?: string,
+    linkAccountUserId?: string,
+  ): Promise<{ url: string; state: string }> {
+    try {
+      // Generate PKCE parameters
+      const pkce = PKCEUtil.generatePKCE();
+
+      // Generate state parameter
+      const state = TokenUtil.generateState();
+
+      // Store state with PKCE parameters
+      const stateData: OAuthStateDto = {
+        codeVerifier: pkce.codeVerifier,
+        codeChallenge: pkce.codeChallenge,
+        state,
+        redirectUri,
+        linkAccountUserId,
+      };
+
+      this.stateStore.set(state, stateData);
+
+      // Clean up old states after 10 minutes
+      setTimeout(() => {
+        this.stateStore.delete(state);
+      }, 600000);
+
+      // Generate authorization URL
+      const authorizationUrl = this.googleClient.authorizationUrl({
+        scope: 'openid email profile',
+        state,
+        code_challenge: pkce.codeChallenge,
+        code_challenge_method: pkce.challengeMethod,
+        access_type: 'offline',
+        prompt: 'consent',
+      });
+
+      return { url: authorizationUrl, state };
+    } catch (error) {
+      this.logger.error(
+        `Error generating authorization URL: ${error.message}`,
         error.stack,
       );
       throw error;
@@ -91,161 +103,265 @@ export class GoogleOAuthService {
   }
 
   /**
-   * Generates authentication tokens for Google OAuth user
+   * Handle OAuth callback and exchange code for tokens
    */
-  async generateAuthTokens(
-    user: User,
-    ip: string,
-    userAgent: string,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
-    const accessToken = await this.tokenService.generateAccessToken(user);
-    const refreshToken = await this.tokenService.generateRefreshToken(
-      user.id,
-      ip,
-      userAgent,
-    );
+  async handleCallback(
+    code: string,
+    state: string,
+    deviceInfo: DeviceInfo,
+  ): Promise<AuthResponse> {
+    try {
+      // Retrieve and validate state
+      const stateData = this.stateStore.get(state);
+      if (!stateData) {
+        throw new UnauthorizedException('Invalid state parameter');
+      }
 
-    return { accessToken, refreshToken };
-  }
+      // Remove state from store (one-time use)
+      this.stateStore.delete(state);
 
-  /**
-   * Validates Google user data completeness
-   */
-  private validateGoogleUserData(googleUser: GoogleUser): void {
-    if (!googleUser.googleId) {
-      throw new Error('Google ID is required');
-    }
+      // Exchange authorization code for tokens
+      const tokenSet = await this.googleClient.callback(
+        this.configService.get<string>('GOOGLE_CALLBACK_URL'),
+        { code, state },
+        {
+          code_verifier: stateData.codeVerifier,
+          state,
+        },
+      );
 
-    if (!googleUser.email) {
-      throw new Error('Email is required from Google profile');
-    }
+      // Validate ID token
+      const claims = tokenSet.claims();
 
-    if (!googleUser.firstName && !googleUser.lastName) {
-      throw new Error('At least first name or last name is required');
-    }
-  }
+      if (!claims.email_verified) {
+        throw new UnauthorizedException('Email not verified with Google');
+      }
 
-  /**
-   * Finds existing user by Google ID or email
-   */
-  private async findExistingUser(googleUser: GoogleUser): Promise<User | null> {
-    // First try to find by Google ID
-    let user = await this.userService.findByGoogleId(googleUser.googleId);
+      // Extract user information
+      const googleUser: GoogleUser = {
+        googleId: claims.sub,
+        email: claims.email as string,
+        emailVerified: claims.email_verified as boolean,
+        firstName: claims.given_name as string,
+        lastName: claims.family_name as string,
+        picture: claims.picture as string,
+        locale: claims.locale as string,
+      };
 
-    // If not found by Google ID, try by email
-    if (!user) {
-      user = await this.userService.findByEmail(googleUser.email);
-    }
+      // Handle account linking if requested
+      if (stateData.linkAccountUserId) {
+        return await this.linkGoogleAccount(
+          stateData.linkAccountUserId,
+          googleUser,
+          tokenSet,
+          deviceInfo,
+        );
+      }
 
-    return user;
-  }
+      // Find or create user
+      let user = await this.userService.findByGoogleId(googleUser.googleId);
 
-  /**
-   * Creates a new user from Google OAuth data
-   */
-  private async createUserFromGoogle(googleUser: GoogleUser): Promise<User> {
-    const userData = this.buildUserCreationData(googleUser);
+      if (!user) {
+        // Check if user exists with same email
+        user = await this.userService.findByEmail(googleUser.email);
 
-    const user = await this.userService.createGoogleUser(userData);
+        if (user) {
+          // Link existing account
+          user = await this.userService.linkGoogleAccount(
+            user.id,
+            googleUser.googleId,
+            {
+              picture: googleUser.picture,
+              accessToken: tokenSet.access_token,
+              refreshToken: tokenSet.refresh_token,
+              tokenExpiresAt: new Date(tokenSet.expires_at! * 1000),
+            },
+            user.id,
+          );
+        } else {
+          // Create new user
+          user = await this.userService.createGoogleUser(googleUser);
+        }
+      }
 
-    this.logger.log(`Created new user from Google OAuth: ${user.email}`);
+      // Update Google tokens if provided
+      if (tokenSet.refresh_token) {
+        await this.userService.updateUser(user.id, {
+          googleAccessToken: tokenSet.access_token,
+          googleRefreshToken: tokenSet.refresh_token,
+          googleTokenExpiresAt: new Date(tokenSet.expires_at! * 1000),
+        });
+      }
 
-    return user;
-  }
+      // Create authentication session
+      const authResult = await this.authService.createAuthSession(
+        user,
+        deviceInfo,
+        'google',
+      );
 
-  /**
-   * Updates existing user with Google OAuth data
-   */
-  private async updateExistingUserWithGoogle(
-    existingUser: User,
-    googleUser: GoogleUser,
-  ): Promise<User> {
-    const updateData: Partial<User> = {};
-    let hasUpdates = false;
-
-    // Link Google ID if not already linked
-    if (!existingUser.googleId) {
-      updateData.googleId = googleUser.googleId;
-      hasUpdates = true;
-    }
-
-    // Update profile picture if user doesn't have one and Google provides one
-    if (!existingUser.profilePictureUrl && googleUser.picture) {
-      updateData.profilePictureUrl = googleUser.picture;
-      updateData.profilePictureProvider = 'google';
-      updateData.profilePictureUpdatedAt = new Date();
-      hasUpdates = true;
-    }
-
-    // Update email verification status if needed
-    if (
-      googleUser.emailVerified &&
-      existingUser.status === UserStatus.PENDING_VERIFICATION
-    ) {
-      updateData.status = UserStatus.ACTIVE;
-      hasUpdates = true;
-    }
-
-    if (hasUpdates) {
-      await this.userService.updateUser(existingUser.id, updateData);
-
-      // Audit the linking
+      // Audit successful OAuth login
       await this.auditService.logAction({
-        userId: existingUser.id,
-        action: AuditAction.UPDATE,
-        resource: 'user',
-        resourceId: existingUser.id,
+        userId: user.id,
+        action: AuditAction.LOGIN,
+        resource: 'auth',
+        resourceId: authResult.session.id,
         details: {
-          action: 'google_account_linked',
+          method: 'google_oauth',
           googleId: googleUser.googleId,
-          updatedFields: Object.keys(updateData),
+          ip: deviceInfo.ip,
+          deviceType: deviceInfo.deviceType,
         },
       });
 
-      return this.userService.findOne(existingUser.id);
+      return this.authService['buildAuthResponse'](user, authResult);
+    } catch (error) {
+      this.logger.error(`OAuth callback error: ${error.message}`, error.stack);
+
+      // Audit failed OAuth attempt
+      await this.auditService.logAction({
+        userId: 'unknown',
+        action: AuditAction.FAILED_LOGIN,
+        resource: 'auth',
+        details: {
+          method: 'google_oauth',
+          error: error.message,
+          ip: deviceInfo.ip,
+        },
+      });
+
+      throw new UnauthorizedException('OAuth authentication failed');
     }
-
-    return existingUser;
   }
 
   /**
-   * Builds user creation data from Google user information
+   * Link Google account to existing user
    */
-  private buildUserCreationData(
-    googleUser: GoogleUser,
-  ): GoogleUserCreationData {
-    return {
-      googleId: googleUser.googleId,
-      email: googleUser.email,
-      firstName: googleUser.firstName,
-      lastName: googleUser.lastName,
-      picture: googleUser.picture,
-      emailVerified: googleUser.emailVerified,
-    };
-  }
-
-  /**
-   * Stores Google OAuth tokens for future API calls (optional)
-   * This could be used for accessing Google APIs on behalf of the user
-   */
-  private async storeGoogleTokens(
+  private async linkGoogleAccount(
     userId: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    accessToken: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    refreshToken?: string,
-  ): Promise<void> {
-    // Implementation depends on requirements
-    // Could store in a separate table for Google tokens
-    // For now, we'll just log that tokens were received
-    this.logger.debug(`Received Google tokens for user ${userId}`);
+    googleUser: GoogleUser,
+    tokenSet: TokenSet,
+    deviceInfo: DeviceInfo,
+  ): Promise<AuthResponse> {
+    try {
+      // Verify user exists
+      const user = await this.userService.findOne(userId);
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
 
-    // TODO: Implement token storage if needed for Google API access
-    // Example: await this.googleTokenRepository.save({
-    //   userId,
-    //   accessToken: await this.encryptionService.encrypt(accessToken),
-    //   refreshToken: refreshToken ? await this.encryptionService.encrypt(refreshToken) : null,
-    //   expiresAt: new Date(Date.now() + 3600 * 1000), // 1 hour
-    // });
+      // Check if Google account is already linked to another user
+      const existingGoogleUser = await this.userService.findByGoogleId(
+        googleUser.googleId,
+      );
+
+      if (existingGoogleUser && existingGoogleUser.id !== userId) {
+        throw new UnauthorizedException(
+          'Google account already linked to another user',
+        );
+      }
+
+      // Link accounts
+      const updatedUser = await this.userService.linkGoogleAccount(
+        userId,
+        googleUser.googleId,
+        {
+          picture: googleUser.picture,
+          accessToken: tokenSet.access_token,
+          refreshToken: tokenSet.refresh_token,
+          tokenExpiresAt: new Date(tokenSet.expires_at! * 1000),
+        },
+        userId,
+      );
+
+      // Create authentication session
+      const authResult = await this.authService.createAuthSession(
+        updatedUser,
+        deviceInfo,
+        'google',
+      );
+
+      // Audit account linking
+      await this.auditService.logAction({
+        userId: user.id,
+        action: AuditAction.ACCOUNT_LINKED,
+        resource: 'auth',
+        details: {
+          provider: 'google',
+          googleId: googleUser.googleId,
+          method: 'oauth_linking',
+        },
+      });
+
+      return this.authService['buildAuthResponse'](updatedUser, authResult);
+    } catch (error) {
+      this.logger.error(`Account linking error: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+
+  /**
+   * Revoke Google access
+   */
+  async revokeGoogleAccess(userId: string): Promise<void> {
+    try {
+      const user = await this.userService.findOne(userId);
+
+      if (!user || !user.googleAccessToken) {
+        return;
+      }
+
+      // Revoke token with Google
+      await this.googleClient.revoke(user.googleAccessToken);
+
+      // Remove Google account link
+      await this.userService.unlinkGoogleAccount(userId, userId);
+
+      // Audit revocation
+      await this.auditService.logAction({
+        userId,
+        action: AuditAction.OAUTH_REVOKED,
+        resource: 'auth',
+        details: {
+          provider: 'google',
+        },
+      });
+    } catch (error) {
+      this.logger.error(
+        `Error revoking Google access: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Refresh Google access token
+   */
+  async refreshGoogleToken(userId: string): Promise<TokenSet | null> {
+    try {
+      const user = await this.userService.findOne(userId);
+
+      if (!user || !user.googleRefreshToken) {
+        return null;
+      }
+
+      const tokenSet = await this.googleClient.refresh(user.googleRefreshToken);
+
+      // Update stored tokens
+      await this.userService.updateUser(userId, {
+        googleAccessToken: tokenSet.access_token,
+        googleRefreshToken: tokenSet.refresh_token || user.googleRefreshToken,
+        googleTokenExpiresAt: new Date(tokenSet.expires_at! * 1000),
+      });
+
+      return tokenSet;
+    } catch (error) {
+      this.logger.error(
+        `Error refreshing Google token: ${error.message}`,
+        error.stack,
+      );
+      return null;
+    }
   }
 }

@@ -20,6 +20,9 @@ export enum PermissionAction {
   READ = 'read',
   UPDATE = 'update',
   DELETE = 'delete',
+  LINK = 'link',
+  UNLINK = 'unlink',
+  REVOKE = 'revoke',
   MANAGE = 'manage', // Shorthand for full control
 }
 
@@ -31,6 +34,20 @@ export const Permissions = {
   USER_UPDATE: `${Resource.USER}:${PermissionAction.UPDATE}`,
   USER_DELETE: `${Resource.USER}:${PermissionAction.DELETE}`,
   USER_MANAGE: `${Resource.USER}:${PermissionAction.MANAGE}`,
+
+  // Session management permissions
+  AUTH_SESSION_READ: `${Resource.USER}:${PermissionAction.READ}`,
+  AUTH_SESSION_DELETE: `${Resource.USER}:${PermissionAction.DELETE}`,
+  AUTH_SESSION_MANAGE: `${Resource.USER}:${PermissionAction.MANAGE}`,
+
+  // OAuth management permissions
+  OAUTH_LINK: `${Resource.USER}:${PermissionAction.LINK}`,
+  OAUTH_UNLINK: `${Resource.USER}:${PermissionAction.UNLINK}`,
+  OAUTH_MANAGE: `${Resource.USER}:${PermissionAction.MANAGE}`,
+
+  // Token management permissions
+  TOKEN_REVOKE: `${Resource.USER}:${PermissionAction.REVOKE}`,
+  TOKEN_MANAGE: `${Resource.USER}:${PermissionAction.MANAGE}`,
 
   // Journal permissions
   JOURNAL_CREATE: `${Resource.JOURNAL}:${PermissionAction.CREATE}`,
@@ -79,6 +96,14 @@ export const RolePermissions = {
     // User self-management
     Permissions.USER_READ,
     Permissions.USER_UPDATE,
+
+    // Authentication management
+    Permissions.AUTH_SESSION_READ,
+    Permissions.AUTH_SESSION_DELETE,
+
+    // OAuth management
+    Permissions.OAUTH_LINK,
+    Permissions.OAUTH_UNLINK,
 
     // Journal management (own entries)
     Permissions.JOURNAL_CREATE,

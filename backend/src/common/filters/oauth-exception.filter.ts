@@ -55,7 +55,7 @@ export class OAuthExceptionFilter implements ExceptionFilter {
 
     // For OAuth callback routes, redirect to frontend with error
     if (request.path.includes('/callback')) {
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const frontendUrl = process.env.FRONTEND_URL;
       const errorUrl = new URL('/auth/error', frontendUrl);
 
       errorUrl.searchParams.set('error', errorCode);

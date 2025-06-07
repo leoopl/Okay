@@ -1,10 +1,4 @@
-export interface DeviceInfo {
-  ip: string;
-  userAgent: string;
-  os?: string;
-  browser?: string;
-  deviceType?: string;
-}
+import { DeviceInfo } from '../interfaces/device-info.interface';
 
 /**
  * Extracts and normalizes device information from request headers
@@ -53,21 +47,8 @@ export function extractDeviceInfo(ip: string, userAgent: string): DeviceInfo {
     deviceType = 'Desktop';
   }
 
-  return {
-    ip,
-    userAgent,
-    os,
-    browser,
-    deviceType,
-  };
-}
-
-/**
- * Generates a device fingerprint that can be included in a token
- */
-export function generateDeviceFingerprint(deviceInfo: DeviceInfo): string {
   // Create a simplified fingerprint string
-  const fingerprintSource = `${deviceInfo.ip}|${deviceInfo.browser}|${deviceInfo.os}|${deviceInfo.deviceType}`;
+  const fingerprintSource = `${ip}|${browser}|${os}|${deviceType}`;
 
   // Create a simple hash
   let hash = 0;
@@ -76,5 +57,14 @@ export function generateDeviceFingerprint(deviceInfo: DeviceInfo): string {
     hash |= 0; // Convert to 32bit integer
   }
 
-  return hash.toString(16);
+  const fingerprint = hash.toString(16);
+
+  return {
+    ip,
+    userAgent,
+    os,
+    browser,
+    deviceType,
+    fingerprint,
+  };
 }

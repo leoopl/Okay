@@ -3,34 +3,16 @@
   "background_color": "#b6cfb8",
   "icons": [
     {
-      "purpose": "any maskable",
+      "src": "/favicon/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon/web-app-manifest-512x512.png",
       "sizes": "512x512",
-      "src": "/icon.png",
-      "type": "image/png"
-    },
-    {
-      "purpose": "any",
-      "sizes": "192x192",
-      "src": "/icon.png",
-      "type": "image/png"
-    },
-    {
-      "purpose": "any",
-      "sizes": "384x384",
-      "src": "/icon.png",
-      "type": "image/png"
-    },
-    {
-      "purpose": "maskable",
-      "sizes": "192x192",
-      "src": "/icon.png",
-      "type": "image/png"
-    },
-    {
-      "purpose": "apple",
-      "sizes": "180x180",
-      "src": "/icon.png",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "orientation": "any",

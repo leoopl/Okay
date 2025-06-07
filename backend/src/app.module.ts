@@ -23,6 +23,8 @@ import { CsrfMiddleware } from './common/middleware/csrf.middleware';
 import { TestimonialModule } from './modules/testimonial/testimonial.module';
 import { MedicationModule } from './modules/medication/medication.module';
 import { StorageModule } from './common/storage/storage.module';
+import { SecurityHeadersMiddleware } from './common/middleware/security-headers.middleware';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -32,13 +34,15 @@ import { StorageModule } from './common/storage/storage.module';
       load: [databaseConfig, authConfig],
     }),
 
+    // Schedule setup
+    ScheduleModule.forRoot(),
+
     // Database setup
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) =>
         configService.get('database'),
     }),
-    AuthModule,
 
     // Rate limiting protection against brute force attacks
     ThrottlerModule.forRootAsync({
@@ -79,6 +83,9 @@ import { StorageModule } from './common/storage/storage.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
+    // Apply security headers middleware globally (first)
+    consumer.apply(SecurityHeadersMiddleware).forRoutes('*');
+
     // Apply audit middleware globally
     consumer.apply(AuditMiddleware).forRoutes('*');
 

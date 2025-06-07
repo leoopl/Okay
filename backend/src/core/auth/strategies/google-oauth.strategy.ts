@@ -1,180 +1,41 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, VerifyCallback } from 'passport-google-oauth20';
-import { ConfigService } from '@nestjs/config';
-import { GoogleOAuthConfig } from '../../../config/google-oauth.config';
-import { GoogleOAuthService } from '../services/google-oauth.service';
-import { AuditService } from '../../audit/audit.service';
-import { AuditAction } from '../../audit/entities/audit-log.entity';
-import { User } from '../../../modules/user/entities/user.entity';
-import { AuthenticatedUser } from '../../../common/interfaces/auth-request.interface';
-
-export interface GoogleProfile {
-  id: string;
-  displayName: string;
-  name: {
-    familyName: string;
-    givenName: string;
-  };
-  emails: Array<{
-    value: string;
-    verified: boolean;
-  }>;
-  photos: Array<{
-    value: string;
-  }>;
-  provider: string;
-}
-
-export interface GoogleUser {
-  googleId: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  picture?: string;
-  emailVerified: boolean;
-}
+import { Request } from 'express';
+import { Strategy } from 'passport-strategy';
 
 /**
- * Google OAuth 2.0 strategy for Passport
- * Handles authentication with Google and user profile extraction
- * Returns normalized AuthenticatedUser object for consistency
+ * Google OAuth strategy - handles OAuth flow validation
+ * The actual OAuth logic is in GoogleOAuthService
  */
 @Injectable()
-export class GoogleOAuthStrategy extends PassportStrategy(Strategy, 'google') {
-  private readonly logger = new Logger(GoogleOAuthStrategy.name);
-
-  constructor(
-    private readonly configService: ConfigService,
-    private readonly googleOAuthService: GoogleOAuthService,
-    private readonly auditService: AuditService,
-  ) {
-    const googleConfig = configService.get<GoogleOAuthConfig>('googleOAuth');
-
-    super({
-      clientID: googleConfig.clientId,
-      clientSecret: googleConfig.clientSecret,
-      callbackURL: googleConfig.callbackUrl,
-      scope: googleConfig.scope,
-    });
+export class GoogleOAuthStrategy extends PassportStrategy(
+  Strategy,
+  'google-oauth',
+) {
+  constructor() {
+    super();
   }
 
   /**
-   * Validates Google OAuth callback and processes user data
-   * Returns normalized AuthenticatedUser object for consistent controller access
+   * Validate OAuth callback parameters
    */
-  async validate(
-    accessToken: string,
-    refreshToken: string,
-    profile: GoogleProfile,
-    done: VerifyCallback,
-  ): Promise<void> {
-    try {
-      const googleUser = this.extractUserFromProfile(profile);
+  async validate(request: Request): Promise<any> {
+    const { code, state, error } = request.query;
 
-      this.logger.debug(
-        `Google OAuth validation for user: ${googleUser.email}`,
-      );
-
-      // Process the Google user through our service to get User entity
-      const user: User = await this.googleOAuthService.validateGoogleUser(
-        googleUser,
-        accessToken,
-        refreshToken,
-      );
-
-      // Audit successful OAuth validation
-      await this.auditService.logAction({
-        userId: user.id,
-        action: AuditAction.LOGIN,
-        resource: 'auth',
-        details: {
-          provider: 'google',
-          googleId: googleUser.googleId,
-          method: 'oauth_validation',
-        },
-      });
-
-      // Convert User entity to normalized AuthenticatedUser object
-      const authenticatedUser: AuthenticatedUser = {
-        userId: user.id, // Normalize: User uses 'id', we want 'userId'
-        email: user.email,
-        roles: user.roles?.map((role) => role.name) || [], // Convert Role objects to string array
-        permissions: this.extractPermissions(user), // Extract permissions from roles
-        // Note: No jti or exp for OAuth users since they're not JWT tokens
-      };
-
-      done(null, authenticatedUser);
-    } catch (error) {
-      this.logger.error(
-        `Google OAuth validation failed: ${error.message}`,
-        error.stack,
-      );
-
-      // Audit failed OAuth attempt
-      await this.auditService.logAction({
-        userId: 'unknown',
-        action: AuditAction.FAILED_LOGIN,
-        resource: 'auth',
-        details: {
-          provider: 'google',
-          error: error.message,
-          method: 'oauth_validation',
-        },
-      });
-
-      done(new UnauthorizedException('Google authentication failed'), null);
+    // Check for OAuth errors
+    if (error) {
+      return false;
     }
-  }
 
-  /**
-   * Extracts user information from Google profile
-   */
-  private extractUserFromProfile(profile: GoogleProfile): GoogleUser {
-    const primaryEmail = this.findPrimaryEmail(profile.emails);
+    // Validate required parameters
+    if (!code || !state) {
+      return false;
+    }
 
+    // Return the OAuth parameters for processing
     return {
-      googleId: profile.id,
-      email: primaryEmail.value,
-      firstName:
-        profile.name?.givenName || profile.displayName.split(' ')[0] || '',
-      lastName:
-        profile.name?.familyName ||
-        profile.displayName.split(' ').slice(1).join(' ') ||
-        '',
-      picture: profile.photos?.[0]?.value,
-      emailVerified: primaryEmail.verified,
+      code: code as string,
+      state: state as string,
     };
-  }
-
-  /**
-   * Finds the primary email from Google profile emails
-   */
-  private findPrimaryEmail(emails: GoogleProfile['emails']) {
-    if (!emails || emails.length === 0) {
-      throw new Error('No email found in Google profile');
-    }
-
-    // Return the first verified email, or the first email if none are verified
-    return emails.find((email) => email.verified) || emails[0];
-  }
-
-  /**
-   * Extracts permissions from user roles
-   */
-  private extractPermissions(user: User): string[] {
-    const permissions = new Set<string>();
-
-    if (user.roles) {
-      user.roles.forEach((role) => {
-        if (role.permissions) {
-          role.permissions.forEach((permission) => {
-            permissions.add(permission.name);
-          });
-        }
-      });
-    }
-
-    return Array.from(permissions);
   }
 }
