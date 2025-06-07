@@ -20,7 +20,7 @@ import { Testimonial } from './entities/testimonial.entity';
 import { JwtAuthGuard } from 'src/core/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/core/auth/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
-import { IAuthenticatedRequest } from 'src/common/interfaces/auth-request.interface';
+import { IAuthenticatedRequest } from 'src/core/auth/interfaces/auth-request.interface';
 
 @ApiTags('admin/testimonials')
 @Controller('admin/testimonials')

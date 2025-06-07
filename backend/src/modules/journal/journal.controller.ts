@@ -30,7 +30,7 @@ import {
   ApiInternalServerErrorResponse,
 } from '@nestjs/swagger';
 import { JournalService } from './journal.service';
-import { IAuthenticatedRequest } from '../../common/interfaces/auth-request.interface';
+import { IAuthenticatedRequest } from '../../core/auth/interfaces/auth-request.interface';
 import { RequirePermissions } from '../../core/casl/decorators/check-policies.decorator';
 import { Action } from '../../core/casl/types/ability.type';
 import { JournalEntry } from './entities/journal.entity';

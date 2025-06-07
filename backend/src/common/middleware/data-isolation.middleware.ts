@@ -1,7 +1,7 @@
 import { Injectable, NestMiddleware, Logger } from '@nestjs/common';
 import { Response, NextFunction } from 'express';
 import { DataSource } from 'typeorm';
-import { IAuthenticatedRequest } from '../interfaces/auth-request.interface';
+import { IAuthenticatedRequest } from '../../core/auth/interfaces/auth-request.interface';
 
 /**
  * Middleware to set PostgreSQL row security context based on authenticated user

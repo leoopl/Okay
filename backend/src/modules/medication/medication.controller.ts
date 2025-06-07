@@ -23,7 +23,7 @@ import {
   ApiParam,
   ApiQuery,
 } from '@nestjs/swagger';
-import { IAuthenticatedRequest } from '../../common/interfaces/auth-request.interface';
+import { IAuthenticatedRequest } from '../../core/auth/interfaces/auth-request.interface';
 import { MedicationResponseDto } from './dto/medication-response.dto';
 
 @ApiTags('medications')

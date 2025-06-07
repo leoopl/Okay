@@ -31,7 +31,7 @@ import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { SubmitInventoryResponseDto } from './dto/submit-inventory-response.dto';
 import { GetInventoryResponseDto } from './dto/get-inventory-response.dto';
-import { IAuthenticatedRequest } from '../../common/interfaces/auth-request.interface';
+import { IAuthenticatedRequest } from '../../core/auth/interfaces/auth-request.interface';
 import { RequirePermissions } from '../../core/casl/decorators/check-policies.decorator';
 import { Action } from '../../core/casl/types/ability.type';
 import { UseResource } from '../../core/casl/decorators/resource.decorator';

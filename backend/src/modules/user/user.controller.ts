@@ -32,7 +32,7 @@ import { JwtAuthGuard } from '../../core/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../core/auth/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { Public } from '../../common/decorators/is-public.decorator';
-import { IAuthenticatedRequest } from '../../common/interfaces/auth-request.interface';
+import { IAuthenticatedRequest } from '../../core/auth/interfaces/auth-request.interface';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileUploadInterceptor } from 'src/common/storage/interceptors/file-upload.interceptor';
