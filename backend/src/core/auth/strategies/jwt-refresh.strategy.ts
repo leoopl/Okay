@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy } from 'passport-strategy';
+import { Strategy } from 'passport-custom';
 import { Request } from 'express';
 import { TokenService } from '../services/token.service';
 

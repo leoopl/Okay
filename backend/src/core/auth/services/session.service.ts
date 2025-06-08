@@ -113,14 +113,23 @@ export class SessionService {
   async findActiveSessionByRefreshToken(
     refreshToken: string,
   ): Promise<AuthSession | null> {
-    // This would require joining with refresh_tokens table
-    // For now, we'll use a query builder
-    return await this.sessionRepository
-      .createQueryBuilder('session')
-      .innerJoin('refresh_tokens', 'token', 'token.id = session.refreshTokenId')
-      .where('token.token = :refreshToken', { refreshToken })
-      .andWhere('session.isActive = :isActive', { isActive: true })
-      .getOne();
+    const refreshTokenEntity = await this.sessionRepository.manager
+      .getRepository('RefreshToken')
+      .findOne({
+        where: { token: refreshToken },
+        select: ['id'],
+      });
+
+    if (!refreshTokenEntity) {
+      return null;
+    }
+
+    return await this.sessionRepository.findOne({
+      where: {
+        refreshTokenId: refreshTokenEntity.id,
+        isActive: true,
+      },
+    });
   }
 
   /**

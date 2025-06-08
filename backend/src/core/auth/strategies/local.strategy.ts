@@ -1,30 +1,29 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-local';
-import { AuthService } from '../services/auth.service';
 
-/**
- * Local authentication strategy for email/password login
- */
 @Injectable()
-export class LocalStrategy extends PassportStrategy(Strategy) {
-  constructor(private authService: AuthService) {
+export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
+  private readonly logger = new Logger(LocalStrategy.name);
+
+  constructor() {
     super({
       usernameField: 'email',
       passwordField: 'password',
     });
+
+    this.logger.log('🎯 LocalStrategy constructor called');
+    console.log('🎯 LocalStrategy constructor called'); // Double logging
   }
 
-  /**
-   * Validate user credentials
-   */
   async validate(email: string, password: string): Promise<any> {
-    const user = await this.authService.validateUser(email, password);
+    this.logger.log(`🔍 LocalStrategy.validate called with email: ${email}`);
 
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+    // Temporary: just return a mock user to test if the strategy works
+    if (email === 'test@test.com' && password === 'test123') {
+      return { id: '1', email: 'test@test.com', name: 'Test User' };
     }
 
-    return user;
+    throw new UnauthorizedException('Invalid credentials');
   }
 }

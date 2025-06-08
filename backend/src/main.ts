@@ -85,9 +85,21 @@ async function bootstrap() {
     origin: (origin, callback) => {
       const allowedOrigins = [
         configService.get<string>('FRONTEND_URL'),
-        'http://localhost:3000',
-        'http://localhost:3001', // Backend (for file serving)
+        configService.get<string>('BASE_URL'),
       ].filter(Boolean);
+
+      // Allow any localhost origin in development
+      if (configService.get<string>('NODE_ENV') === 'development') {
+        if (
+          !origin ||
+          origin.includes('localhost') ||
+          origin.includes('127.0.0.1') ||
+          origin.includes('[::1]')
+        ) {
+          callback(null, true);
+          return;
+        }
+      }
 
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);

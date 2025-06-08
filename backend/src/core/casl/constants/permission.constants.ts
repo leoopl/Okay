@@ -6,6 +6,8 @@
 // Resource types
 export enum Resource {
   USER = 'user',
+  AUTH_SESSION = 'auth-session',
+  OAUTH = 'oauth',
   JOURNAL = 'journal',
   INVENTORY = 'inventory',
   INVENTORY_RESPONSE = 'inventory-response',
@@ -36,14 +38,14 @@ export const Permissions = {
   USER_MANAGE: `${Resource.USER}:${PermissionAction.MANAGE}`,
 
   // Session management permissions
-  AUTH_SESSION_READ: `${Resource.USER}:${PermissionAction.READ}`,
-  AUTH_SESSION_DELETE: `${Resource.USER}:${PermissionAction.DELETE}`,
-  AUTH_SESSION_MANAGE: `${Resource.USER}:${PermissionAction.MANAGE}`,
+  AUTH_SESSION_READ: `${Resource.AUTH_SESSION}:${PermissionAction.READ}`,
+  AUTH_SESSION_DELETE: `${Resource.AUTH_SESSION}:${PermissionAction.DELETE}`,
+  AUTH_SESSION_MANAGE: `${Resource.AUTH_SESSION}:${PermissionAction.MANAGE}`,
 
   // OAuth management permissions
-  OAUTH_LINK: `${Resource.USER}:${PermissionAction.LINK}`,
-  OAUTH_UNLINK: `${Resource.USER}:${PermissionAction.UNLINK}`,
-  OAUTH_MANAGE: `${Resource.USER}:${PermissionAction.MANAGE}`,
+  OAUTH_LINK: `${Resource.OAUTH}:${PermissionAction.LINK}`,
+  OAUTH_UNLINK: `${Resource.OAUTH}:${PermissionAction.UNLINK}`,
+  OAUTH_MANAGE: `${Resource.OAUTH}:${PermissionAction.MANAGE}`,
 
   // Token management permissions
   TOKEN_REVOKE: `${Resource.USER}:${PermissionAction.REVOKE}`,

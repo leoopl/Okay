@@ -1,4 +1,9 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from '../../../modules/user/user.service';
 import { AuthService } from './auth.service';
@@ -15,23 +20,23 @@ import { Issuer, Client, TokenSet } from 'openid-client';
  * Service for handling Google OAuth 2.0 with PKCE
  */
 @Injectable()
-export class GoogleOAuthService {
+export class GoogleOAuthService implements OnModuleInit {
   private readonly logger = new Logger(GoogleOAuthService.name);
   private googleClient: Client;
   private readonly stateStore: Map<string, OAuthStateDto> = new Map();
+  private isInitialized = false;
 
   constructor(
     private readonly configService: ConfigService,
     private readonly userService: UserService,
     private readonly authService: AuthService,
     private readonly auditService: AuditService,
-  ) {
-    this.initializeGoogleClient();
+  ) {}
+
+  async onModuleInit() {
+    await this.initializeGoogleClient();
   }
 
-  /**
-   * Initialize Google OpenID Connect client
-   */
   private async initializeGoogleClient() {
     try {
       const googleIssuer = await Issuer.discover('https://accounts.google.com');
@@ -43,6 +48,7 @@ export class GoogleOAuthService {
         response_types: ['code'],
       });
 
+      this.isInitialized = true;
       this.logger.log('Google OAuth client initialized successfully');
     } catch (error) {
       this.logger.error(
@@ -52,13 +58,17 @@ export class GoogleOAuthService {
     }
   }
 
-  /**
-   * Generate authorization URL with PKCE
-   */
+  private ensureInitialized() {
+    if (!this.isInitialized || !this.googleClient) {
+      throw new Error('Google OAuth client not initialized');
+    }
+  }
+
   async generateAuthorizationUrl(
     redirectUri?: string,
     linkAccountUserId?: string,
   ): Promise<{ url: string; state: string }> {
+    this.ensureInitialized();
     try {
       // Generate PKCE parameters
       const pkce = PKCEUtil.generatePKCE();
@@ -110,6 +120,7 @@ export class GoogleOAuthService {
     state: string,
     deviceInfo: DeviceInfo,
   ): Promise<AuthResponse> {
+    this.ensureInitialized();
     try {
       // Retrieve and validate state
       const stateData = this.stateStore.get(state);
@@ -304,6 +315,7 @@ export class GoogleOAuthService {
    * Revoke Google access
    */
   async revokeGoogleAccess(userId: string): Promise<void> {
+    this.ensureInitialized();
     try {
       const user = await this.userService.findOne(userId);
 
@@ -339,6 +351,7 @@ export class GoogleOAuthService {
    * Refresh Google access token
    */
   async refreshGoogleToken(userId: string): Promise<TokenSet | null> {
+    this.ensureInitialized();
     try {
       const user = await this.userService.findOne(userId);
 

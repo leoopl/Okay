@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -64,7 +64,7 @@ import { EncryptionModule } from '../../common/encryption/encryption.module';
         },
       ],
     }),
-    UserModule,
+    forwardRef(() => UserModule),
     AuditModule,
     EncryptionModule,
     ConfigModule,
@@ -72,10 +72,10 @@ import { EncryptionModule } from '../../common/encryption/encryption.module';
   controllers: [AuthController, OAuthController],
   providers: [
     // Services
-    AuthService,
-    GoogleOAuthService,
     TokenService,
     SessionService,
+    AuthService,
+    GoogleOAuthService,
     AccountLinkingService,
     // Strategies
     LocalStrategy,
@@ -94,6 +94,7 @@ import { EncryptionModule } from '../../common/encryption/encryption.module';
     SessionService,
     JwtAuthGuard,
     JwtRefreshGuard,
+    LocalAuthGuard,
   ],
 })
 export class AuthModule {}

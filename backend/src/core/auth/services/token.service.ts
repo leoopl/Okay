@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan } from 'typeorm';
+import { Repository, LessThan, MoreThan } from 'typeorm';
 import { RefreshToken } from '../entities/refresh-token.entity';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { TokenUtil } from '../utils/token.util';
@@ -228,7 +228,7 @@ export class TokenService {
       where: {
         userId,
         revoked: false,
-        expiresAt: LessThan(new Date()),
+        expiresAt: MoreThan(new Date()),
       },
       order: {
         createdAt: 'DESC',

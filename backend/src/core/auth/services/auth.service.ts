@@ -91,23 +91,53 @@ export class AuthService {
   /**
    * Validate user credentials
    */
-  async validateUser(email: string, password: string): Promise<User | null> {
+  async validateUser(email: string, password: string): Promise<any | null> {
+    this.logger.log(`🔍 AuthService.validateUser called for: ${email}`);
+
     try {
+      // Check if UserService is available
+      if (!this.userService) {
+        this.logger.error('❌ UserService is not available');
+        return null;
+      }
+
+      this.logger.log(`📞 Calling userService.findByEmail for: ${email}`);
       const user = await this.userService.findByEmail(email);
 
-      if (!user || !user.password) {
+      if (!user) {
+        this.logger.warn(`❌ User not found in database: ${email}`);
         return null;
       }
 
+      this.logger.log(`✅ User found: ${user.id}, status: ${user.status}`);
+
+      if (!user.password) {
+        this.logger.warn(`❌ User has no password (OAuth-only): ${email}`);
+        return null;
+      }
+
+      this.logger.log(`🔒 User has password, verifying...`);
+
+      // Verify password using argon2
       const isPasswordValid = await argon2.verify(user.password, password);
 
+      this.logger.log(`🔐 Password verification result: ${isPasswordValid}`);
+
       if (!isPasswordValid) {
+        this.logger.warn(`❌ Invalid password for: ${email}`);
         return null;
       }
 
-      return user;
+      this.logger.log(`✅ User validated successfully: ${user.id}`);
+
+      // Return user without password
+      const { password: _, ...result } = user;
+      return result;
     } catch (error) {
-      this.logger.error(`Error validating user: ${error.message}`, error.stack);
+      this.logger.error(
+        `❌ Error validating user: ${error.message}`,
+        error.stack,
+      );
       return null;
     }
   }
@@ -351,7 +381,7 @@ export class AuthService {
   /**
    * Build authentication response
    */
-  private buildAuthResponse(user: User, authResult: any): AuthResponse {
+  public buildAuthResponse(user: User, authResult: any): AuthResponse {
     const expiresIn = this.tokenService.getAccessTokenExpiresIn();
 
     return {

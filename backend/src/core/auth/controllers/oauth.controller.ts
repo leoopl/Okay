@@ -26,6 +26,7 @@ import { Public } from '../../../common/decorators/is-public.decorator';
 import { OAuthCallbackDto } from '../dto/oauth-callback.dto';
 import { ConfigService } from '@nestjs/config';
 import { CsrfMiddleware } from '../../../common/middleware/csrf.middleware';
+import { AuthGuard } from '@nestjs/passport';
 
 /**
  * OAuth controller handling OAuth 2.0 flows
@@ -85,7 +86,7 @@ export class OAuthController {
    * Handle Google OAuth callback
    */
   @Public()
-  @UseGuards(GoogleOAuthGuard)
+  @UseGuards(AuthGuard('google'))
   @Get('google/callback')
   @Throttle({ auth: { limit: 5, ttl: 300 } })
   @ApiOperation({ summary: 'Handle Google OAuth callback' })
