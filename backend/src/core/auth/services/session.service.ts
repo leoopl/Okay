@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { AuthSession } from '../entities/auth-session.entity';
+import { RefreshToken } from '../entities/refresh-token.entity';
 import { TokenUtil } from '../utils/token.util';
 import { DeviceInfo } from '../interfaces/device-info.interface';
 
@@ -114,7 +115,7 @@ export class SessionService {
     refreshToken: string,
   ): Promise<AuthSession | null> {
     const refreshTokenEntity = await this.sessionRepository.manager
-      .getRepository('RefreshToken')
+      .getRepository(RefreshToken)
       .findOne({
         where: { token: refreshToken },
         select: ['id'],

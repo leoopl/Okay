@@ -10,6 +10,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   Index,
+  AfterLoad,
 } from 'typeorm';
 import * as argon2 from 'argon2';
 import { Role } from './role.entity';
@@ -141,17 +142,31 @@ export class User {
 
   @BeforeUpdate()
   async hashPasswordOnUpdate() {
-    // Only hash password if it was actually changed
-    if (this.password && this.passwordChanged) {
-      this.password = await argon2.hash(this.password, {
-        type: argon2.argon2id,
-      });
-      this.passwordChanged = false; // Reset flag
+    // Check if password field was modified and needs hashing
+    if (this.password && this.password !== this.originalPassword) {
+      // Only hash if password is not already hashed (doesn't start with $argon2)
+      if (!this.password.startsWith('$argon2')) {
+        this.password = await argon2.hash(this.password, {
+          type: argon2.argon2id,
+        });
+      }
+      this.passwordChanged = false;
     }
   }
 
-  // Method to safely set password (marks it as changed)
+  // Add this property to track original password
+  private originalPassword?: string;
+
+  @AfterLoad()
+  storeOriginalPassword() {
+    this.originalPassword = this.password;
+  }
+
+  // Override setPassword to ensure proper handling
   setPassword(newPassword: string) {
+    if (!newPassword) {
+      throw new Error('Password cannot be empty');
+    }
     this.password = newPassword;
     this.passwordChanged = true;
   }

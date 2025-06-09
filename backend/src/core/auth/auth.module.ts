@@ -1,4 +1,4 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -31,6 +31,7 @@ import { GoogleOAuthGuard } from './guards/google-oauth.guard';
 // Entities
 import { RefreshToken } from './entities/refresh-token.entity';
 import { AuthSession } from './entities/auth-session.entity';
+import { User } from '../../modules/user/entities/user.entity';
 
 // Related modules
 import { UserModule } from '../../modules/user/user.module';
@@ -39,8 +40,18 @@ import { EncryptionModule } from '../../common/encryption/encryption.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([RefreshToken, AuthSession]),
-    PassportModule.register({ defaultStrategy: 'jwt' }),
+    // Import UserModule to access UserService - circular dependency is now broken
+    UserModule,
+
+    // TypeORM for Auth entities + User entity for LocalStrategy
+    TypeOrmModule.forFeature([RefreshToken, AuthSession, User]),
+
+    // Configure PassportModule
+    PassportModule.register({
+      defaultStrategy: 'jwt',
+      session: false,
+    }),
+
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -53,6 +64,7 @@ import { EncryptionModule } from '../../common/encryption/encryption.module';
         },
       }),
     }),
+
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -64,24 +76,26 @@ import { EncryptionModule } from '../../common/encryption/encryption.module';
         },
       ],
     }),
-    forwardRef(() => UserModule),
+
     AuditModule,
     EncryptionModule,
     ConfigModule,
   ],
   controllers: [AuthController, OAuthController],
   providers: [
+    // Strategies FIRST - important for registration order
+    LocalStrategy,
+    JwtStrategy,
+    JwtRefreshStrategy,
+    GoogleOAuthStrategy,
+
     // Services
     TokenService,
     SessionService,
     AuthService,
     GoogleOAuthService,
     AccountLinkingService,
-    // Strategies
-    LocalStrategy,
-    JwtStrategy,
-    JwtRefreshStrategy,
-    GoogleOAuthStrategy,
+
     // Guards
     LocalAuthGuard,
     JwtAuthGuard,

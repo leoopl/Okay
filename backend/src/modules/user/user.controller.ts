@@ -36,7 +36,6 @@ import { IAuthenticatedRequest } from '../../core/auth/interfaces/auth-request.i
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileUploadInterceptor } from 'src/common/storage/interceptors/file-upload.interceptor';
-import { AuthService } from 'src/core/auth/services/auth.service';
 
 @ApiTags('users')
 @Controller('users')
@@ -45,7 +44,7 @@ import { AuthService } from 'src/core/auth/services/auth.service';
 export class UserController {
   constructor(
     private readonly userService: UserService,
-    private readonly authService: AuthService,
+    // Removed AuthService dependency to break circular dependency
   ) {}
 
   @Public()
@@ -218,13 +217,13 @@ export class UserController {
     @Body() passwordData: ChangePasswordDto,
     @Req() req: IAuthenticatedRequest,
   ) {
-    // Verify current password first
-    const user = await this.authService.validateUser(
+    // Use UserService to validate and change password (no AuthService dependency)
+    const isValid = await this.userService.validateCredentials(
       req.user.email,
       passwordData.currentPassword,
     );
 
-    if (!user) {
+    if (!isValid) {
       throw new UnauthorizedException('Current password is incorrect');
     }
 
