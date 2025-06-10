@@ -13,6 +13,7 @@ import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { AuditAction } from '../../audit/entities/audit-log.entity';
 import { extractDeviceInfo } from '../models/device-fingerprint.model';
 import { DeviceInfo } from '../interfaces/device-info.interface';
+import { AuthenticationLogicService } from '../authentication-logic/authentication-logic.service';
 
 /**
  * Main authentication service handling login, logout, and token management
@@ -28,6 +29,7 @@ export class AuthService {
     private readonly sessionService: SessionService,
     private readonly auditService: AuditService,
     private readonly configService: ConfigService,
+    private readonly authLogicService: AuthenticationLogicService,
   ) {}
 
   /**
@@ -90,49 +92,35 @@ export class AuthService {
 
   /**
    * Validate user credentials
+   * Now uses AuthenticationLogicService to avoid circular dependencies
    */
   async validateUser(email: string, password: string): Promise<any | null> {
     this.logger.log(`🔍 AuthService.validateUser called for: ${email}`);
 
     try {
-      // Check if UserService is available
-      if (!this.userService) {
-        this.logger.error('❌ UserService is not available');
-        return null;
-      }
-
-      this.logger.log(`📞 Calling userService.findByEmail for: ${email}`);
-      const user = await this.userService.findByEmail(email);
+      // Use AuthenticationLogicService for validation
+      const user = await this.authLogicService.validateUserCredentials(
+        email,
+        password,
+      );
 
       if (!user) {
-        this.logger.warn(`❌ User not found in database: ${email}`);
-        return null;
-      }
-
-      this.logger.log(`✅ User found: ${user.id}, status: ${user.status}`);
-
-      if (!user.password) {
-        this.logger.warn(`❌ User has no password (OAuth-only): ${email}`);
-        return null;
-      }
-
-      this.logger.log(`🔒 User has password, verifying...`);
-
-      // Verify password using argon2
-      const isPasswordValid = await argon2.verify(user.password, password);
-
-      this.logger.log(`🔐 Password verification result: ${isPasswordValid}`);
-
-      if (!isPasswordValid) {
-        this.logger.warn(`❌ Invalid password for: ${email}`);
+        // Audit failed login attempt
+        await this.auditService.logAction({
+          userId: 'unknown',
+          action: AuditAction.FAILED_LOGIN,
+          resource: 'auth',
+          details: {
+            email,
+            reason: 'invalid_credentials',
+            timestamp: new Date(),
+          },
+        });
         return null;
       }
 
       this.logger.log(`✅ User validated successfully: ${user.id}`);
-
-      // Return user without password
-      const { password: _, ...result } = user;
-      return result;
+      return user;
     } catch (error) {
       this.logger.error(
         `❌ Error validating user: ${error.message}`,

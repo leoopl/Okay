@@ -8,6 +8,15 @@ import { Request, Response, NextFunction } from 'express';
 import * as crypto from 'crypto';
 import { ConfigService } from '@nestjs/config';
 
+// Extend Express Request type to include our custom properties
+declare global {
+  namespace Express {
+    interface Request {
+      csrfMiddleware?: CsrfMiddleware;
+    }
+  }
+}
+
 @Injectable()
 export class CsrfMiddleware implements NestMiddleware {
   private readonly logger = new Logger(CsrfMiddleware.name);
@@ -19,7 +28,7 @@ export class CsrfMiddleware implements NestMiddleware {
 
   use(req: Request, res: Response, next: NextFunction) {
     // Add the middleware instance to the request so controllers can use it
-    req['csrfMiddleware'] = this;
+    req.csrfMiddleware = this;
 
     // Skip CSRF check for non-mutation methods
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {

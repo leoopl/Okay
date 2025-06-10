@@ -46,10 +46,8 @@ export class SessionService {
       }
 
       // Calculate session expiration
-      const sessionDuration = this.configService.get<string>(
-        'SESSION_DURATION',
-        '30d',
-      );
+      const sessionDuration =
+        this.configService.get<string>('SESSION_DURATION');
       const expiresAt = TokenUtil.calculateExpiration(sessionDuration);
 
       // Create new session

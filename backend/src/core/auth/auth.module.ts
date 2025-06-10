@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -26,7 +26,6 @@ import { GoogleOAuthStrategy } from './strategies/google-oauth.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
-import { GoogleOAuthGuard } from './guards/google-oauth.guard';
 
 // Entities
 import { RefreshToken } from './entities/refresh-token.entity';
@@ -37,20 +36,27 @@ import { User } from '../../modules/user/entities/user.entity';
 import { UserModule } from '../../modules/user/user.module';
 import { AuditModule } from '../audit/audit.module';
 import { EncryptionModule } from '../../common/encryption/encryption.module';
+import { AuthenticationLogicModule } from './authentication-logic/authentication-logic.module';
+
+// Middleware
+import { CsrfMiddleware } from '../../common/middleware/csrf.middleware';
 
 @Module({
   imports: [
-    // Import UserModule to access UserService - circular dependency is now broken
-    UserModule,
+    // IMPORTANT: Import AuthenticationLogicModule for strategies
+    AuthenticationLogicModule,
 
-    // TypeORM for Auth entities + User entity for LocalStrategy
-    TypeOrmModule.forFeature([RefreshToken, AuthSession, User]),
-
-    // Configure PassportModule
+    // PassportModule must be imported before strategies are provided
     PassportModule.register({
       defaultStrategy: 'jwt',
       session: false,
     }),
+
+    // Import UserModule to access UserService
+    forwardRef(() => UserModule),
+
+    // TypeORM for Auth entities
+    TypeOrmModule.forFeature([RefreshToken, AuthSession]),
 
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -58,7 +64,7 @@ import { EncryptionModule } from '../../common/encryption/encryption.module';
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: configService.get<string>('JWT_ACCESS_EXPIRATION'),
+          expiresIn: configService.get<string>('JWT_ACCESS_EXPIRATION', '15m'),
           audience: configService.get<string>('JWT_AUDIENCE'),
           issuer: configService.get<string>('JWT_ISSUER'),
         },
@@ -71,8 +77,8 @@ import { EncryptionModule } from '../../common/encryption/encryption.module';
       useFactory: (config: ConfigService) => [
         {
           name: 'auth',
-          ttl: config.get('OAUTH_THROTTLE_TTL'),
-          limit: config.get('OAUTH_THROTTLE_LIMIT'),
+          ttl: config.get('OAUTH_THROTTLE_TTL', 300),
+          limit: config.get('OAUTH_THROTTLE_LIMIT', 5),
         },
       ],
     }),
@@ -83,32 +89,43 @@ import { EncryptionModule } from '../../common/encryption/encryption.module';
   ],
   controllers: [AuthController, OAuthController],
   providers: [
-    // Strategies FIRST - important for registration order
-    LocalStrategy,
-    JwtStrategy,
-    JwtRefreshStrategy,
-    GoogleOAuthStrategy,
-
-    // Services
+    // Core Services
     TokenService,
     SessionService,
     AuthService,
     GoogleOAuthService,
     AccountLinkingService,
 
+    // Strategies - These will now work without circular dependencies
+    LocalStrategy,
+    JwtStrategy,
+    JwtRefreshStrategy,
+    GoogleOAuthStrategy,
+
     // Guards
     LocalAuthGuard,
     JwtAuthGuard,
     JwtRefreshGuard,
-    GoogleOAuthGuard,
+
+    // Middleware
+    CsrfMiddleware,
   ],
   exports: [
+    // Export services that other modules might need
     AuthService,
     TokenService,
     SessionService,
+
+    // Export guards for use in other modules
     JwtAuthGuard,
     JwtRefreshGuard,
     LocalAuthGuard,
+
+    // Export middleware
+    CsrfMiddleware,
+
+    // Export PassportModule so other modules can use passport features
+    PassportModule,
   ],
 })
 export class AuthModule {}

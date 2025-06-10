@@ -9,6 +9,7 @@ import { TokenUtil } from '../utils/token.util';
 import { UserService } from '../../../modules/user/user.service';
 import { EncryptionService } from '../../../common/encryption/encryption.service';
 import { DeviceInfo } from '../interfaces/device-info.interface';
+import { User } from 'src/modules/user/entities/user.entity';
 
 /**
  * Service for managing JWT access tokens and refresh tokens
@@ -80,6 +81,54 @@ export class TokenService {
         error.stack,
       );
       throw error;
+    }
+  }
+
+  /**
+   * Validate refresh token and return associated user
+   * This method is used by JwtRefreshStrategy
+   */
+  async validateRefreshToken(
+    token: string,
+  ): Promise<{ user: User; tokenEntity: RefreshToken } | null> {
+    try {
+      const refreshToken = await this.refreshTokenRepository.findOne({
+        where: { token },
+        relations: ['user', 'user.roles'],
+      });
+
+      if (!refreshToken) {
+        this.logger.warn('Refresh token not found');
+        return null;
+      }
+
+      if (!refreshToken.isValid()) {
+        this.logger.warn(
+          `Invalid refresh token: ${refreshToken.revoked ? 'revoked' : 'expired'}`,
+        );
+
+        // Check for token reuse attack
+        if (refreshToken.revoked && refreshToken.replacedByToken) {
+          this.logger.error(
+            `Possible token reuse attack detected for user ${refreshToken.userId}`,
+          );
+          // Revoke all tokens for this user as a security measure
+          await this.revokeAllUserTokens(
+            refreshToken.userId,
+            'token_reuse_detected',
+          );
+        }
+
+        return null;
+      }
+
+      return {
+        user: refreshToken.user,
+        tokenEntity: refreshToken,
+      };
+    } catch (error) {
+      this.logger.error(`Error validating refresh token: ${error.message}`);
+      return null;
     }
   }
 

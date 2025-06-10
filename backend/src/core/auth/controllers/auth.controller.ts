@@ -80,13 +80,33 @@ export class AuthController {
     this.setRefreshTokenCookie(res, authResult.tokens.refreshToken);
 
     // Generate CSRF token and set in cookie
-    const csrfMiddleware = req['csrfMiddleware'] as CsrfMiddleware;
-    if (csrfMiddleware) {
-      csrfMiddleware.generateToken(res);
+    let csrfToken = authResult.csrfToken;
+
+    // Use csrfMiddleware if available, otherwise use TokenService
+    if (
+      req.csrfMiddleware &&
+      typeof req.csrfMiddleware.generateToken === 'function'
+    ) {
+      csrfToken = req.csrfMiddleware.generateToken(res);
+    } else {
+      // Fallback: set CSRF token cookie manually
+      const secure = this.configService.get<boolean>('SECURE_COOKIES', false);
+      const domain = this.configService.get<string>('COOKIE_DOMAIN');
+
+      res.cookie('csrf_token', csrfToken, {
+        httpOnly: true,
+        secure,
+        sameSite: 'lax',
+        domain,
+        path: '/',
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      });
     }
 
-    // Build and send response
+    // Build and send response with the CSRF token
     const response = this.authService['buildAuthResponse'](user, authResult);
+    response.csrfToken = csrfToken;
+
     return res.json(response);
   }
 
@@ -282,5 +302,30 @@ export class AuthController {
       path: '/',
       maxAge: 0,
     });
+  }
+
+  /**
+   * Diagnostic endpoint to check auth strategies (Development only)
+   */
+  @Public()
+  @Get('diagnostics')
+  @ApiOperation({ summary: 'Check authentication strategies status' })
+  @ApiResponse({ status: 200, description: 'Diagnostics information' })
+  async getDiagnostics() {
+    const passport = require('passport');
+    const strategies = passport._strategies || {};
+
+    return {
+      registeredStrategies: Object.keys(strategies),
+      totalStrategies: Object.keys(strategies).length,
+      details: {
+        hasLocal: 'local' in strategies,
+        hasJwt: 'jwt' in strategies,
+        hasJwtRefresh: 'jwt-refresh' in strategies,
+        hasGoogleOAuth: 'google-oauth' in strategies,
+      },
+      environment: this.configService.get('NODE_ENV'),
+      timestamp: new Date().toISOString(),
+    };
   }
 }

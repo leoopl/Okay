@@ -20,12 +20,10 @@ import { Request, Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { GoogleOAuthService } from '../services/google-oauth.service';
 import { AuthService } from '../services/auth.service';
-import { GoogleOAuthGuard } from '../guards/google-oauth.guard';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { Public } from '../../../common/decorators/is-public.decorator';
 import { OAuthCallbackDto } from '../dto/oauth-callback.dto';
 import { ConfigService } from '@nestjs/config';
-import { CsrfMiddleware } from '../../../common/middleware/csrf.middleware';
 import { AuthGuard } from '@nestjs/passport';
 
 /**
@@ -86,7 +84,7 @@ export class OAuthController {
    * Handle Google OAuth callback
    */
   @Public()
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(AuthGuard('google-oauth'))
   @Get('google/callback')
   @Throttle({ auth: { limit: 5, ttl: 300 } })
   @ApiOperation({ summary: 'Handle Google OAuth callback' })
@@ -127,14 +125,34 @@ export class OAuthController {
       this.setRefreshTokenCookie(res, authResponse['refreshToken']);
 
       // Generate CSRF token
-      const csrfMiddleware = req['csrfMiddleware'] as CsrfMiddleware;
-      if (csrfMiddleware) {
-        csrfMiddleware.generateToken(res);
+      let csrfToken = authResponse.csrfToken;
+
+      if (
+        req.csrfMiddleware &&
+        typeof req.csrfMiddleware.generateToken === 'function'
+      ) {
+        csrfToken = req.csrfMiddleware.generateToken(res);
+      } else {
+        // Fallback: set CSRF token cookie manually
+        const secure = this.configService.get<boolean>('SECURE_COOKIES', false);
+        const domain = this.configService.get<string>('COOKIE_DOMAIN');
+
+        res.cookie('csrf_token', csrfToken, {
+          httpOnly: true,
+          secure,
+          sameSite: 'lax',
+          domain,
+          path: '/',
+          maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        });
       }
 
       // Redirect to frontend with success
       const successUrl = new URL('/auth/success', frontendUrl);
       successUrl.searchParams.set('token', authResponse.accessToken);
+      if (csrfToken) {
+        successUrl.searchParams.set('csrf_token', csrfToken);
+      }
 
       return res.redirect(successUrl.toString());
     } catch (error) {
