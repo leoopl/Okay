@@ -1,17 +1,17 @@
 import React from 'react';
 import Image from 'next/image';
 import { TagFilter } from '@/components/blog/tag-filter';
-import SearchInput from '@/components/search-input';
 import { BlogPageClient } from '@/components/blog/blog-page-client';
 import { getBlogPosts } from '@/app/blog/util';
+import { BlogSearch } from '@/components/blog/blog-search';
 
 interface BlogPageProps {
-  searchParams: { tag?: string; search?: string } | Promise<{ tag?: string; search?: string }>;
+  searchParams: Promise<{ tag?: string; search?: string }>;
 }
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
-  // Need to await the searchParams
-  const resolvedParams = await Promise.resolve(searchParams);
+  // Await the searchParams
+  const resolvedParams = await searchParams;
   const tag = resolvedParams?.tag || '';
   const search = resolvedParams?.search || '';
 
@@ -26,6 +26,9 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
     return matchesTag && matchesSearch;
   });
 
+  // Extract unique tags from all posts for dynamic filtering
+  const allTags = Array.from(new Set(allPosts.flatMap((post) => post.metadata.tags || []))).sort();
+
   return (
     <div className="flex min-h-screen flex-col p-10 lg:py-15">
       <div className="container mx-auto">
@@ -37,9 +40,12 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
             <p className="text-beige-dark text-base md:text-lg">
               Encontre informações sobre diversas condições de saúde mental.
             </p>
-            <nav className="flex flex-wrap gap-2">
-              {/* <SearchInput defaultValue={search} /> */}
-              <TagFilter selectedTag={tag} />
+            <nav className="flex flex-col gap-4">
+              {/* Search */}
+              <div className="w-full">
+                <BlogSearch initialSearch={search} />
+              </div>
+              <TagFilter selectedTag={tag} availableTags={allTags} />
             </nav>
           </div>
 

@@ -6,7 +6,7 @@ import Testimonials from '@/components/home/testimonials/testimonials-section';
 
 const Home: NextPage = () => {
   return (
-    <div className="flex min-h-screen flex-col p-10 lg:py-25">
+    <div className="flex flex-col p-10 lg:py-25">
       <div className="container mx-auto">
         <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2">
           <div className="animate-fade-in flex flex-col gap-8">

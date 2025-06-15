@@ -101,17 +101,19 @@ export default async function RootLayout({
           {isAuth ? (
             <SessionProvider>
               <ProfileCompletionProvider>
-                <Headers />
-                {children}
-                <Footer />
+                <div className="flex min-h-screen flex-col">
+                  <Headers />
+                  <main className="flex-1">{children}</main>
+                  <Footer />
+                </div>
               </ProfileCompletionProvider>
             </SessionProvider>
           ) : (
-            <>
+            <div className="flex min-h-screen flex-col">
               <Headers />
-              {children}
+              <main className="flex-1">{children}</main>
               <Footer />
-            </>
+            </div>
           )}
         </AuthProvider>
       </body>

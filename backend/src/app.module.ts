@@ -25,6 +25,7 @@ import { MedicationModule } from './modules/medication/medication.module';
 import { StorageModule } from './common/storage/storage.module';
 import { SecurityHeadersMiddleware } from './common/middleware/security-headers.middleware';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ProfessionalModule } from './modules/professionals/professionals.module';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     TestimonialModule,
     MedicationModule,
     StorageModule,
+    ProfessionalModule,
   ],
   controllers: [AppController],
   providers: [

@@ -10,14 +10,9 @@ import { Toaster } from '@/components/ui/sonner';
 import { Button } from '@/components/ui/button';
 import { useMedicationStore } from '@/store/medication-store';
 import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 // Type definitions
 type TabValue = 'medications' | 'schedule' | 'history';
-
-interface MedicationPageProps {
-  className?: string;
-}
 
 // Constants
 const TABS_CONFIG = {
@@ -37,7 +32,7 @@ const TABS_CONFIG = {
 
 const DEFAULT_TAB: TabValue = 'medications';
 
-export default function MedicationPage({ className }: MedicationPageProps) {
+export default function MedicationPage() {
   const { loadingStates, errors, fetchMedications, fetchTodaySchedule, clearAllErrors } =
     useMedicationStore();
 
@@ -104,7 +99,7 @@ export default function MedicationPage({ className }: MedicationPageProps) {
 
   if (isInitialLoading) {
     return (
-      <main className={cn('container mx-auto px-4 py-8 md:py-12', className)}>
+      <main className="container mx-auto px-4 py-8 md:py-12">
         <div className="mx-auto max-w-7xl">
           <div className="py-16 text-center">
             <Loader2 className="text-green-dark mx-auto mb-6 h-12 w-12 animate-spin" />
@@ -123,7 +118,7 @@ export default function MedicationPage({ className }: MedicationPageProps) {
   // Global error state
   if (hasGlobalError) {
     return (
-      <main className={cn('container mx-auto px-4 py-8 md:py-12', className)}>
+      <main className="container mx-auto px-4 py-8 md:py-12">
         <div className="mx-auto max-w-7xl">
           <div className="py-16 text-center">
             <AlertCircle className="mx-auto mb-6 h-16 w-16 text-red-500" />
@@ -159,7 +154,7 @@ export default function MedicationPage({ className }: MedicationPageProps) {
   }
 
   return (
-    <main className={cn('container mx-auto px-4 py-8 md:py-12', className)}>
+    <main className="container mx-auto px-4 py-8 md:py-12">
       {/* Global Toast Notifications */}
       <Toaster position="top-center" richColors />
       <div className="mx-auto max-w-7xl">
