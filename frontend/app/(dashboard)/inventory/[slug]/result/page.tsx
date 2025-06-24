@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useInventoryStore } from '@/store/inventory-store';
-import { InventoryService } from '@/services/inventory-service';
+import { InventoryService } from '@/lib/actions/supabase-inventories';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -186,14 +186,14 @@ export default function ResultPage({ params }: { params: Promise<{ slug: string 
         setLoading(true);
 
         try {
-          const userResponses = await InventoryService.getUserResponses();
-          const response = userResponses.find((r) => r.inventoryId === slug);
+          const userResponsesResult = await InventoryService.getUserResponses();
+          const response = userResponsesResult.responses?.find((r: any) => r.inventory_id === slug);
 
           if (response) {
             useInventoryStore.setState({
-              calculatedScores: response.calculatedScores,
-              interpretationResults: response.interpretationResults,
-              responses: response.responses,
+              calculatedScores: response.calculated_scores as any,
+              interpretationResults: response.interpretation_results as any,
+              responses: response.responses as any,
             });
           } else {
             setError(
@@ -341,7 +341,7 @@ export default function ResultPage({ params }: { params: Promise<{ slug: string 
             <ScoreDisplay
               label="Resultado Geral"
               score={calculatedScores.total || 0}
-              maxScore={currentInventory?.scoring.totalScoreRange?.[1] || 100}
+              maxScore={(currentInventory?.scoring as any)?.totalScoreRange?.[1] || 100}
               interpretation={interpretationResults}
               variant="primary"
             />
@@ -362,8 +362,10 @@ export default function ResultPage({ params }: { params: Promise<{ slug: string 
                           key={key}
                           label={key}
                           score={calculatedScores[key] || 0}
-                          maxScore={currentInventory?.scoring.subscales?.[key]?.maxRawScore || 100}
-                          interpretation={value}
+                          maxScore={
+                            (currentInventory?.scoring as any)?.subscales?.[key]?.maxRawScore || 100
+                          }
+                          interpretation={value as any}
                         />
                       ),
                     )}

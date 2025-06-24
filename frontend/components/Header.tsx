@@ -18,12 +18,13 @@ import {
 import Link from 'next/link';
 import UserButton from './user-button';
 import Logo from './common/Logo';
-import { useAuth } from '@/providers/auth-provider';
 import { Button } from './ui/button';
 import { Separator } from './ui/separator';
-import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { getProfilePictureUrl, getUserInitials } from '@/lib/utils';
+import { signOut } from '@/lib/actions/supabase-auth';
+import { useState } from 'react';
+import { useAuth } from '@/providers/auth-provider';
 
 interface Page {
   name: string;
@@ -87,12 +88,12 @@ const userPages: Page[] = [
 ];
 
 const Header: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, profile } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     setIsMobileMenuOpen(false); // Close menu on logout
-    logout();
+    signOut();
   };
 
   return (
@@ -155,21 +156,21 @@ const Header: React.FC = () => {
                 </Link>
               </SheetTitle>
 
-              {user ? (
+              {user && profile ? (
                 <div className="mt-7 flex items-center gap-3">
                   <Avatar className="ring-beige-medium/30 size-10 ring-2">
                     <AvatarImage
-                      src={user ? getProfilePictureUrl(user) : undefined}
-                      alt={user?.name}
+                      src={getProfilePictureUrl(profile as any)}
+                      alt={profile.name}
                       className="object-cover"
                     />
                     <AvatarFallback className="from-yellow-light to-yellow-dark bg-gradient-to-br text-sm font-medium text-white">
-                      {user ? getUserInitials(user) : <CircleUser />}
+                      {getUserInitials(profile as any)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium text-black">{user?.name}</span>
-                    <span className="text-grey-dark text-xs">{user?.email}</span>
+                    <span className="text-sm font-medium text-black">{profile.name}</span>
+                    <span className="text-grey-dark text-xs">{profile.email}</span>
                   </div>
                 </div>
               ) : null}

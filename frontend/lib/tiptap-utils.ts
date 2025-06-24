@@ -1,7 +1,7 @@
-import type { Attrs, Node } from "@tiptap/pm/model"
-import type { Editor } from "@tiptap/react"
+import type { Attrs, Node } from '@tiptap/pm/model';
+import type { Editor } from '@tiptap/react';
 
-export const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 /**
  * Checks if a mark exists in the editor schema
@@ -9,13 +9,10 @@ export const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
  * @param editor - The editor instance
  * @returns boolean indicating if the mark exists in the schema
  */
-export const isMarkInSchema = (
-  markName: string,
-  editor: Editor | null
-): boolean => {
-  if (!editor?.schema) return false
-  return editor.schema.spec.marks.get(markName) !== undefined
-}
+export const isMarkInSchema = (markName: string, editor: Editor | null): boolean => {
+  if (!editor) return false;
+  return markName in editor.schema.marks;
+};
 
 /**
  * Checks if a node exists in the editor schema
@@ -23,13 +20,10 @@ export const isMarkInSchema = (
  * @param editor - The editor instance
  * @returns boolean indicating if the node exists in the schema
  */
-export const isNodeInSchema = (
-  nodeName: string,
-  editor: Editor | null
-): boolean => {
-  if (!editor?.schema) return false
-  return editor.schema.spec.nodes.get(nodeName) !== undefined
-}
+export const isNodeInSchema = (nodeName: string, editor: Editor | null): boolean => {
+  if (!editor) return false;
+  return nodeName in editor.schema.nodes;
+};
 
 /**
  * Gets the active attributes of a specific mark in the current editor selection.
@@ -38,23 +32,27 @@ export const isNodeInSchema = (
  * @param markName - The name of the mark to look for (e.g., "highlight", "link").
  * @returns The attributes of the active mark, or `null` if the mark is not active.
  */
-export function getActiveMarkAttrs(
-  editor: Editor | null,
-  markName: string
-): Attrs | null {
-  if (!editor) return null
-  const { state } = editor
-  const marks = state.storedMarks || state.selection.$from.marks()
-  const mark = marks.find((mark) => mark.type.name === markName)
+export function getActiveMarkAttrs(editor: Editor | null, markName: string): Attrs | null {
+  if (!editor || !isMarkInSchema(markName, editor)) {
+    return null;
+  }
 
-  return mark?.attrs ?? null
+  const mark = editor.getAttributes(markName);
+  return mark || null;
 }
 
 /**
  * Checks if a node is empty
  */
 export function isEmptyNode(node?: Node | null): boolean {
-  return !!node && node.content.size === 0
+  if (!node) return true;
+
+  // Check if node has content
+  if (node.content?.size === 0) return true;
+
+  // Check if content is just whitespace
+  const text = node.textContent?.trim();
+  return !text || text.length === 0;
 }
 
 /**
@@ -64,10 +62,8 @@ export function isEmptyNode(node?: Node | null): boolean {
  * @param classes - List of class name strings or falsey values.
  * @returns A single space-separated string of valid class names.
  */
-export function cn(
-  ...classes: (string | boolean | undefined | null)[]
-): string {
-  return classes.filter(Boolean).join(" ")
+export function cn(...classes: (string | boolean | undefined | null)[]): string {
+  return classes.filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
 }
 
 /**
@@ -79,52 +75,43 @@ export function cn(
  * @returns An object with the position and node, or null if not found
  */
 export function findNodePosition(props: {
-  editor: Editor | null
-  node?: Node | null
-  nodePos?: number | null
+  editor: Editor | null;
+  node?: Node | null;
+  nodePos?: number | null;
 }): { pos: number; node: Node } | null {
-  const { editor, node, nodePos } = props
+  const { editor, node, nodePos } = props;
 
-  if (!editor || !editor.state?.doc) return null
+  if (!editor) return null;
 
-  // Zero is valid position
-  const hasValidNode = node !== undefined && node !== null
-  const hasValidPos = nodePos !== undefined && nodePos !== null
-
-  if (!hasValidNode && !hasValidPos) {
-    return null
-  }
-
-  if (hasValidPos) {
+  if (nodePos !== null && nodePos !== undefined) {
     try {
-      const nodeAtPos = editor.state.doc.nodeAt(nodePos!)
-      if (nodeAtPos) {
-        return { pos: nodePos!, node: nodeAtPos }
-      }
-    } catch (error) {
-      console.error("Error checking node at position:", error)
-      return null
+      const resolvedPos = editor.state.doc.resolve(nodePos);
+      return {
+        pos: nodePos,
+        node: resolvedPos.node(),
+      };
+    } catch {
+      return null;
     }
   }
 
-  // Otherwise search for the node in the document
-  let foundPos = -1
-  let foundNode: Node | null = null
+  if (node) {
+    // Find the position of the given node in the document
+    let foundPos: number | null = null;
 
-  editor.state.doc.descendants((currentNode, pos) => {
-    // TODO: Needed?
-    // if (currentNode.type && currentNode.type.name === node!.type.name) {
-    if (currentNode === node) {
-      foundPos = pos
-      foundNode = currentNode
-      return false
+    editor.state.doc.descendants((docNode, pos) => {
+      if (docNode === node) {
+        foundPos = pos;
+        return false; // stop iteration
+      }
+    });
+
+    if (foundPos !== null) {
+      return { pos: foundPos, node };
     }
-    return true
-  })
+  }
 
-  return foundPos !== -1 && foundNode !== null
-    ? { pos: foundPos, node: foundNode }
-    : null
+  return null;
 }
 
 /**
@@ -137,33 +124,49 @@ export function findNodePosition(props: {
 export const handleImageUpload = async (
   file: File,
   onProgress?: (event: { progress: number }) => void,
-  abortSignal?: AbortSignal
+  abortSignal?: AbortSignal,
 ): Promise<string> => {
-  // Validate file
-  if (!file) {
-    throw new Error("No file provided")
-  }
+  // Report initial progress
+  onProgress?.({ progress: 0 });
 
-  if (file.size > MAX_FILE_SIZE) {
-    throw new Error(
-      `File size exceeds maximum allowed (${MAX_FILE_SIZE / (1024 * 1024)}MB)`
-    )
-  }
+  try {
+    // For now, convert to base64 as a fallback
+    // In a real implementation, you'd upload to a server or cloud storage
+    const base64 = await convertFileToBase64(file, abortSignal);
 
-  // For demo/testing: Simulate upload progress
-  for (let progress = 0; progress <= 100; progress += 10) {
+    // Simulate upload progress
+    const simulateProgress = () => {
+      return new Promise<void>((resolve) => {
+        let progress = 0;
+        const interval = setInterval(() => {
+          progress += 20;
+          onProgress?.({ progress });
+
+          if (progress >= 100) {
+            clearInterval(interval);
+            resolve();
+          }
+        }, 100);
+
+        // Handle abort
+        abortSignal?.addEventListener('abort', () => {
+          clearInterval(interval);
+          resolve();
+        });
+      });
+    };
+
+    await simulateProgress();
+
     if (abortSignal?.aborted) {
-      throw new Error("Upload cancelled")
+      throw new Error('Upload cancelled');
     }
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    onProgress?.({ progress })
+
+    return base64;
+  } catch (error) {
+    throw error instanceof Error ? error : new Error('Upload failed');
   }
-
-  return "/images/placeholder-image.png"
-
-  // Uncomment for production use:
-  // return convertFileToBase64(file, abortSignal);
-}
+};
 
 /**
  * Converts a File to base64 string
@@ -171,40 +174,69 @@ export const handleImageUpload = async (
  * @param abortSignal Optional AbortSignal for cancelling the conversion
  * @returns Promise resolving to the base64 representation of the file
  */
-export const convertFileToBase64 = (
-  file: File,
-  abortSignal?: AbortSignal
-): Promise<string> => {
-  if (!file) {
-    return Promise.reject(new Error("No file provided"))
-  }
-
+export const convertFileToBase64 = (file: File, abortSignal?: AbortSignal): Promise<string> => {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader()
+    const reader = new FileReader();
 
     const abortHandler = () => {
-      reader.abort()
-      reject(new Error("Upload cancelled"))
+      reader.abort();
+      reject(new Error('File reading cancelled'));
+    };
+
+    abortSignal?.addEventListener('abort', abortHandler);
+
+    reader.onload = () => {
+      abortSignal?.removeEventListener('abort', abortHandler);
+      resolve(reader.result as string);
+    };
+
+    reader.onerror = () => {
+      abortSignal?.removeEventListener('abort', abortHandler);
+      reject(new Error('Failed to read file'));
+    };
+
+    reader.readAsDataURL(file);
+  });
+};
+
+/**
+ * Utility functions for TipTap content (moved from server actions)
+ */
+export function createDefaultTipTapContent() {
+  return {
+    type: 'doc',
+    content: [
+      {
+        type: 'paragraph',
+        content: [],
+      },
+    ],
+  };
+}
+
+export function validateTipTapContent(content: any): boolean {
+  if (!content || typeof content !== 'object') return false;
+  if (content.type !== 'doc') return false;
+  if (!Array.isArray(content.content)) return false;
+  return true;
+}
+
+export function extractTextFromTipTapContent(content: any): string {
+  if (!content || typeof content !== 'object') return '';
+
+  function extractText(node: any): string {
+    if (!node) return '';
+
+    if (node.type === 'text') {
+      return node.text || '';
     }
 
-    if (abortSignal) {
-      abortSignal.addEventListener("abort", abortHandler)
+    if (node.content && Array.isArray(node.content)) {
+      return node.content.map(extractText).join('');
     }
 
-    reader.onloadend = () => {
-      if (abortSignal) {
-        abortSignal.removeEventListener("abort", abortHandler)
-      }
+    return '';
+  }
 
-      if (typeof reader.result === "string") {
-        resolve(reader.result)
-      } else {
-        reject(new Error("Failed to convert File to base64"))
-      }
-    }
-
-    reader.onerror = (error) =>
-      reject(new Error(`File reading error: ${error}`))
-    reader.readAsDataURL(file)
-  })
+  return extractText(content);
 }

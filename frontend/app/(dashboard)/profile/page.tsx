@@ -19,25 +19,16 @@ import {
   User,
   Activity,
   Clock,
+  Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import { useAuth } from '@/providers/auth-provider';
 import { formatDate } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
-import { Toaster } from 'sonner';
+import { signOut } from '@/lib/actions/supabase-auth';
+import { useAuth } from '@/providers/auth-provider';
 
 // Feature card component for better reusability
-interface FeatureCardProps {
-  icon: React.ElementType;
-  title: string;
-  description: string;
-  href: string;
-  bgColor: string;
-  iconColor: string;
-  buttonColor: string;
-}
-
 interface FeatureCardProps {
   icon: React.ElementType;
   title: string;
@@ -81,7 +72,7 @@ const FeatureCard = ({
 );
 
 // Stats component for user engagement
-const UserStats = ({ user }: { user: any }) => (
+const UserStats = () => (
   <div className="mt-4 grid grid-cols-2 gap-4">
     <div className="bg-grey-light/40 rounded-lg p-3 text-center">
       <Activity className="text-blue-dark mx-auto mb-1 size-4" />
@@ -98,23 +89,36 @@ const UserStats = ({ user }: { user: any }) => (
 
 export default function Profile() {
   const [activeTab, setActiveTab] = useState('profile');
-  const { user, isAuth, logout } = useAuth();
+  const { user, profile, roles, isLoading } = useAuth();
   const router = useRouter();
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await signOut();
       router.push('/');
     } catch (error) {
       console.error('Logout error:', error);
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user || !profile) {
+    router.push('/signin');
+    return null;
+  }
+
   // Format member since date with better error handling
-  const memberSince = user?.createdAt
+  const memberSince = profile.createdAt
     ? (() => {
         try {
-          const formatted = formatDate(user.createdAt, false);
+          const formatted = formatDate(profile.createdAt, false);
           const parts = formatted.split('/');
           return parts.length >= 3 ? `${parts[1]}/${parts[2]}` : 'Jan 2024';
         } catch {
@@ -154,17 +158,18 @@ export default function Profile() {
     },
   ];
 
+  // Check if user has admin role
+  const isAdmin = roles.some((role) => role.name === 'admin' || role.name === 'super_admin');
+
   return (
     <>
       <div className="mx-auto max-w-7xl pb-5">
-        <Toaster richColors position="top-center" />
-
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           {/* Enhanced Profile Card */}
           <Card className="overflow-hidden lg:col-span-3">
             <CardHeader className="pb-2">
               <div className="text-center">
-                <ProfilePictureUpload size="xl" className="transition-transform hover:scale-105" />
+                <ProfilePictureUpload />
               </div>
             </CardHeader>
 
@@ -173,18 +178,18 @@ export default function Profile() {
                 {/* User Info */}
                 <div className="space-y-2 text-center">
                   <h2 className="text-foreground text-xl font-semibold">
-                    {user?.name} {user?.surname}
+                    {profile.name} {profile.surname}
                   </h2>
 
                   {/* Role Badges */}
                   <div className="flex flex-wrap justify-center gap-2">
-                    {user?.roles?.includes('admin') && (
+                    {isAdmin && (
                       <Badge variant="outline" className="text-primary border-primary/50">
                         <Star className="mr-1 size-3" />
                         Administrador
                       </Badge>
                     )}
-                    {user?.roles?.includes('patient') && !user?.roles?.includes('admin') && (
+                    {!isAdmin && (
                       <Badge variant="outline" className="text-accent-foreground border-accent">
                         Paciente
                       </Badge>
@@ -200,20 +205,18 @@ export default function Profile() {
                   </div>
                   <div className="border-border/50 flex items-center justify-between border-b py-2">
                     <span className="text-muted-foreground">E-mail</span>
-                    <span className="max-w-[150px] truncate font-medium" title={user?.email}>
-                      {user?.email}
+                    <span className="max-w-[150px] truncate font-medium" title={profile.email}>
+                      {profile.email}
                     </span>
                   </div>
                   <div className="flex items-center justify-between py-2">
                     <span className="text-muted-foreground">Função</span>
-                    <span className="font-medium">
-                      {user?.roles?.includes('admin') ? 'Admin' : 'Paciente'}
-                    </span>
+                    <span className="font-medium">{isAdmin ? 'Admin' : 'Paciente'}</span>
                   </div>
                 </div>
 
                 {/* User Stats */}
-                <UserStats user={user} />
+                <UserStats />
 
                 {/* Logout Button */}
                 <Button

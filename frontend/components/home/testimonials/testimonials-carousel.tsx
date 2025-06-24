@@ -5,7 +5,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-import { getApprovedTestimonials } from '@/services/testimonials-service';
+import { getApprovedTestimonials } from '@/lib/actions/supabase-testimonials';
 import TestimonialCard from './testimonials-card';
 
 export default async function TestimonialsCarousel() {
@@ -26,7 +26,10 @@ export default async function TestimonialsCarousel() {
       <CarouselContent className="-ml-2 items-center md:-ml-4">
         {testimonials.map((testimonial) => (
           <CarouselItem key={testimonial.id} className="pl-2 md:basis-1/2 md:pl-4 lg:basis-1/3">
-            <TestimonialCard message={testimonial.message} location={testimonial.location} />
+            <TestimonialCard
+              message={testimonial.message}
+              location={testimonial.location || undefined}
+            />
           </CarouselItem>
         ))}
       </CarouselContent>

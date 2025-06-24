@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useJournalStore } from '@/store/journal-store';
-import { createDefaultTipTapContent, validateTipTapContent } from '@/services/journal-service';
+import { createDefaultTipTapContent, validateTipTapContent } from '@/lib/tiptap-utils';
 import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
 import { JournalEditor } from '@/components/journal/journal-editor';
 
@@ -201,7 +201,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
     async function loadEntry() {
       if (isNewEntry) {
         // Set default values for new entry
-        const defaultContent = createDefaultTipTapContent();
+        const defaultContent = JSON.stringify(createDefaultTipTapContent());
         setTitle('Give your thoughts a title...');
         setContent(defaultContent);
         setTags([]);

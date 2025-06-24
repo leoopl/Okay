@@ -1,13 +1,14 @@
-import type { Metadata, Viewport } from 'next';
+import { Inter, Varela_Round } from 'next/font/google';
+import type { Metadata } from 'next';
 import './globals.css';
-import { Varela_Round } from 'next/font/google';
-import Headers from '../components/header';
+import Header from '@/components/Header';
 import Footer from '@/components/footer';
-import AuthProvider from '@/providers/auth-provider';
-import { getServerSession, logout } from '../lib/actions/server-auth';
-import SessionProvider from '@/providers/session-provider';
-import { ProfileCompletionProvider } from '@/providers/profile-completion-provider';
 import { cn } from '@/lib/utils';
+import { Toaster } from 'sonner';
+import Script from 'next/script';
+import { getUserWithRolesAndPermissions } from '@/lib/supabase/server';
+import { AuthProvider } from '@/providers/auth-provider';
+import { IncompleteProfileDialog } from '@/components/profile/incomplete-profile-dialog';
 
 const varelaRound = Varela_Round({
   subsets: ['latin'],
@@ -16,6 +17,12 @@ const varelaRound = Varela_Round({
   weight: '400',
   preload: true,
   fallback: ['system-ui', 'arial'],
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
 });
 
 const APP_NAME = 'Okay';
@@ -27,8 +34,8 @@ const APP_DESCRIPTION =
 export const metadata: Metadata = {
   applicationName: APP_NAME,
   title: {
-    default: APP_DEFAULT_TITLE,
     template: APP_TITLE_TEMPLATE,
+    default: APP_DEFAULT_TITLE,
   },
   description: APP_DESCRIPTION,
   keywords: [
@@ -41,6 +48,9 @@ export const metadata: Metadata = {
     'estresse',
     'psicologia',
     'terapia',
+    'diário',
+    'meditação',
+    'respiração',
   ],
   authors: [{ name: 'Okay Team' }],
   creator: 'Okay',
@@ -56,11 +66,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     siteName: APP_NAME,
-    title: {
-      default: APP_DEFAULT_TITLE,
-      template: APP_TITLE_TEMPLATE,
-    },
+    title: APP_DEFAULT_TITLE,
     description: APP_DESCRIPTION,
+    locale: 'pt_BR',
   },
   twitter: {
     card: 'summary',
@@ -72,50 +80,59 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport: Viewport = {
-  themeColor: '#fbe5a8',
-};
-
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const user = await getServerSession();
-  let isAuth = false;
-  if (user) {
-    isAuth = true;
-  }
+  // Fetch user data if authenticated
+  const userData = await getUserWithRolesAndPermissions();
+
+  const authData = userData
+    ? {
+        user: userData.user,
+        profile: userData.profile,
+        roles: userData.roles,
+        permissions: userData.permissions,
+      }
+    : null;
 
   return (
     <html
       lang="pt-BR"
       suppressHydrationWarning
-      className={cn(varelaRound.variable, 'scroll-smooth', 'focus-within:scroll-auto')}
+      className={cn(varelaRound.variable, inter.variable, 'scroll-smooth')}
     >
       <meta name="apple-mobile-web-app-title" content="Okay" />
       <link rel="manifest" href="/manifest.json" />
       <head />
       <body className={`gradient-background min-h-screen antialiased`}>
-        <AuthProvider initialUser={user} isAuthenticated={isAuth} logoutFunction={logout}>
-          {isAuth ? (
-            <SessionProvider>
-              <ProfileCompletionProvider>
-                <div className="flex min-h-screen flex-col">
-                  <Headers />
-                  <main className="flex-1">{children}</main>
-                  <Footer />
-                </div>
-              </ProfileCompletionProvider>
-            </SessionProvider>
-          ) : (
-            <div className="flex min-h-screen flex-col">
-              <Headers />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </div>
-          )}
+        <AuthProvider initialData={authData}>
+          <div className="relative flex min-h-screen flex-col bg-gradient-to-b from-transparent to-white/95">
+            <Script
+              src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-core.min.js"
+              strategy="afterInteractive"
+            />
+            <Script
+              src="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/autoloader/prism-autoloader.min.js"
+              strategy="afterInteractive"
+            />
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+            {/* Only show incomplete profile dialog if user is authenticated */}
+            {userData && <IncompleteProfileDialog />}
+          </div>
         </AuthProvider>
+        <Toaster
+          position="top-right"
+          richColors
+          expand={false}
+          closeButton
+          toastOptions={{
+            duration: 5000,
+          }}
+        />
       </body>
     </html>
   );

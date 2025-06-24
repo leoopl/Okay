@@ -1,82 +1,83 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { jwtDecode } from 'jwt-decode';
+import { NextResponse, type NextRequest } from 'next/server';
+import { updateSession, config as supabaseConfig } from '@/lib/supabase/middleware';
 
-// Define routes that require authentication'/profile'
-const protectedRoutes = ['/dashboard', '/journal', '/inventory', '/medication', '/profile'];
+// Rate limiting configuration
+const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 10; // Max requests per window for auth endpoints
 
-const authRoutes = ['/signin', '/signup'];
+/**
+ * Main middleware that combines all middleware layers
+ */
+export async function middleware(request: NextRequest) {
+  // Apply rate limiting to auth endpoints
+  if (
+    request.nextUrl.pathname.startsWith('/api/auth') ||
+    request.nextUrl.pathname === '/signin' ||
+    request.nextUrl.pathname === '/signup'
+  ) {
+    const ip =
+      request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
 
-export default async function middleware(req: NextRequest) {
-  const path = req.nextUrl.pathname;
+    const now = Date.now();
+    const rateLimitKey = `${ip}:${request.nextUrl.pathname}`;
+    const rateLimit = rateLimitMap.get(rateLimitKey);
 
-  const isProtectedRoute = protectedRoutes.some((route) => path.startsWith(route));
-
-  const isAuthRoute = authRoutes.includes(path);
-
-  // Check for access token
-  // No longer looking for refresh_token since it's HttpOnly and not accessible
-  const accessToken = req.cookies.get('access_token');
-
-  // Redirect to /dashboard if the user is authenticated
-  if (accessToken && isAuthRoute && !req.nextUrl.pathname.startsWith('/dashboard')) {
-    try {
-      // Decode token to check if it's valid
-      const decodedToken: any = jwtDecode(accessToken.value);
-      console.log('Decoded token:', decodedToken);
-
-      // Check if token is expired
-      const now = Math.floor(Date.now() / 1000);
-      if (decodedToken.exp && decodedToken.exp > now) {
-        return NextResponse.redirect(new URL('/dashboard', req.nextUrl));
-      }
-    } catch (error) {
-      console.error('Token decode error in middleware:', error);
-      return NextResponse.redirect(new URL('/signin', req.nextUrl));
+    if (!rateLimit || now - rateLimit.lastReset > RATE_LIMIT_WINDOW) {
+      // Reset the rate limit window
+      rateLimitMap.set(rateLimitKey, { count: 1, lastReset: now });
+    } else if (rateLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
+      // Rate limit exceeded
+      return new NextResponse('Too Many Requests', {
+        status: 429,
+        headers: {
+          'Retry-After': String(Math.ceil((rateLimit.lastReset + RATE_LIMIT_WINDOW - now) / 1000)),
+          'X-RateLimit-Limit': String(RATE_LIMIT_MAX_REQUESTS),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': new Date(rateLimit.lastReset + RATE_LIMIT_WINDOW).toISOString(),
+        },
+      });
+    } else {
+      // Increment the request count
+      rateLimit.count++;
     }
   }
 
-  // Skip middleware for non-protected routes
-  if (!isProtectedRoute) {
-    return NextResponse.next();
-  }
+  // Apply CSP headers for enhanced security
+  const response = await updateSession(request);
 
-  if (!accessToken && isProtectedRoute) {
-    return NextResponse.redirect(new URL('/signin', req.nextUrl));
-  }
+  // Content Security Policy
+  const csp = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self' data:",
+    "img-src 'self' data: blob: https:",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join('; ');
 
-  if (accessToken) {
-    try {
-      // Decode token (not full verification - that happens on the API)
-      const decodedToken: any = jwtDecode(accessToken.value);
+  response.headers.set('Content-Security-Policy', csp);
 
-      // Check if token is expired
-      const now = Math.floor(Date.now() / 1000);
-      if (decodedToken.exp && decodedToken.exp < now) {
-        // Token expired - redirect to refresh flow
-        req.nextUrl.searchParams.set('expired', 'true');
-        return NextResponse.redirect(new URL('/signin', req.nextUrl));
-      }
+  // Additional security headers
+  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
 
-      // Allow access
-      return NextResponse.next();
-    } catch (error) {
-      // Invalid token, redirect to login
-      console.error('Token validation error:', error);
-      return NextResponse.redirect(new URL('/signin', req.nextUrl));
-    }
-  }
+  return response;
 }
 
-export const config = {
-  matcher: [
-    /*
-     * Match all request paths except:
-     * - _next (Next.js internals)
-     * - api (API routes)
-     * - static files (favicon, images, etc)
-     * - auth-related pages
-     */
-    '/((?!_next|api|favicon\\.ico|_next/static|_next/image|.*\\.(?:jpg|jpeg|gif|png|svg|webp)).*)',
-  ],
-};
+// Export the config from the Supabase middleware
+export { supabaseConfig as config };
+
+// Clean up old rate limit entries periodically
+if (typeof globalThis !== 'undefined') {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, value] of rateLimitMap.entries()) {
+      if (now - value.lastReset > RATE_LIMIT_WINDOW * 2) {
+        rateLimitMap.delete(key);
+      }
+    }
+  }, RATE_LIMIT_WINDOW * 2);
+}

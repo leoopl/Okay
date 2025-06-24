@@ -1,8 +1,6 @@
 import { Suspense } from 'react';
-import { getOAuthStatus } from '@/lib/actions/server-oauth';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, Loader2 } from 'lucide-react';
 import { OAuthAccountManagement } from './oauth-account-management';
+import { getUserIdentities } from '@/lib/actions/supabase-oauth';
 
 /**
  * OAuth Account Management Section for Profile Page
@@ -18,13 +16,8 @@ export async function ProfileOAuthSection() {
 
 async function OAuthSectionContent() {
   try {
-    const oauthStatus = await getOAuthStatus();
-
-    if (!oauthStatus) {
-      return <OAuthSectionError />;
-    }
-
-    return <OAuthAccountManagement oauthStatus={oauthStatus} />;
+    const userIdentities = await getUserIdentities();
+    return <OAuthAccountManagement userIdentities={userIdentities || []} />;
   } catch (error) {
     console.error('Error loading OAuth status:', error);
     return <OAuthSectionError />;
@@ -33,40 +26,31 @@ async function OAuthSectionContent() {
 
 function OAuthSectionSkeleton() {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Shield className="h-5 w-5" />
-          Contas Vinculadas
-        </CardTitle>
-        <CardDescription>Carregando informações das contas vinculadas...</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+    <div className="space-y-4">
+      <div className="animate-pulse">
+        <div className="mb-2 h-4 w-32 rounded bg-gray-200"></div>
+        <div className="h-3 w-48 rounded bg-gray-200"></div>
+      </div>
+      <div className="rounded-lg border p-4">
+        <div className="animate-pulse space-y-3">
+          <div className="h-4 w-24 rounded bg-gray-200"></div>
+          <div className="space-y-2">
+            <div className="h-3 w-full rounded bg-gray-200"></div>
+            <div className="h-3 w-3/4 rounded bg-gray-200"></div>
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
 function OAuthSectionError() {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Shield className="h-5 w-5" />
-          Contas Vinculadas
-        </CardTitle>
-        <CardDescription>
-          Não foi possível carregar as informações das contas vinculadas.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-gray-500">
-          Ocorreu um erro ao carregar as informações. Tente recarregar a página.
-        </p>
-      </CardContent>
-    </Card>
+    <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+      <h3 className="font-medium text-red-800">Erro ao carregar contas vinculadas</h3>
+      <p className="text-sm text-red-600">
+        Não foi possível carregar as informações das contas vinculadas. Tente recarregar a página.
+      </p>
+    </div>
   );
 }

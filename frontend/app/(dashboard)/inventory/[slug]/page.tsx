@@ -2,12 +2,6 @@
 
 import { use, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  InventoryService,
-  Inventory,
-  Question,
-  UserResponseOption,
-} from '@/services/inventory-service';
 import { useInventoryStore } from '@/store/inventory-store';
 import { Button } from '@/components/ui/button';
 import {
@@ -37,6 +31,24 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import Loading from './loading';
+import {
+  Inventory,
+  InventoryService,
+  UserResponseOption,
+  submitInventoryResponse,
+} from '@/lib/actions/supabase-inventories';
+
+// Types for questions and options
+interface Question {
+  id: string;
+  title: string;
+  subscale?: string;
+  reverseScore?: boolean;
+  options: Array<{
+    value: number;
+    label: string;
+  }>;
+}
 
 // Enhanced Error Component
 const ErrorState = ({ error, onBack }: { error: string; onBack: () => void }) => (
@@ -100,12 +112,14 @@ const ConsentForm = ({
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Perguntas:</span>
-              <span className="font-medium">{inventory.questions.length}</span>
+              <span className="font-medium">
+                {(inventory.questions as unknown as Question[]).length}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Tempo estimado:</span>
               <span className="font-medium">
-                ~{Math.ceil(inventory.questions.length * 0.5)} minutos
+                ~{Math.ceil((inventory.questions as unknown as Question[]).length * 0.5)} minutos
               </span>
             </div>
             {inventory.source && (
@@ -313,9 +327,13 @@ export default function InventoryPage({ params }: { params: Promise<{ slug: stri
       try {
         setLoading(true);
         setError(null);
-        const data = await InventoryService.getInventory(slug);
-        setInventory(data);
-        setCurrentInventory(data);
+        const result = await InventoryService.getInventory(slug);
+        if (result.success && result.inventory) {
+          setInventory(result.inventory);
+          setCurrentInventory(result.inventory);
+        } else {
+          setError(result.error || 'Não foi possível carregar o questionário');
+        }
       } catch (err) {
         console.error('Failed to fetch inventory:', err);
         setError(
@@ -330,7 +348,9 @@ export default function InventoryPage({ params }: { params: Promise<{ slug: stri
   }, [slug, setCurrentInventory]);
 
   // Get current question and response
-  const currentQuestion = inventory?.questions[currentQuestionIndex];
+  const questions = (inventory?.questions as unknown as Question[]) || [];
+  const currentQuestion = questions[currentQuestionIndex];
+
   const getCurrentResponse = useCallback(() => {
     if (!currentQuestion) return null;
     return responses.find((r) => r.questionId === currentQuestion.id) ?? null;
@@ -351,7 +371,8 @@ export default function InventoryPage({ params }: { params: Promise<{ slug: stri
   const handleNext = useCallback(() => {
     if (!inventory) return;
 
-    if (currentQuestionIndex < inventory.questions.length - 1) {
+    const questions = inventory.questions as unknown as Question[];
+    if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
       handleSubmit();
@@ -371,22 +392,30 @@ export default function InventoryPage({ params }: { params: Promise<{ slug: stri
     try {
       setSubmitting(true);
 
+      const questions = inventory.questions as unknown as Question[];
       // Validate all questions answered
-      if (responses.length !== inventory.questions.length) {
+      if (responses.length !== questions.length) {
         setError('Por favor, responda todas as perguntas antes de finalizar.');
         return;
       }
 
       // Submit responses
-      const result = await InventoryService.submitResponse({
+      const result = await submitInventoryResponse({
         inventoryId: inventory.id,
         responses: responses,
         consentGiven: consentGiven,
       });
 
-      // Store results and navigate
-      setResults(result.calculatedScores, result.interpretationResults);
-      router.push(`/inventory/${slug}/result`);
+      if (result.success && result.response) {
+        // Store results and navigate
+        setResults(
+          (result.response.calculated_scores as any) || {},
+          (result.response.interpretation_results as any) || {},
+        );
+        router.push(`/inventory/${slug}/result`);
+      } else {
+        setError(result.error || 'Não foi possível enviar suas respostas. Tente novamente.');
+      }
     } catch (err) {
       console.error('Failed to submit responses:', err);
       setError('Não foi possível enviar suas respostas. Tente novamente.');
@@ -454,13 +483,13 @@ export default function InventoryPage({ params }: { params: Promise<{ slug: stri
           <QuestionCard
             question={currentQuestion}
             currentIndex={currentQuestionIndex}
-            totalQuestions={inventory.questions.length}
+            totalQuestions={questions.length}
             currentResponse={getCurrentResponse()}
             onOptionSelect={handleOptionSelect}
             onNext={handleNext}
             onPrevious={handlePrevious}
             isFirstQuestion={currentQuestionIndex === 0}
-            isLastQuestion={currentQuestionIndex === inventory.questions.length - 1}
+            isLastQuestion={currentQuestionIndex === questions.length - 1}
             submitting={submitting}
           />
         )}

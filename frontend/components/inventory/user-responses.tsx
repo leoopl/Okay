@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { InventoryService, InventoryResponse } from '@/services/inventory-service';
+import { InventoryService, type InventoryResponse } from '@/lib/actions/supabase-inventories';
 import {
   Card,
   CardContent,
@@ -42,7 +42,7 @@ export default function UserResponses() {
       try {
         setLoading(true);
         const data = await InventoryService.getUserResponses();
-        setResponses(data);
+        setResponses(data.responses || []);
         setError(null);
       } catch (err) {
         console.error('Failed to fetch user responses:', err);
@@ -127,32 +127,35 @@ export default function UserResponses() {
       {responses.map((response) => (
         <Card key={response.id}>
           <CardHeader>
-            <CardTitle>{response.inventoryTitle}</CardTitle>
+            <CardTitle>{(response as any).inventoryTitle || 'Questionário'}</CardTitle>
             <CardDescription className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              Completado em {formatDate(response.completedAt)}
+              Completado em {formatDate(response.completed_at)}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="mb-3 flex items-center gap-2">
               <BarChart4 className="text-primary h-4 w-4" />
               <span className="font-medium">Resultado:</span>
-              <Badge variant="outline">{response.interpretationResults.label}</Badge>
+              <Badge variant="outline">
+                {(response.interpretation_results as any)?.label || 'N/A'}
+              </Badge>
             </div>
 
             {/* Show subscales if available */}
-            {response.interpretationResults.subscaleInterpretations &&
-              Object.keys(response.interpretationResults.subscaleInterpretations).length > 0 && (
+            {(response.interpretation_results as any)?.subscaleInterpretations &&
+              Object.keys((response.interpretation_results as any).subscaleInterpretations).length >
+                0 && (
                 <div className="text-muted-foreground mt-2 text-sm">
                   <p>Categorias avaliadas:</p>
                   <div className="mt-1 flex flex-wrap gap-2">
-                    {Object.entries(response.interpretationResults.subscaleInterpretations).map(
-                      ([key, value]) => (
-                        <Badge key={key} variant="secondary" className="capitalize">
-                          {key}
-                        </Badge>
-                      ),
-                    )}
+                    {Object.entries(
+                      (response.interpretation_results as any).subscaleInterpretations,
+                    ).map(([key, value]) => (
+                      <Badge key={key} variant="secondary" className="capitalize">
+                        {key}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
               )}
@@ -160,7 +163,7 @@ export default function UserResponses() {
           <CardFooter className="flex justify-between">
             <Button
               variant="default"
-              onClick={() => handleViewResult(response.id, response.inventoryId)}
+              onClick={() => handleViewResult(response.id, response.inventory_id)}
             >
               Ver Resultado
             </Button>

@@ -1,8 +1,63 @@
 import { create } from 'zustand';
 import { devtools, subscribeWithSelector } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import * as journalService from '@/services/journal-service';
-import type { Journal, CreateJournalDto, UpdateJournalDto } from '@/services/journal-service';
+import {
+  getJournalEntries,
+  getJournalEntry,
+  createJournalEntry,
+  updateJournalEntry,
+  deleteJournalEntry,
+} from '@/lib/actions/supabase-journal';
+import type { Database } from '@/lib/supabase/types';
+
+// Frontend-compatible Journal type
+export type Journal = {
+  id: string;
+  user_id: string;
+  title: string;
+  content: any; // TipTap JSON content
+  mood?: string; // Convert null to undefined for frontend compatibility
+  tags: string[];
+  is_content_encrypted: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+// Supabase database type
+type SupabaseJournalEntry = Database['public']['Tables']['journal_entries']['Row'];
+
+// Mapper functions to convert between types
+function mapSupabaseToFrontend(supabaseEntry: SupabaseJournalEntry): Journal {
+  return {
+    id: supabaseEntry.id,
+    user_id: supabaseEntry.user_id,
+    title: supabaseEntry.title,
+    content: supabaseEntry.content,
+    mood: supabaseEntry.mood || undefined, // Convert null to undefined
+    tags: supabaseEntry.tags,
+    is_content_encrypted: supabaseEntry.is_content_encrypted,
+    created_at: supabaseEntry.created_at,
+    updated_at: supabaseEntry.updated_at,
+  };
+}
+
+function mapArraySupabaseToFrontend(supabaseEntries: SupabaseJournalEntry[]): Journal[] {
+  return supabaseEntries.map(mapSupabaseToFrontend);
+}
+
+interface CreateJournalDto {
+  title: string;
+  content: string;
+  tags?: string[];
+  mood?: string;
+}
+
+interface UpdateJournalDto {
+  title?: string;
+  content?: string;
+  tags?: string[];
+  mood?: string;
+}
 
 interface JournalState {
   // State
@@ -44,11 +99,20 @@ export const useJournalStore = create<JournalState>()(
           });
 
           try {
-            const entries = await journalService.getAllJournals();
-            set((state) => {
-              state.entries = entries;
-              state.isLoading = false;
-            });
+            const result = await getJournalEntries();
+            if (result.success && result.entries) {
+              set((state) => {
+                state.entries = mapArraySupabaseToFrontend(
+                  result.entries as SupabaseJournalEntry[],
+                );
+                state.isLoading = false;
+              });
+            } else {
+              set((state) => {
+                state.error = result.error || 'Failed to fetch journals';
+                state.isLoading = false;
+              });
+            }
           } catch (error) {
             set((state) => {
               state.error = error instanceof Error ? error.message : 'Failed to fetch journals';
@@ -58,19 +122,29 @@ export const useJournalStore = create<JournalState>()(
         },
 
         // Fetch a specific journal entry
-        getJournalById: async (id: string) => {
+        getJournalById: async (id: string): Promise<Journal | null> => {
           set((state) => {
             state.isLoading = true;
             state.error = null;
           });
 
           try {
-            const entry = await journalService.getJournalById(id);
-            set((state) => {
-              state.currentEntry = entry;
-              state.isLoading = false;
-            });
-            return entry;
+            const result = await getJournalEntry(id);
+            if (result.success && result.entry) {
+              const mappedEntry = mapSupabaseToFrontend(result.entry as SupabaseJournalEntry);
+              set((state) => {
+                state.currentEntry = mappedEntry;
+                state.isLoading = false;
+              });
+              return mappedEntry;
+            } else {
+              set((state) => {
+                state.error = result.error || 'Failed to fetch journal';
+                state.isLoading = false;
+                state.currentEntry = null;
+              });
+              return null;
+            }
           } catch (error) {
             set((state) => {
               state.error = error instanceof Error ? error.message : 'Failed to fetch journal';
@@ -82,7 +156,7 @@ export const useJournalStore = create<JournalState>()(
         },
 
         // Create a new journal entry
-        createJournal: async (data = {}) => {
+        createJournal: async (data = {}): Promise<Journal> => {
           set((state) => {
             state.isLoading = true;
             state.error = null;
@@ -100,21 +174,29 @@ export const useJournalStore = create<JournalState>()(
               ],
             });
 
-            const newEntry = await journalService.createJournal({
-              title: 'Give your thoughts a title...',
-              content: defaultContent, // Send as string
-              tags: [],
-              // Don't include mood if not provided (it's optional)
-              ...data,
-            });
+            const result = await createJournalEntry(
+              data.title || 'Give your thoughts a title...',
+              data.content || defaultContent,
+              data.mood as any,
+              data.tags,
+              false, // encrypt = false for now
+            );
 
-            set((state) => {
-              state.entries.unshift(newEntry);
-              state.currentEntry = newEntry;
-              state.isLoading = false;
-            });
-
-            return newEntry;
+            if (result.success && result.entry) {
+              const newEntry = mapSupabaseToFrontend(result.entry as SupabaseJournalEntry);
+              set((state) => {
+                state.entries.unshift(newEntry);
+                state.currentEntry = newEntry;
+                state.isLoading = false;
+              });
+              return newEntry;
+            } else {
+              set((state) => {
+                state.error = result.error || 'Failed to create journal';
+                state.isLoading = false;
+              });
+              throw new Error(result.error || 'Failed to create journal');
+            }
           } catch (error) {
             set((state) => {
               state.error = error instanceof Error ? error.message : 'Failed to create journal';
@@ -132,22 +214,38 @@ export const useJournalStore = create<JournalState>()(
           });
 
           try {
-            const updatedEntry = await journalService.updateJournal(id, data);
+            const result = await updateJournalEntry(
+              id,
+              data.title,
+              data.content,
+              data.mood as any,
+              data.tags,
+              false, // encrypt = false for now
+            );
 
-            set((state) => {
-              // Update in entries array
-              const index = state.entries.findIndex((entry: Journal) => entry.id === id);
-              if (index !== -1) {
-                state.entries[index] = updatedEntry;
-              }
+            if (result.success && result.entry) {
+              const updatedEntry = mapSupabaseToFrontend(result.entry as SupabaseJournalEntry);
+              set((state) => {
+                // Update in entries array
+                const index = state.entries.findIndex((entry: Journal) => entry.id === id);
+                if (index !== -1) {
+                  state.entries[index] = updatedEntry;
+                }
 
-              // Update current entry if it's the same
-              if (state.currentEntry?.id === id) {
-                state.currentEntry = updatedEntry;
-              }
+                // Update current entry if it's the same
+                if (state.currentEntry?.id === id) {
+                  state.currentEntry = updatedEntry;
+                }
 
-              state.isLoading = false;
-            });
+                state.isLoading = false;
+              });
+            } else {
+              set((state) => {
+                state.error = result.error || 'Failed to update journal';
+                state.isLoading = false;
+              });
+              throw new Error(result.error || 'Failed to update journal');
+            }
           } catch (error) {
             set((state) => {
               state.error = error instanceof Error ? error.message : 'Failed to update journal';
@@ -165,15 +263,22 @@ export const useJournalStore = create<JournalState>()(
           });
 
           try {
-            await journalService.deleteJournal(id);
-
-            set((state) => {
-              state.entries = state.entries.filter((entry: Journal) => entry.id !== id);
-              if (state.currentEntry?.id === id) {
-                state.currentEntry = null;
-              }
-              state.isLoading = false;
-            });
+            const result = await deleteJournalEntry(id);
+            if (result.success) {
+              set((state) => {
+                state.entries = state.entries.filter((entry: Journal) => entry.id !== id);
+                if (state.currentEntry?.id === id) {
+                  state.currentEntry = null;
+                }
+                state.isLoading = false;
+              });
+            } else {
+              set((state) => {
+                state.error = result.error || 'Failed to delete journal';
+                state.isLoading = false;
+              });
+              throw new Error(result.error || 'Failed to delete journal');
+            }
           } catch (error) {
             set((state) => {
               state.error = error instanceof Error ? error.message : 'Failed to delete journal';
@@ -200,13 +305,12 @@ export const useJournalStore = create<JournalState>()(
         // Local state helpers (for optimistic updates)
         updateEntry: (id: string, updates: Partial<Journal>) => {
           set((state) => {
-            const index = state.entries.findIndex((entry: Journal) => entry.id === id);
+            const index = state.entries.findIndex((entry) => entry.id === id);
             if (index !== -1) {
-              Object.assign(state.entries[index], updates);
+              state.entries[index] = { ...state.entries[index], ...updates };
             }
-
             if (state.currentEntry?.id === id) {
-              Object.assign(state.currentEntry, updates);
+              state.currentEntry = { ...state.currentEntry, ...updates };
             }
           });
         },
@@ -219,7 +323,7 @@ export const useJournalStore = create<JournalState>()(
 
         removeEntry: (id: string) => {
           set((state) => {
-            state.entries = state.entries.filter((entry: Journal) => entry.id !== id);
+            state.entries = state.entries.filter((entry) => entry.id !== id);
             if (state.currentEntry?.id === id) {
               state.currentEntry = null;
             }
@@ -227,13 +331,11 @@ export const useJournalStore = create<JournalState>()(
         },
       })),
     ),
-    {
-      name: 'journal-store',
-    },
+    { name: 'journal-store' },
   ),
 );
 
-// Selector hooks for optimized re-renders
+// Selectors for easier access
 export const useJournalEntries = () => useJournalStore((state) => state.entries);
 export const useCurrentJournalEntry = () => useJournalStore((state) => state.currentEntry);
 export const useJournalLoading = () => useJournalStore((state) => state.isLoading);

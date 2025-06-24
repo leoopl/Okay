@@ -6,7 +6,6 @@ import MedicationList from '@/components/medication/medication-list';
 import MedicationSchedule from '@/components/medication/medication-schedule';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Toaster } from '@/components/ui/sonner';
 import { Button } from '@/components/ui/button';
 import { useMedicationStore } from '@/store/medication-store';
 import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
@@ -155,8 +154,6 @@ export default function MedicationPage() {
 
   return (
     <main className="container mx-auto px-4 py-8 md:py-12">
-      {/* Global Toast Notifications */}
-      <Toaster position="top-center" richColors />
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">

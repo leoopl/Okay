@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation';
 import { ProtectedContent } from '@/components/common/auth/protected-route';
 import { formatDistanceToNow } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 
 enum TestimonialStatus {
   PENDING = 'pending',
@@ -142,7 +142,6 @@ export default function AdminTestimonialsPage() {
 
   return (
     <ProtectedContent requiredRole="admin" fallback={<div>Access Denied</div>}>
-      <Toaster richColors position="top-center" closeButton={false} />
       <div className="container mx-auto py-10">
         <h1 className="mb-6 text-3xl font-bold">Testimonial Management</h1>
 

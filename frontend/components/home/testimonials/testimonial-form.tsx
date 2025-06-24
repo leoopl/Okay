@@ -6,7 +6,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { TestimonialFormSchema } from '@/lib/definitions';
-import { submitTestimonial } from '@/services/testimonials-service';
+import { submitTestimonial } from '@/lib/actions/supabase-testimonials';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useActionState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';

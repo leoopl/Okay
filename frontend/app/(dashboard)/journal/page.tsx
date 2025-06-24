@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { JournalCard } from '@/components/journal/journal-card';
 import { useJournalStore } from '@/store/journal-store';
-import type { Journal } from '@/services/journal-service';
+import type { Journal } from '@/store/journal-store';
 
 export default function JournalPage() {
   const router = useRouter();
@@ -51,7 +51,7 @@ export default function JournalPage() {
   // Sort entries by creation date (most recent first)
   const sortedEntries = useMemo(() => {
     return [...filteredEntries].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     );
   }, [filteredEntries]);
 

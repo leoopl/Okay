@@ -27,8 +27,8 @@ import {
 import { toast } from 'sonner';
 import { getUserInitials, cn } from '@/lib/utils';
 import { useAuth } from '@/providers/auth-provider';
-import { uploadProfilePicture, deleteProfilePicture } from '@/lib/actions/server-profile';
 import { useRouter } from 'next/navigation';
+import { deleteProfilePicture, uploadProfilePicture } from '@/lib/actions/supabase-profile';
 
 interface ProfilePictureUploadProps {
   className?: string;
@@ -109,7 +109,7 @@ export function ProfilePictureUpload({
   showStatusIndicator = true,
   allowDelete = true,
 }: ProfilePictureUploadProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -129,9 +129,9 @@ export function ProfilePictureUpload({
 
   // Update local image URL when user changes
   useEffect(() => {
-    setCurrentImageUrl(user?.profilePictureUrl || null);
+    setCurrentImageUrl(profile?.profilePictureUrl || null);
     setError(null);
-  }, [user?.profilePictureUrl]);
+  }, [profile?.profilePictureUrl]);
 
   // Handle upload success/error
   useEffect(() => {
@@ -246,7 +246,7 @@ export function ProfilePictureUpload({
   // Get the profile picture URL with fallback
   const getProfilePictureUrl = () => {
     // Use local state first, then user data, then fallback
-    const imageUrl = currentImageUrl || user?.profilePictureUrl;
+    const imageUrl = currentImageUrl || profile?.profilePictureUrl;
 
     if (imageUrl) {
       // Add timestamp to prevent caching issues
@@ -255,11 +255,11 @@ export function ProfilePictureUpload({
     }
 
     // Fallback to ui-avatars.com
-    return `https://ui-avatars.com/api/?name=${user?.name}+${user?.surname || ''}&background=7F9463&color=fff&size=128`;
+    return `https://ui-avatars.com/api/?name=${profile?.name}+${profile?.surname || ''}&background=7F9463&color=fff&size=128`;
   };
 
   const isPending = isUploading || isUploadPending || isDeletePending;
-  const hasProfilePicture = currentImageUrl || user?.profilePictureUrl;
+  const hasProfilePicture = currentImageUrl || profile?.profilePictureUrl;
 
   return (
     <div className={cn('relative', className)}>
@@ -294,20 +294,20 @@ export function ProfilePictureUpload({
               >
                 <AvatarImage
                   src={getProfilePictureUrl()}
-                  alt={`Foto de perfil de ${user?.name}`}
+                  alt={`Foto de perfil de ${profile?.name}`}
                   className="object-cover"
                   onError={(e) => {
                     // If image fails to load, try without timestamp
                     const target = e.target as HTMLImageElement;
-                    const originalSrc = currentImageUrl || user?.profilePictureUrl;
+                    const originalSrc = currentImageUrl || profile?.profilePictureUrl;
                     if (originalSrc && target.src.includes('?t=')) {
                       target.src = originalSrc;
                     }
                   }}
                 />
                 <AvatarFallback className="bg-muted">
-                  {user ? (
-                    getUserInitials(user)
+                  {profile ? (
+                    getUserInitials(profile)
                   ) : (
                     <CircleUser className="text-muted-foreground size-6" />
                   )}

@@ -17,15 +17,15 @@ import { Label } from '@/components/ui/label';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useActionState } from 'react';
-import { PasswordChangeSchema } from '@/lib/definitions';
-import { changePassword, updateConsent } from '@/lib/actions/server-profile';
 import { AlertCircle, CheckCircle, Shield, Lock, Eye, Loader2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/providers/auth-provider';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { PasswordStrengthIndicator } from '../common/auth/password-strength-indicator';
+import { changePassword, updateConsent } from '@/lib/actions/supabase-profile';
+import { PasswordChangeSchema } from '@/lib/schemas/profile-schemas';
 
 // Form section wrapper
 const SecuritySection = ({
@@ -77,7 +77,7 @@ const ConsentSwitch = ({
 );
 
 export function SecurityTab() {
-  const { user } = useAuth();
+  const { profile } = useAuth();
   const [passwordState, passwordAction, isPasswordPending] = useActionState(
     changePassword,
     undefined,
@@ -139,8 +139,6 @@ export function SecurityTab() {
 
   return (
     <div className="space-y-8">
-      <Toaster richColors position="top-center" />
-
       {/* Header */}
       <div>
         <h2 className="text-green-dark font-varela mb-2 text-2xl font-bold">
@@ -154,21 +152,6 @@ export function SecurityTab() {
         title="Alterar Senha"
         description="Mantenha sua conta segura atualizando sua senha regularmente"
       >
-        {/* Status indicators */}
-        {passwordState?.success && (
-          <Alert className="border-green-200 bg-green-50 text-green-800">
-            <CheckCircle className="size-4" />
-            <AlertDescription>Senha alterada com sucesso!</AlertDescription>
-          </Alert>
-        )}
-
-        {passwordState && !passwordState.success && passwordState.message && (
-          <Alert variant="destructive">
-            <AlertCircle className="size-4" />
-            <AlertDescription>{passwordState.message}</AlertDescription>
-          </Alert>
-        )}
-
         <Form {...passwordForm}>
           <form onSubmit={passwordForm.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
@@ -260,26 +243,12 @@ export function SecurityTab() {
         title="Preferências de Privacidade"
         description="Controle como suas informações são usadas e compartilhadas"
       >
-        {consentState?.success && (
-          <Alert className="border-green-200 bg-green-50 text-green-800">
-            <CheckCircle className="size-4" />
-            <AlertDescription>Preferências atualizadas com sucesso!</AlertDescription>
-          </Alert>
-        )}
-
-        {consentState && !consentState.success && consentState.message && (
-          <Alert variant="destructive">
-            <AlertCircle className="size-4" />
-            <AlertDescription>{consentState.message}</AlertDescription>
-          </Alert>
-        )}
-
         <form action={consentAction} className="space-y-4">
           <ConsentSwitch
             id="consent-data"
             title="Processamento de Dados"
             description="Permitir o processamento dos meus dados pessoais para fornecer os serviços da plataforma. Esta opção é necessária para o funcionamento básico do aplicativo."
-            defaultChecked={user?.consentToDataProcessing}
+            defaultChecked={profile?.consentToDataProcessing}
             name="consentToDataProcessing"
           />
 
@@ -287,7 +256,7 @@ export function SecurityTab() {
             id="consent-research"
             title="Participar de Pesquisas"
             description="Autorizar o uso dos meus dados anonimizados em pesquisas sobre saúde mental para melhorar os serviços oferecidos."
-            defaultChecked={user?.consentToResearch}
+            defaultChecked={profile?.consentToResearch}
             name="consentToResearch"
           />
 
@@ -295,7 +264,7 @@ export function SecurityTab() {
             id="consent-marketing"
             title="Comunicações de Marketing"
             description="Receber informações sobre novos recursos, atualizações e conteúdos relacionados ao bem-estar mental."
-            defaultChecked={user?.consentToMarketing}
+            defaultChecked={profile?.consentToMarketing}
             name="consentToMarketing"
           />
 

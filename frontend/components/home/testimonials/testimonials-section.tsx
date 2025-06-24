@@ -1,4 +1,3 @@
-import { Toaster } from 'sonner';
 import { Carousel, CarouselContent, CarouselItem } from '../../ui/carousel';
 import TestimonialForm from './testimonial-form';
 import TestimonialsCarousel from './testimonials-carousel';
@@ -21,8 +20,6 @@ function TestimonialsLoading() {
 const Testimonials: React.FC = () => {
   return (
     <section className="w-full py-16">
-      <Toaster position="top-center" richColors />
-
       <div className="container mx-auto px-4 lg:max-w-6xl">
         {/* Header */}
         <header className="mb-16 text-center">

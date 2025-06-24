@@ -23,9 +23,10 @@ import {
 import { useRouter } from 'next/navigation';
 import { getProfilePictureUrl, getUserInitials } from '@/lib/utils';
 import { useAuth } from '@/providers/auth-provider';
+import { signOut } from '@/lib/actions/supabase-auth';
 
 export default function UserButton() {
-  const { user, logout } = useAuth();
+  const { user, profile } = useAuth();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -36,7 +37,7 @@ export default function UserButton() {
 
   const handleLogout = () => {
     setIsOpen(false);
-    logout();
+    signOut();
   };
 
   const menuItems = [
@@ -73,16 +74,16 @@ export default function UserButton() {
           <div className="flex items-center gap-2">
             <Avatar className="h-8 w-8 ring-2 ring-[#F8D77C]/30">
               <AvatarImage
-                src={user ? getProfilePictureUrl(user) : undefined}
-                alt={user?.name}
+                src={profile?.profilePictureUrl ?? undefined}
+                alt={profile?.name}
                 className="object-cover"
               />
               <AvatarFallback className="from-yellow-light to-yellow-dark bg-gradient-to-br text-sm font-medium text-white">
-                {user ? getUserInitials(user) : <CircleUser />}
+                {profile ? getUserInitials(profile) : <CircleUser />}
               </AvatarFallback>
             </Avatar>
             <span className="text-grey-dark hidden max-w-[120px] truncate text-sm font-medium sm:block">
-              {user?.name} {user?.surname}
+              {profile?.name} {profile?.surname}
             </span>
             <ChevronDown
               className={`text-grey-dark h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
@@ -101,17 +102,17 @@ export default function UserButton() {
           <div className="flex items-center gap-3">
             <Avatar className="ring-beige-medium/30 size-10 ring-2">
               <AvatarImage
-                src={user ? getProfilePictureUrl(user) : undefined}
-                alt={user?.name}
+                src={profile?.profilePictureUrl ?? undefined}
+                alt={profile?.name}
                 className="object-cover"
               />
               <AvatarFallback className="from-yellow-light to-yellow-dark bg-gradient-to-br text-sm font-medium text-white">
-                {user ? getUserInitials(user) : <CircleUser />}
+                {profile ? getUserInitials(profile) : <CircleUser />}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-              <span className="text-grey-dark text-sm font-medium">{user?.name}</span>
-              <span className="text-grey-medium text-xs">{user?.email}</span>
+              <span className="text-grey-dark text-sm font-medium">{profile?.name}</span>
+              <span className="text-grey-medium text-xs">{profile?.email}</span>
             </div>
           </div>
         </DropdownMenuLabel>

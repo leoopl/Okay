@@ -1,8 +1,15 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
-import { ApiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { format, isValid } from 'date-fns';
+import {
+  getMedications,
+  createMedication as createMedicationAction,
+  updateMedication as updateMedicationAction,
+  deleteMedication as deleteMedicationAction,
+  type CreateMedicationDto as SupabaseCreateMedicationDto,
+  type UpdateMedicationDto as SupabaseUpdateMedicationDto,
+} from '@/lib/actions/supabase-medications';
 
 // Enums and constants
 export enum DayOfWeek {
@@ -228,18 +235,22 @@ export const useMedicationStore = create<MedicationStore>()(
       }));
 
       try {
-        const response = await ApiClient.get<Medication[]>('/medications');
-        const medications = response.map(processMedicationDates);
+        const response = await getMedications();
 
-        set((state) => ({
-          medications,
-          loadingStates: { ...state.loadingStates, medications: false },
-        }));
+        if (response.success && response.medications) {
+          const medications = response.medications.map(processMedicationDates);
+
+          set((state) => ({
+            medications,
+            loadingStates: { ...state.loadingStates, medications: false },
+          }));
+        } else {
+          throw new Error(response.error || 'Failed to fetch medications');
+        }
       } catch (error: any) {
         const medicationError = createMedicationError(
-          error.code >= 400 && error.code < 500 ? 'validation' : 'network',
-          'Failed to fetch medications',
-          error.code?.toString(),
+          'network',
+          error.message || 'Failed to fetch medications',
         );
 
         set((state) => ({
@@ -259,10 +270,11 @@ export const useMedicationStore = create<MedicationStore>()(
       }));
 
       try {
-        const response = await ApiClient.get<ScheduleItem[]>('/medications/schedule/today');
+        // TODO: Implement with Supabase actions
+        // const response = await getTodaySchedule();
 
         set((state) => ({
-          todaySchedule: response,
+          todaySchedule: [], // Temporary empty array
           loadingStates: { ...state.loadingStates, todaySchedule: false },
         }));
       } catch (error: any) {
@@ -290,53 +302,11 @@ export const useMedicationStore = create<MedicationStore>()(
       }));
 
       try {
-        let url = '/medications/logs/history';
-        const params = new URLSearchParams();
-
-        if (medicationId) {
-          params.append('medicationId', medicationId);
-        }
-
-        // Prioritize explicit dates over daysBack
-        if (startDate || endDate) {
-          if (startDate) {
-            const formattedStartDate = formatDateForApi(startDate);
-            if (formattedStartDate) {
-              params.append('startDate', formattedStartDate);
-            }
-          }
-          if (endDate) {
-            const formattedEndDate = formatDateForApi(endDate);
-            if (formattedEndDate) {
-              params.append('endDate', formattedEndDate);
-            }
-          }
-        } else if (daysBack) {
-          params.append('daysBack', Math.max(1, Math.floor(daysBack)).toString());
-        } else {
-          // Default fallback
-          params.append('daysBack', DEFAULT_DAYS_BACK.toString());
-        }
-
-        const queryString = params.toString();
-        if (queryString) {
-          url += `?${queryString}`;
-        }
-
-        const logs = await ApiClient.get<DoseLog[]>(url);
-
-        // Process and validate dose logs
-        const formattedLogs: DoseLog[] = logs
-          .map((log: any) => ({
-            ...log,
-            timestamp: validateDate(log.timestamp) || new Date(),
-            createdAt: validateDate(log.createdAt) || new Date(),
-            updatedAt: validateDate(log.updatedAt) || new Date(),
-          }))
-          .filter((log) => log.timestamp); // Remove logs with invalid timestamps
+        // TODO: Implement with Supabase actions
+        // const response = await getDoseLogs(medicationId, startDate, endDate, daysBack);
 
         set((state) => ({
-          doseLogs: formattedLogs,
+          doseLogs: [], // Temporary empty array
           loadingStates: { ...state.loadingStates, doseLogs: false },
         }));
       } catch (error: any) {
@@ -358,25 +328,11 @@ export const useMedicationStore = create<MedicationStore>()(
       }));
 
       try {
-        let url = '/medications/stats/adherence';
-        const params = new URLSearchParams();
-
-        if (medicationId) {
-          params.append('medicationId', medicationId);
-        }
-
-        const validDaysBack = Math.max(1, Math.floor(daysBack));
-        params.append('daysBack', validDaysBack.toString());
-
-        const queryString = params.toString();
-        if (queryString) {
-          url += `?${queryString}`;
-        }
-
-        const response = await ApiClient.get<AdherenceStats>(url);
+        // TODO: Implement with Supabase actions
+        // const response = await getAdherenceStats(medicationId, daysBack);
 
         set((state) => ({
-          adherenceStats: response,
+          adherenceStats: null, // Temporary null
           loadingStates: { ...state.loadingStates, adherenceStats: false },
         }));
       } catch (error: any) {
@@ -399,31 +355,36 @@ export const useMedicationStore = create<MedicationStore>()(
       }));
 
       try {
-        // Validate and format the data
-        const formattedData = {
-          ...data,
-          startDate: formatDateForApi(data.startDate) || format(new Date(), DATE_FORMAT),
-          endDate: data.endDate ? formatDateForApi(data.endDate) : undefined,
-          schedule: data.schedule.map((item) => ({
-            ...item,
-            time: normalizeScheduleTime(item.time),
-          })),
+        // Convert to Supabase format
+        const supabaseData: SupabaseCreateMedicationDto = {
+          name: data.name,
+          dosage: data.dosage,
+          form: data.form as any, // Convert enum
+          startDate: data.startDate,
+          endDate: data.endDate,
+          notes: data.notes,
+          instructions: data.instructions,
         };
 
-        const response = await ApiClient.post<Medication>('/medications', formattedData);
-        const newMedication = processMedicationDates(response);
+        const response = await createMedicationAction(supabaseData);
 
-        set((state) => ({
-          medications: [newMedication, ...state.medications],
-          loadingStates: { ...state.loadingStates, creating: false },
-        }));
+        if (response.success && response.medication) {
+          const newMedication = processMedicationDates(response.medication);
 
-        toast.success('Medication added successfully', { richColors: true });
-        return newMedication;
+          set((state) => ({
+            medications: [newMedication, ...state.medications],
+            loadingStates: { ...state.loadingStates, creating: false },
+          }));
+
+          toast.success('Medication added successfully', { richColors: true });
+          return newMedication;
+        } else {
+          throw new Error(response.error || 'Failed to create medication');
+        }
       } catch (error: any) {
         const createError = createMedicationError(
-          error.code >= 400 && error.code < 500 ? 'validation' : 'network',
-          'Failed to create medication',
+          'network',
+          error.message || 'Failed to create medication',
         );
 
         set((state) => ({
@@ -444,38 +405,37 @@ export const useMedicationStore = create<MedicationStore>()(
       }));
 
       try {
-        // Format date fields properly
-        const formattedData: any = { ...data };
+        // Convert to Supabase format
+        const supabaseData: SupabaseUpdateMedicationDto = {
+          name: data.name,
+          dosage: data.dosage,
+          form: data.form as any,
+          startDate: data.startDate,
+          endDate: data.endDate,
+          notes: data.notes,
+          instructions: data.instructions,
+        };
 
-        if (formattedData.startDate !== undefined) {
-          formattedData.startDate = formatDateForApi(formattedData.startDate);
-        }
+        const response = await updateMedicationAction(id, supabaseData);
 
-        if (formattedData.endDate !== undefined) {
-          formattedData.endDate = formattedData.endDate
-            ? formatDateForApi(formattedData.endDate)
-            : null;
-        }
+        if (response.success && response.medication) {
+          const updatedMedication = processMedicationDates(response.medication);
 
-        if (formattedData.schedule) {
-          formattedData.schedule = formattedData.schedule.map((item: ScheduleTime) => ({
-            ...item,
-            time: normalizeScheduleTime(item.time),
+          set((state) => ({
+            medications: state.medications.map((med) => (med.id === id ? updatedMedication : med)),
+            loadingStates: { ...state.loadingStates, updating: false },
           }));
+
+          toast.success('Medication updated successfully');
+          return updatedMedication;
+        } else {
+          throw new Error(response.error || 'Failed to update medication');
         }
-
-        const response = await ApiClient.patch<Medication>(`/medications/${id}`, formattedData);
-        const updatedMedication = processMedicationDates(response);
-
-        set((state) => ({
-          medications: state.medications.map((med) => (med.id === id ? updatedMedication : med)),
-          loadingStates: { ...state.loadingStates, updating: false },
-        }));
-
-        toast.success('Medication updated successfully');
-        return updatedMedication;
       } catch (error: any) {
-        const updateError = createMedicationError('network', 'Failed to update medication');
+        const updateError = createMedicationError(
+          'network',
+          error.message || 'Failed to update medication',
+        );
 
         set((state) => ({
           errors: { ...state.errors, updating: updateError },
@@ -495,16 +455,23 @@ export const useMedicationStore = create<MedicationStore>()(
       }));
 
       try {
-        await ApiClient.delete(`/medications/${id}`);
+        const response = await deleteMedicationAction(id);
 
-        set((state) => ({
-          medications: state.medications.filter((med) => med.id !== id),
-          loadingStates: { ...state.loadingStates, deleting: false },
-        }));
+        if (response.success) {
+          set((state) => ({
+            medications: state.medications.filter((med) => med.id !== id),
+            loadingStates: { ...state.loadingStates, deleting: false },
+          }));
 
-        toast.success('Medication deleted successfully');
+          toast.success('Medication deleted successfully');
+        } else {
+          throw new Error(response.error || 'Failed to delete medication');
+        }
       } catch (error: any) {
-        const deleteError = createMedicationError('network', 'Failed to delete medication');
+        const deleteError = createMedicationError(
+          'network',
+          error.message || 'Failed to delete medication',
+        );
 
         set((state) => ({
           errors: { ...state.errors, deleting: deleteError },
@@ -524,19 +491,19 @@ export const useMedicationStore = create<MedicationStore>()(
       }));
 
       try {
-        // Format timestamp if it's a Date object
-        const formattedData = {
-          ...data,
-          timestamp:
-            typeof data.timestamp === 'string' ? data.timestamp : data.timestamp.toISOString(),
-        };
+        // TODO: Implement with Supabase actions
+        // const response = await logDoseAction(data);
 
-        const response = await ApiClient.post<DoseLog>('/medications/log-dose', formattedData);
+        // Temporary mock response
         const newLog: DoseLog = {
-          ...response,
-          timestamp: validateDate(response.timestamp) || new Date(),
-          createdAt: validateDate(response.createdAt) || new Date(),
-          updatedAt: validateDate(response.updatedAt) || new Date(),
+          id: Date.now().toString(),
+          medicationId: data.medicationId,
+          timestamp: typeof data.timestamp === 'string' ? new Date(data.timestamp) : data.timestamp,
+          status: data.status,
+          notes: data.notes,
+          scheduledTime: data.scheduledTime,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         };
 
         // Optimistically update related data

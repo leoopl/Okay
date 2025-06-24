@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface LogoProps {
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   variant?: 'full' | 'icon';
 }
 
@@ -10,14 +10,31 @@ const Logo: React.FC<LogoProps> = ({ size = 'md', variant = 'full' }) => {
     sm: 'text-lg',
     md: 'text-xl',
     lg: 'text-2xl',
+    xl: 'text-4xl',
+  };
+
+  const iconSizes = {
+    sm: 'size-6',
+    md: 'size-7',
+    lg: 'size-8',
+    xl: 'size-12',
+  };
+
+  const paddingClasses = {
+    sm: 'p-1',
+    md: 'p-1',
+    lg: 'p-1',
+    xl: 'p-2',
   };
 
   return (
     <div className="flex items-center">
-      <div className="bg-yellow-light/40 flex items-center justify-center rounded-full p-1">
+      <div
+        className={`bg-yellow-light/40 flex items-center justify-center rounded-full ${paddingClasses[size]}`}
+      >
         <svg
           viewBox="0 0 24 24"
-          className={`${variant === 'icon' ? 'h-8 w-8' : size === 'sm' ? 'h-6 w-6' : size === 'md' ? 'h-7 w-7' : 'h-8 w-8'} text-yellow-dark`}
+          className={`${variant === 'icon' ? iconSizes[size] : iconSizes[size]} text-yellow-dark`}
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
@@ -31,7 +48,7 @@ const Logo: React.FC<LogoProps> = ({ size = 'md', variant = 'full' }) => {
         </svg>
       </div>
       {variant === 'full' && (
-        <span className={`font-varela ml-2 font-bold ${sizeClasses[size]} text-yellow-dark`}>
+        <span className={`font-varela ml-3 font-bold ${sizeClasses[size]} text-yellow-dark`}>
           Okay!
         </span>
       )}

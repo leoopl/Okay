@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Inventory, InventoryService } from '@/services/inventory-service';
+import { Inventory, InventoryService } from '@/lib/actions/supabase-inventories';
 import { useInventoryStore } from '@/store/inventory-store';
 import {
   AlertCircle,
@@ -58,8 +58,15 @@ const EmptyState = () => (
 );
 
 // Enhanced Inventory Card Component
-const InventoryCard = ({ inventory }: { inventory: Inventory }) => {
-  const estimatedTime = Math.ceil(inventory.questions.length * 0.5); // 30 seconds per question
+const InventoryCard = ({
+  inventory,
+  getQuestionsLength,
+}: {
+  inventory: Inventory;
+  getQuestionsLength: (questions: any) => number;
+}) => {
+  const questionsCount = getQuestionsLength(inventory.questions);
+  const estimatedTime = Math.ceil(questionsCount * 0.5); // 30 seconds per question
 
   return (
     <Card className="group bg-card/50 hover:shadow-primary/5 h-full overflow-hidden border-0 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
@@ -78,7 +85,7 @@ const InventoryCard = ({ inventory }: { inventory: Inventory }) => {
         <div className="text-muted-foreground flex items-center gap-4 text-sm">
           <div className="flex items-center gap-1.5">
             <BookOpen className="text-primary h-4 w-4" />
-            <span>{inventory.questions.length} perguntas</span>
+            <span>{questionsCount} perguntas</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Clock className="text-secondary h-4 w-4" />
@@ -114,26 +121,35 @@ export default function InventoriesPage() {
   const [error, setError] = useState<string | null>(null);
   const resetState = useInventoryStore((state) => state.resetState);
 
-  const fetchInventories = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await InventoryService.getInventories();
-      setInventories(data);
-    } catch (err) {
-      console.error('Failed to fetch inventories:', err);
-      setError(
-        'Não foi possível carregar os questionários. Verifique sua conexão e tente novamente.',
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Load inventories on component mount
   useEffect(() => {
-    resetState();
+    async function fetchInventories() {
+      setLoading(true);
+      try {
+        const response = await InventoryService.getInventories();
+        if (response.success && response.inventories) {
+          setInventories(response.inventories);
+        }
+      } catch (error) {
+        console.error('Error loading inventories:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
     fetchInventories();
-  }, [resetState]);
+  }, []);
+
+  // Helper function to get questions length safely
+  const getQuestionsLength = (questions: any): number => {
+    if (Array.isArray(questions)) {
+      return questions.length;
+    }
+    if (questions && typeof questions === 'object' && Array.isArray(questions.questions)) {
+      return questions.questions.length;
+    }
+    return 0;
+  };
 
   return (
     <div className="from-background via-background to-muted/30 min-h-screen bg-gradient-to-br">
@@ -226,7 +242,7 @@ export default function InventoriesPage() {
           </div>
 
           {/* Error State */}
-          {error && <ErrorState error={error} onRetry={fetchInventories} />}
+          {error && <ErrorState error={error} onRetry={() => {}} />}
 
           {/* Loading State */}
           {loading && !error && (
@@ -244,7 +260,11 @@ export default function InventoriesPage() {
           {!loading && !error && inventories.length > 0 && (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {inventories.map((inventory) => (
-                <InventoryCard key={inventory.id} inventory={inventory} />
+                <InventoryCard
+                  key={inventory.id}
+                  inventory={inventory}
+                  getQuestionsLength={getQuestionsLength}
+                />
               ))}
             </div>
           )}

@@ -6,8 +6,8 @@ import { Trash2, Tag, Smile } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { extractTextFromTipTapContent } from '@/services/journal-service';
-import type { Journal } from '@/services/journal-service';
+import { extractTextFromTipTapContent } from '@/lib/tiptap-utils';
+import type { Journal } from '@/store/journal-store';
 
 interface JournalCardProps {
   entry: Journal;
@@ -30,10 +30,10 @@ const MOOD_DISPLAY: Record<string, string> = {
 };
 
 export function JournalCard({ entry, onDelete, onClick }: JournalCardProps) {
-  const { id, title, content, tags, mood, createdAt, updatedAt } = entry;
+  const { id, title, content, tags, mood, created_at, updated_at } = entry;
 
   // Extract readable text content for preview
-  const contentPreview = extractTextFromTipTapContent(content, 150);
+  const contentPreview = extractTextFromTipTapContent(content);
 
   // Handle card click
   const handleClick = () => {
@@ -47,8 +47,8 @@ export function JournalCard({ entry, onDelete, onClick }: JournalCardProps) {
   };
 
   // Format dates
-  const createdTimeAgo = formatDistanceToNow(new Date(createdAt), { addSuffix: true });
-  const updatedTimeAgo = formatDistanceToNow(new Date(updatedAt), { addSuffix: true });
+  const createdTimeAgo = formatDistanceToNow(new Date(created_at), { addSuffix: true });
+  const updatedTimeAgo = formatDistanceToNow(new Date(updated_at), { addSuffix: true });
 
   return (
     <Card
@@ -104,7 +104,7 @@ export function JournalCard({ entry, onDelete, onClick }: JournalCardProps) {
           </div>
 
           {/* Only show updated time if it's different from created time */}
-          {new Date(updatedAt).getTime() - new Date(createdAt).getTime() > 60000 && (
+          {new Date(updated_at).getTime() - new Date(created_at).getTime() > 60000 && (
             <div className="flex items-center gap-1">
               <span className="font-medium">Updated:</span>
               <span>{updatedTimeAgo}</span>

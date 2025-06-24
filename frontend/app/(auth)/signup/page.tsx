@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useActionState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { signup } from '@/lib/actions/server-auth';
+import { signUpFormAction } from '@/lib/actions/supabase-auth';
 import {
   Form,
   FormField,
@@ -21,37 +21,24 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import type { z } from 'zod';
-import { SignupFormSchema } from '@/lib/definitions';
 import { GoogleOAuthButton } from '@/components/oauth/google-button';
 import { PasswordInput } from '@/components/ui/password-input';
 import { PasswordStrengthIndicator } from '@/components/common/auth/password-strength-indicator';
-
-export type SignupFormData = z.infer<typeof SignupFormSchema>;
+import { SignUpSchema } from '@/lib/schemas/auth-schemas';
 
 export default function SignupPage() {
-  const [actionState, action, isPending] = useActionState(signup, undefined);
+  const [actionState, action, isPending] = useActionState(signUpFormAction, undefined);
 
-  const form = useForm<SignupFormData>({
-    resolver: zodResolver(SignupFormSchema),
+  const form = useForm<z.infer<typeof SignUpSchema>>({
+    resolver: zodResolver(SignUpSchema),
     mode: 'onSubmit',
     reValidateMode: 'onBlur',
     defaultValues: {
       name: '',
       email: '',
       password: '',
-      confirm: '',
+      confirmPassword: '',
     },
-  });
-
-  const onSubmit = form.handleSubmit(async (data) => {
-    const formData = new FormData();
-    Object.entries(data).forEach(([value, input]) => formData.append(value, input));
-    await action(formData);
-    if (actionState?.errors) {
-      Object.entries(actionState.errors).forEach(([field, msgs]) => {
-        form.setError(field as keyof SignupFormData, { message: msgs?.[0] });
-      });
-    }
   });
 
   return (
@@ -84,7 +71,7 @@ export default function SignupPage() {
             )}
 
             <Form {...form}>
-              <form onSubmit={onSubmit} noValidate className="space-y-4">
+              <form action={action} noValidate className="space-y-4">
                 {/* {(['name','surname','email'] as const).map((field) => (
                   <FormField
                     key={field}
@@ -167,7 +154,7 @@ export default function SignupPage() {
 
                 <FormField
                   control={form.control}
-                  name="confirm"
+                  name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Confirmar Senha</FormLabel>

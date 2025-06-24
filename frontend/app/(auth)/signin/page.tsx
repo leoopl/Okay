@@ -19,23 +19,25 @@ import {
 } from '@/components/ui/form';
 import { AlertCircle } from 'lucide-react';
 import type { z } from 'zod';
-import { SigninFormSchema } from '@/lib/definitions';
-import { signin } from '@/lib/actions/server-auth';
+import { signInFormAction } from '@/lib/actions/supabase-auth';
+import { SignInSchema } from '@/lib/schemas/auth-schemas';
 
 const SigninPage: React.FC = () => {
   const searchParams = useSearchParams();
   // Derive session expiration without state or effects
   const sessionExpired = searchParams.get('expired') === 'true';
+  const redirectTo = '/profile';
+  // const redirectTo = searchParams.get('redirect') || '/profile';
 
   // Initialize form with Zod schema
-  const form = useForm<z.infer<typeof SigninFormSchema>>({
-    resolver: zodResolver(SigninFormSchema),
+  const form = useForm<z.infer<typeof SignInSchema>>({
+    resolver: zodResolver(SignInSchema),
     defaultValues: { email: '', password: '' },
     mode: 'onTouched',
   });
 
   // useActionState for server action
-  const [actionState, action, isPending] = useActionState(signin, undefined);
+  const [actionState, action, isPending] = useActionState(signInFormAction, undefined);
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
@@ -56,6 +58,9 @@ const SigninPage: React.FC = () => {
 
           <Form {...form}>
             <form action={action} className="space-y-6" noValidate>
+              {/* Hidden field for redirect */}
+              <input type="hidden" name="redirect" value={redirectTo} />
+
               <FormField
                 control={form.control}
                 name="email"
@@ -93,7 +98,7 @@ const SigninPage: React.FC = () => {
                     <FormMessage />
                     <div className="flex justify-end">
                       <Link
-                        href="#"
+                        href="/forgot-password"
                         className="small-caps hover:text-beige-dark text-sm font-semibold"
                       >
                         Esqueceu sua senha?
@@ -141,5 +146,4 @@ const SigninPage: React.FC = () => {
     </div>
   );
 };
-
 export default SigninPage;
