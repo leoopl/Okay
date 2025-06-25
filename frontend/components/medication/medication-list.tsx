@@ -187,7 +187,7 @@ export default function MedicationList({ className }: MedicationListProps) {
 
               <div className="mb-3 flex items-center gap-2">
                 <Badge variant="outline" className="text-beige-dark bg-beige-light/40">
-                  {medication.form}
+                  {medication.form.charAt(0).toUpperCase() + medication.form.slice(1)}
                 </Badge>
                 <Badge variant="outline" className="text-blue-dark bg-blue-medium/30">
                   {medication.dosage}

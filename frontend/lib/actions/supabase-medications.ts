@@ -2,25 +2,27 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
-import type { Database } from '@/lib/supabase/types';
+import type { Database } from '@/lib/supabase/database.types';
 
 type Medication = Database['public']['Tables']['medications']['Row'];
 type MedicationInsert = Database['public']['Tables']['medications']['Insert'];
 type MedicationUpdate = Database['public']['Tables']['medications']['Update'];
 type MedicationForm = Database['public']['Enums']['medication_form'];
+type ScheduleTime = Database['public']['Tables']['schedule_times']['Row'];
+type ScheduleTimeInsert = Database['public']['Tables']['schedule_times']['Insert'];
+type DayOfWeek = Database['public']['Enums']['day_of_week'];
 
 export interface MedicationActionResponse {
   success: boolean;
   message?: string;
   error?: string;
-  medication?: Medication;
-  medications?: Medication[];
+  medication?: Medication & { schedule?: ScheduleTime[] };
+  medications?: Array<Medication & { schedule?: ScheduleTime[] }>;
 }
 
-export interface ScheduleTime {
-  id?: string;
+export interface ScheduleTimeInput {
   time: string;
-  days: string[];
+  days: DayOfWeek[];
 }
 
 export interface CreateMedicationDto {
@@ -31,7 +33,7 @@ export interface CreateMedicationDto {
   endDate?: Date | string;
   notes?: string;
   instructions?: string;
-  schedule?: ScheduleTime[];
+  schedule?: ScheduleTimeInput[];
 }
 
 export interface UpdateMedicationDto {
@@ -42,7 +44,7 @@ export interface UpdateMedicationDto {
   endDate?: Date | string | null;
   notes?: string;
   instructions?: string;
-  schedule?: ScheduleTime[];
+  schedule?: ScheduleTimeInput[];
 }
 
 export async function getMedications(): Promise<MedicationActionResponse> {
@@ -57,9 +59,15 @@ export async function getMedications(): Promise<MedicationActionResponse> {
   }
 
   try {
+    // Fetch medications with their schedules
     const { data: medications, error } = await supabase
       .from('medications')
-      .select('*')
+      .select(
+        `
+        *,
+        schedule:schedule_times (*)
+      `,
+      )
       .eq('user_id', session.user.id)
       .order('created_at', { ascending: false });
 
@@ -98,7 +106,7 @@ export async function createMedication(
   }
 
   try {
-    // Prepare medication data
+    // Start a transaction by creating the medication first
     const medicationData: MedicationInsert = {
       user_id: session.user.id,
       name: data.name,
@@ -118,17 +126,60 @@ export async function createMedication(
     };
 
     // Insert medication
-    const { data: medication, error } = await supabase
+    const { data: medication, error: medicationError } = await supabase
       .from('medications')
       .insert(medicationData)
       .select()
       .single();
 
-    if (error) {
-      console.error('Error creating medication:', error);
+    if (medicationError) {
+      console.error('Error creating medication:', medicationError);
       return {
         success: false,
         error: 'Erro ao criar medicamento',
+      };
+    }
+
+    // Insert schedule times if provided
+    if (data.schedule && data.schedule.length > 0) {
+      const scheduleData: ScheduleTimeInsert[] = data.schedule.map((schedule) => ({
+        medication_id: medication.id,
+        time: schedule.time,
+        days: schedule.days,
+      }));
+
+      const { error: scheduleError } = await supabase.from('schedule_times').insert(scheduleData);
+
+      if (scheduleError) {
+        console.error('Error creating schedule times:', scheduleError);
+        // Consider rolling back the medication creation here
+        // For now, we'll return the medication but note the schedule error
+        return {
+          success: true,
+          message: 'Medicamento criado, mas houve erro ao criar agendamentos',
+          medication,
+        };
+      }
+    }
+
+    // Fetch the complete medication with schedules
+    const { data: completeMedication, error: fetchError } = await supabase
+      .from('medications')
+      .select(
+        `
+        *,
+        schedule:schedule_times (*)
+      `,
+      )
+      .eq('id', medication.id)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching complete medication:', fetchError);
+      return {
+        success: true,
+        message: 'Medicamento criado com sucesso',
+        medication,
       };
     }
 
@@ -136,7 +187,7 @@ export async function createMedication(
     return {
       success: true,
       message: 'Medicamento criado com sucesso',
-      medication,
+      medication: completeMedication,
     };
   } catch (error) {
     console.error('Error creating medication:', error);
@@ -202,7 +253,7 @@ export async function updateMedication(
     if (data.instructions !== undefined) updateData.instructions = data.instructions || null;
 
     // Update medication
-    const { data: medication, error } = await supabase
+    const { data: medication, error: updateError } = await supabase
       .from('medications')
       .update(updateData)
       .eq('id', medicationId)
@@ -210,11 +261,60 @@ export async function updateMedication(
       .select()
       .single();
 
-    if (error) {
-      console.error('Error updating medication:', error);
+    if (updateError) {
+      console.error('Error updating medication:', updateError);
       return {
         success: false,
         error: 'Erro ao atualizar medicamento',
+      };
+    }
+
+    // Handle schedule updates if provided
+    if (data.schedule !== undefined) {
+      // Delete existing schedules
+      const { error: deleteError } = await supabase
+        .from('schedule_times')
+        .delete()
+        .eq('medication_id', medicationId);
+
+      if (deleteError) {
+        console.error('Error deleting old schedules:', deleteError);
+      }
+
+      // Insert new schedules
+      if (data.schedule.length > 0) {
+        const scheduleData: ScheduleTimeInsert[] = data.schedule.map((schedule) => ({
+          medication_id: medicationId,
+          time: schedule.time,
+          days: schedule.days,
+        }));
+
+        const { error: scheduleError } = await supabase.from('schedule_times').insert(scheduleData);
+
+        if (scheduleError) {
+          console.error('Error creating new schedules:', scheduleError);
+        }
+      }
+    }
+
+    // Fetch the complete medication with schedules
+    const { data: completeMedication, error: fetchCompleteError } = await supabase
+      .from('medications')
+      .select(
+        `
+        *,
+        schedule:schedule_times (*)
+      `,
+      )
+      .eq('id', medicationId)
+      .single();
+
+    if (fetchCompleteError) {
+      console.error('Error fetching complete medication:', fetchCompleteError);
+      return {
+        success: true,
+        message: 'Medicamento atualizado com sucesso',
+        medication,
       };
     }
 
@@ -222,7 +322,7 @@ export async function updateMedication(
     return {
       success: true,
       message: 'Medicamento atualizado com sucesso',
-      medication,
+      medication: completeMedication,
     };
   } catch (error) {
     console.error('Error updating medication:', error);
@@ -245,7 +345,8 @@ export async function deleteMedication(medicationId: string): Promise<Medication
   }
 
   try {
-    // Delete medication (with user verification)
+    // Note: schedule_times will be cascade deleted due to foreign key constraint
+    // dose_logs will also be cascade deleted
     const { error } = await supabase
       .from('medications')
       .delete()

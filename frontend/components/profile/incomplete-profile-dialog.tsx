@@ -79,7 +79,7 @@ export function IncompleteProfileDialog() {
         <AlertDialogFooter>
           <button
             onClick={handleDismiss}
-            className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+            className="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
           >
             Lembrar mais tarde
           </button>

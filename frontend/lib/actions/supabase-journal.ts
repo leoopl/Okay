@@ -1,9 +1,10 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createClient } from '@/lib/supabase/server';
-// import { encrypt, decrypt } from '@/lib/encryption-utils'; // Commented out - not implemented yet
-import type { Database } from '@/lib/supabase/types';
+import { createClient, logAuditTrail } from '@/lib/supabase/server';
+import { getRequestMetadata } from '@/lib/actions/supabase-auth';
+import { JournalSearchFilters } from '@/store/journal-store';
+import { Database } from '../supabase/database.types';
 
 type JournalEntry = Database['public']['Tables']['journal_entries']['Row'];
 type JournalInsert = Database['public']['Tables']['journal_entries']['Insert'];
@@ -18,38 +19,94 @@ export interface JournalActionResponse {
   entries?: JournalEntry[];
 }
 
+// Error types for better error handling
+export enum JournalErrorType {
+  NETWORK_ERROR = 'NETWORK_ERROR',
+  AUTH_ERROR = 'AUTH_ERROR',
+  PERMISSION_ERROR = 'PERMISSION_ERROR',
+  VALIDATION_ERROR = 'VALIDATION_ERROR',
+  NOT_FOUND = 'NOT_FOUND',
+  QUOTA_EXCEEDED = 'QUOTA_EXCEEDED',
+  ENCRYPTION_ERROR = 'ENCRYPTION_ERROR',
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+}
+
+export class JournalError extends Error {
+  constructor(
+    public type: JournalErrorType,
+    message: string,
+    public retryable: boolean = false,
+    public details?: any,
+  ) {
+    super(message);
+    this.name = 'JournalError';
+  }
+}
+
+// Helper function to determine error type
+function getErrorType(error: any): JournalErrorType {
+  if (error?.code === 'PGRST301' || error?.message?.includes('JWT')) {
+    return JournalErrorType.AUTH_ERROR;
+  }
+  if (error?.code === '42501' || error?.message?.includes('permission denied')) {
+    return JournalErrorType.PERMISSION_ERROR;
+  }
+  if (error?.code === '23505' || error?.message?.includes('duplicate')) {
+    return JournalErrorType.VALIDATION_ERROR;
+  }
+  if (error?.code === 'ECONNREFUSED' || error?.message?.includes('network')) {
+    return JournalErrorType.NETWORK_ERROR;
+  }
+  return JournalErrorType.UNKNOWN_ERROR;
+}
+
 export async function createJournalEntry(
   title: string,
   content: string, // TipTap JSON content
   mood?: JournalMood,
   tags?: string[],
-  encrypt: boolean = true,
+  encrypt: boolean = false,
 ): Promise<JournalActionResponse> {
   const supabase = await createClient();
-
-  // Get current user
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user) {
-    return { success: false, error: 'Você precisa estar logado para criar uma entrada no diário' };
-  }
+  const { ipAddress, userAgent } = await getRequestMetadata();
 
   try {
+    // Get current user
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      throw new JournalError(
+        JournalErrorType.AUTH_ERROR,
+        'Você precisa estar logado para criar uma entrada no diário',
+        false,
+      );
+    }
+
+    // Validate input
+    if (!title?.trim() || title.length > 200) {
+      throw new JournalError(
+        JournalErrorType.VALIDATION_ERROR,
+        'Título deve ter entre 1 e 200 caracteres',
+        false,
+      );
+    }
+
     // Prepare entry data
     let entryContent = content;
     let isEncrypted = false;
 
     // TODO: Implement encryption when needed
-    // For now, store content as-is
-    // if (encrypt && typeof content === 'object') {
-    //   entryContent = await encrypt(JSON.stringify(content));
-    //   isEncrypted = true;
-    // }
+    if (encrypt) {
+      // entryContent = await encrypt(content);
+      // isEncrypted = true;
+    }
 
     const entryData: JournalInsert = {
-      user_id: session.user.id,
-      title,
+      user_id: user.id,
+      title: title.trim(),
       content: entryContent,
       mood: mood || null,
       tags: tags || [],
@@ -65,11 +122,23 @@ export async function createJournalEntry(
 
     if (error) {
       console.error('Error creating journal entry:', error);
-      return {
-        success: false,
-        error: 'Erro ao criar entrada no diário',
-      };
+      throw new JournalError(
+        getErrorType(error),
+        'Erro ao criar entrada no diário',
+        getErrorType(error) === JournalErrorType.NETWORK_ERROR,
+        error,
+      );
     }
+
+    // Log audit trail
+    await logAuditTrail({
+      action: 'create',
+      resource: 'journal_entries',
+      resourceId: data.id,
+      details: { title: data.title, tags: data.tags, mood: data.mood },
+      ipAddress,
+      userAgent,
+    });
 
     revalidatePath('/journal');
     return {
@@ -79,6 +148,14 @@ export async function createJournalEntry(
     };
   } catch (error) {
     console.error('Error creating journal entry:', error);
+
+    if (error instanceof JournalError) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
     return {
       success: false,
       error: 'Ocorreu um erro ao criar a entrada. Tente novamente mais tarde.',
@@ -92,32 +169,49 @@ export async function updateJournalEntry(
   content?: any,
   mood?: JournalMood,
   tags?: string[],
-  encrypt: boolean = true,
+  encrypt: boolean = false,
 ): Promise<JournalActionResponse> {
   const supabase = await createClient();
-
-  // Get current user
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user) {
-    return { success: false, error: 'Você precisa estar logado para atualizar a entrada' };
-  }
+  const { ipAddress, userAgent } = await getRequestMetadata();
 
   try {
+    // Get current user
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      throw new JournalError(
+        JournalErrorType.AUTH_ERROR,
+        'Você precisa estar logado para atualizar a entrada',
+        false,
+      );
+    }
+
     // First, verify the entry belongs to the user
     const { data: existingEntry, error: fetchError } = await supabase
       .from('journal_entries')
       .select('*')
       .eq('id', entryId)
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .single();
 
     if (fetchError || !existingEntry) {
-      return {
-        success: false,
-        error: 'Entrada não encontrada ou você não tem permissão para editá-la',
-      };
+      throw new JournalError(
+        JournalErrorType.NOT_FOUND,
+        'Entrada não encontrada ou você não tem permissão para editá-la',
+        false,
+      );
+    }
+
+    // Validate input
+    if (title !== undefined && (!title.trim() || title.length > 200)) {
+      throw new JournalError(
+        JournalErrorType.VALIDATION_ERROR,
+        'Título deve ter entre 1 e 200 caracteres',
+        false,
+      );
     }
 
     // Prepare update data
@@ -125,21 +219,25 @@ export async function updateJournalEntry(
       updated_at: new Date().toISOString(),
     };
 
-    if (title !== undefined) updateData.title = title;
+    if (title !== undefined) updateData.title = title.trim();
     if (mood !== undefined) updateData.mood = mood;
     if (tags !== undefined) updateData.tags = tags;
 
     // Handle content encryption
     if (content !== undefined) {
       // TODO: Implement encryption when needed
-      // For now, store content as-is
-      // if (encrypt && typeof content === 'object') {
-      //   updateData.content = await encrypt(JSON.stringify(content));
-      //   updateData.is_content_encrypted = true;
-      // } else {
       updateData.content = content;
       updateData.is_content_encrypted = false;
-      // }
+    }
+
+    // Capture changes for audit log
+    const changes: any = {};
+    if (title !== undefined && title !== existingEntry.title)
+      changes.title = { old: existingEntry.title, new: title };
+    if (mood !== undefined && mood !== existingEntry.mood)
+      changes.mood = { old: existingEntry.mood, new: mood };
+    if (tags !== undefined && JSON.stringify(tags) !== JSON.stringify(existingEntry.tags)) {
+      changes.tags = { old: existingEntry.tags, new: tags };
     }
 
     // Update journal entry
@@ -147,17 +245,29 @@ export async function updateJournalEntry(
       .from('journal_entries')
       .update(updateData)
       .eq('id', entryId)
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .select()
       .single();
 
     if (error) {
       console.error('Error updating journal entry:', error);
-      return {
-        success: false,
-        error: 'Erro ao atualizar entrada no diário',
-      };
+      throw new JournalError(
+        getErrorType(error),
+        'Erro ao atualizar entrada no diário',
+        getErrorType(error) === JournalErrorType.NETWORK_ERROR,
+        error,
+      );
     }
+
+    // Log audit trail with changes
+    await logAuditTrail({
+      action: 'update',
+      resource: 'journal_entries',
+      resourceId: entryId,
+      details: { changes },
+      ipAddress,
+      userAgent,
+    });
 
     revalidatePath('/journal');
     return {
@@ -167,6 +277,14 @@ export async function updateJournalEntry(
     };
   } catch (error) {
     console.error('Error updating journal entry:', error);
+
+    if (error instanceof JournalError) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
     return {
       success: false,
       error: 'Ocorreu um erro ao atualizar a entrada. Tente novamente mais tarde.',
@@ -176,30 +294,69 @@ export async function updateJournalEntry(
 
 export async function deleteJournalEntry(entryId: string): Promise<JournalActionResponse> {
   const supabase = await createClient();
-
-  // Get current user
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user) {
-    return { success: false, error: 'Você precisa estar logado para deletar a entrada' };
-  }
+  const { ipAddress, userAgent } = await getRequestMetadata();
 
   try {
-    // Delete journal entry (with user verification)
+    // Get current user
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      throw new JournalError(
+        JournalErrorType.AUTH_ERROR,
+        'Você precisa estar logado para deletar a entrada',
+        false,
+      );
+    }
+
+    // Get entry details for audit log before deletion
+    const { data: entryToDelete, error: fetchError } = await supabase
+      .from('journal_entries')
+      .select('title, tags, mood')
+      .eq('id', entryId)
+      .eq('user_id', user.id)
+      .single();
+
+    if (fetchError || !entryToDelete) {
+      throw new JournalError(
+        JournalErrorType.NOT_FOUND,
+        'Entrada não encontrada ou você não tem permissão para deletá-la',
+        false,
+      );
+    }
+
+    // Delete journal entry
     const { error } = await supabase
       .from('journal_entries')
       .delete()
       .eq('id', entryId)
-      .eq('user_id', session.user.id);
+      .eq('user_id', user.id);
 
     if (error) {
       console.error('Error deleting journal entry:', error);
-      return {
-        success: false,
-        error: 'Erro ao deletar entrada no diário',
-      };
+      throw new JournalError(
+        getErrorType(error),
+        'Erro ao deletar entrada no diário',
+        getErrorType(error) === JournalErrorType.NETWORK_ERROR,
+        error,
+      );
     }
+
+    // Log audit trail with deleted entry details
+    await logAuditTrail({
+      action: 'delete',
+      resource: 'journal_entries',
+      resourceId: entryId,
+      details: {
+        title: entryToDelete.title,
+        tags: entryToDelete.tags,
+        mood: entryToDelete.mood,
+      },
+      ipAddress,
+      userAgent,
+    });
 
     revalidatePath('/journal');
     return {
@@ -208,6 +365,14 @@ export async function deleteJournalEntry(entryId: string): Promise<JournalAction
     };
   } catch (error) {
     console.error('Error deleting journal entry:', error);
+
+    if (error instanceof JournalError) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
     return {
       success: false,
       error: 'Ocorreu um erro ao deletar a entrada. Tente novamente mais tarde.',
@@ -216,89 +381,52 @@ export async function deleteJournalEntry(entryId: string): Promise<JournalAction
 }
 
 export async function getJournalEntries(
-  limit: number = 10,
+  limit: number = 50,
   offset: number = 0,
-  mood?: JournalMood,
-  tags?: string[],
-  search?: string,
 ): Promise<JournalActionResponse> {
   const supabase = await createClient();
-
-  // Get current user
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user) {
-    return { success: false, error: 'Você precisa estar logado para visualizar as entradas' };
-  }
+  const { ipAddress, userAgent } = await getRequestMetadata();
 
   try {
-    let query = supabase
+    // Get current user
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      throw new JournalError(
+        JournalErrorType.AUTH_ERROR,
+        'Você precisa estar logado para visualizar as entradas',
+        false,
+      );
+    }
+
+    const { data: entries, error } = await supabase
       .from('journal_entries')
       .select('*')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
-    // Apply filters
-    if (mood) {
-      query = query.eq('mood', mood);
-    }
-
-    if (tags && tags.length > 0) {
-      query = query.overlaps('tags', tags);
-    }
-
-    if (search) {
-      query = query.ilike('title', `%${search}%`);
-    }
-
-    const { data: entries, error } = await query;
-
     if (error) {
       console.error('Error fetching journal entries:', error);
-      return {
-        success: false,
-        error: 'Erro ao buscar entradas do diário',
-      };
+      throw new JournalError(
+        getErrorType(error),
+        'Erro ao buscar entradas do diário',
+        getErrorType(error) === JournalErrorType.NETWORK_ERROR,
+        error,
+      );
     }
 
-    // TODO: Decrypt encrypted entries when encryption is implemented
-    // For now, return entries as-is
-    // const decryptedEntries = await Promise.all(
-    //   entries.map(async (entry) => {
-    //     if (entry.is_content_encrypted && typeof entry.content === 'string') {
-    //       try {
-    //         const decryptedContent = await decrypt(entry.content);
-    //         return {
-    //           ...entry,
-    //           content: JSON.parse(decryptedContent),
-    //         };
-    //       } catch (error) {
-    //         console.error('Error decrypting entry:', error);
-    //         // Return entry with placeholder content if decryption fails
-    //         return {
-    //           ...entry,
-    //           content: {
-    //             type: 'doc',
-    //             content: [
-    //               {
-    //                 type: 'paragraph',
-    //                 content: [
-    //                   {
-    //                     type: 'text',
-    //                     text: '[Conteúdo criptografado não pôde ser descriptografado]',
-    //                   },
-    //                 ],
-    //               },
-    //             ],
-    //           },
-    //         };
-    //       }
-    //     }
-    //     return entry;
-    //   }),
-    // );
+    // Log read access for compliance
+    await logAuditTrail({
+      action: 'read',
+      resource: 'journal_entries',
+      details: { count: entries.length, limit, offset },
+      ipAddress,
+      userAgent,
+    });
 
     return {
       success: true,
@@ -306,6 +434,14 @@ export async function getJournalEntries(
     };
   } catch (error) {
     console.error('Error fetching journal entries:', error);
+
+    if (error instanceof JournalError) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
     return {
       success: false,
       error: 'Ocorreu um erro ao buscar as entradas. Tente novamente mais tarde.',
@@ -315,55 +451,47 @@ export async function getJournalEntries(
 
 export async function getJournalEntry(entryId: string): Promise<JournalActionResponse> {
   const supabase = await createClient();
-
-  // Get current user
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user) {
-    return { success: false, error: 'Você precisa estar logado para visualizar a entrada' };
-  }
+  const { ipAddress, userAgent } = await getRequestMetadata();
 
   try {
+    // Get current user
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      throw new JournalError(
+        JournalErrorType.AUTH_ERROR,
+        'Você precisa estar logado para visualizar a entrada',
+        false,
+      );
+    }
+
     const { data: entry, error } = await supabase
       .from('journal_entries')
       .select('*')
       .eq('id', entryId)
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .single();
 
     if (error || !entry) {
-      return {
-        success: false,
-        error: 'Entrada não encontrada ou você não tem permissão para visualizá-la',
-      };
+      throw new JournalError(
+        JournalErrorType.NOT_FOUND,
+        'Entrada não encontrada ou você não tem permissão para visualizá-la',
+        false,
+      );
     }
 
-    // TODO: Decrypt content if encrypted when encryption is implemented
-    // For now, return entry as-is
-    // if (entry.is_content_encrypted && typeof entry.content === 'string') {
-    //   try {
-    //     const decryptedContent = await decrypt(entry.content);
-    //     entry.content = JSON.parse(decryptedContent);
-    //   } catch (error) {
-    //     console.error('Error decrypting entry:', error);
-    //     // Return entry with placeholder content if decryption fails
-    //     entry.content = {
-    //       type: 'doc',
-    //       content: [
-    //         {
-    //           type: 'paragraph',
-    //           content: [
-    //             {
-    //               type: 'text',
-    //               text: '[Conteúdo criptografado não pôde ser descriptografado]',
-    //             },
-    //           ],
-    //         },
-    //       ],
-    //     };
-    //   }
-    // }
+    // Log read access
+    await logAuditTrail({
+      action: 'read',
+      resource: 'journal_entries',
+      resourceId: entryId,
+      details: { title: entry.title },
+      ipAddress,
+      userAgent,
+    });
 
     return {
       success: true,
@@ -371,9 +499,122 @@ export async function getJournalEntry(entryId: string): Promise<JournalActionRes
     };
   } catch (error) {
     console.error('Error fetching journal entry:', error);
+
+    if (error instanceof JournalError) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
     return {
       success: false,
       error: 'Ocorreu um erro ao buscar a entrada. Tente novamente mais tarde.',
+    };
+  }
+}
+
+export async function searchJournalEntries(
+  filters: JournalSearchFilters,
+  limit: number = 50,
+  offset: number = 0,
+): Promise<JournalActionResponse> {
+  const supabase = await createClient();
+  const { ipAddress, userAgent } = await getRequestMetadata();
+
+  try {
+    // Get current user
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      throw new JournalError(
+        JournalErrorType.AUTH_ERROR,
+        'Você precisa estar logado para pesquisar entradas',
+        false,
+      );
+    }
+
+    // Build query
+    let query = supabase.from('journal_entries').select('*').eq('user_id', user.id);
+
+    // Apply filters
+    if (filters.query) {
+      // Use PostgreSQL full-text search
+      query = query.or(`title.ilike.%${filters.query}%,content->>.ilike.%${filters.query}%`);
+    }
+
+    if (filters.mood) {
+      query = query.eq('mood' as JournalMood, filters.mood);
+    }
+
+    if (filters.tags && filters.tags.length > 0) {
+      query = query.overlaps('tags', filters.tags);
+    }
+
+    if (filters.startDate) {
+      query = query.gte('created_at', filters.startDate);
+    }
+
+    if (filters.endDate) {
+      query = query.lte('created_at', filters.endDate);
+    }
+
+    // Execute query with ordering and pagination
+    const { data: entries, error } = await query
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error('Error searching journal entries:', error);
+      throw new JournalError(
+        getErrorType(error),
+        'Erro ao pesquisar entradas do diário',
+        getErrorType(error) === JournalErrorType.NETWORK_ERROR,
+        error,
+      );
+    }
+
+    // Log search action
+    await logAuditTrail({
+      action: 'read',
+      resource: 'journal_entries',
+      details: {
+        search: true,
+        filters: {
+          hasQuery: !!filters.query,
+          mood: filters.mood,
+          tagCount: filters.tags?.length || 0,
+          dateRange: {
+            start: filters.startDate,
+            end: filters.endDate,
+          },
+        },
+        resultCount: entries.length,
+      },
+      ipAddress,
+      userAgent,
+    });
+
+    return {
+      success: true,
+      entries: entries,
+    };
+  } catch (error) {
+    console.error('Error searching journal entries:', error);
+
+    if (error instanceof JournalError) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
+    return {
+      success: false,
+      error: 'Ocorreu um erro ao pesquisar as entradas. Tente novamente mais tarde.',
     };
   }
 }
@@ -390,16 +631,23 @@ export async function getJournalStats(): Promise<{
   error?: string;
 }> {
   const supabase = await createClient();
-
-  // Get current user
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user) {
-    return { success: false, error: 'Você precisa estar logado para visualizar as estatísticas' };
-  }
+  const { ipAddress, userAgent } = await getRequestMetadata();
 
   try {
+    // Get current user
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      throw new JournalError(
+        JournalErrorType.AUTH_ERROR,
+        'Você precisa estar logado para visualizar as estatísticas',
+        false,
+      );
+    }
+
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
@@ -408,14 +656,16 @@ export async function getJournalStats(): Promise<{
     const { data: entries, error } = await supabase
       .from('journal_entries')
       .select('created_at, mood, tags')
-      .eq('user_id', session.user.id);
+      .eq('user_id', user.id);
 
     if (error) {
       console.error('Error fetching journal stats:', error);
-      return {
-        success: false,
-        error: 'Erro ao buscar estatísticas do diário',
-      };
+      throw new JournalError(
+        getErrorType(error),
+        'Erro ao buscar estatísticas do diário',
+        getErrorType(error) === JournalErrorType.NETWORK_ERROR,
+        error,
+      );
     }
 
     // Calculate statistics
@@ -438,15 +688,26 @@ export async function getJournalStats(): Promise<{
     // Popular tags
     const tagCounts: Record<string, number> = {};
     entries.forEach((entry) => {
-      entry.tags.forEach((tag: string) => {
-        tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-      });
+      entry.tags
+        ? entry.tags.forEach((tag: string) => {
+            tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+          })
+        : null;
     });
 
     const popularTags = Object.entries(tagCounts)
       .map(([tag, count]) => ({ tag, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
+
+    // Log stats access
+    await logAuditTrail({
+      action: 'read',
+      resource: 'journal_entries',
+      details: { statsAccess: true },
+      ipAddress,
+      userAgent,
+    });
 
     return {
       success: true,
@@ -460,14 +721,20 @@ export async function getJournalStats(): Promise<{
     };
   } catch (error) {
     console.error('Error calculating journal stats:', error);
+
+    if (error instanceof JournalError) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
     return {
       success: false,
       error: 'Ocorreu um erro ao calcular as estatísticas. Tente novamente mais tarde.',
     };
   }
 }
-
-// Utility functions have been moved to @/lib/tiptap-utils
 
 // Export Journal type for compatibility
 export type Journal = {

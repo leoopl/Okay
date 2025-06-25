@@ -22,10 +22,9 @@ import {
   Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { formatDate } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
-import { signOut } from '@/lib/actions/supabase-auth';
 import { useAuth } from '@/providers/auth-provider';
 
 // Feature card component for better reusability
@@ -89,13 +88,20 @@ const UserStats = () => (
 
 export default function Profile() {
   const [activeTab, setActiveTab] = useState('profile');
-  const { user, profile, roles, isLoading } = useAuth();
+  const { user, profile, roles, isLoading, signOut } = useAuth();
   const router = useRouter();
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push('/signin');
+    }
+  }, [user, isLoading, router]);
 
   const handleLogout = async () => {
     try {
       await signOut();
-      router.push('/');
+      // Navigation is handled by AuthProvider
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -110,8 +116,7 @@ export default function Profile() {
   }
 
   if (!user || !profile) {
-    router.push('/signin');
-    return null;
+    return null; // The useEffect will handle redirection
   }
 
   // Format member since date with better error handling

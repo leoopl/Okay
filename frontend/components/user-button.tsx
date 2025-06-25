@@ -23,10 +23,9 @@ import {
 import { useRouter } from 'next/navigation';
 import { getProfilePictureUrl, getUserInitials } from '@/lib/utils';
 import { useAuth } from '@/providers/auth-provider';
-import { signOut } from '@/lib/actions/supabase-auth';
 
 export default function UserButton() {
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -35,9 +34,9 @@ export default function UserButton() {
     setIsOpen(false);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setIsOpen(false);
-    signOut();
+    await signOut();
   };
 
   const menuItems = [

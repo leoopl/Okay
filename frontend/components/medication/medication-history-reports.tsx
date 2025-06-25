@@ -165,6 +165,10 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
     [medicationMap],
   );
 
+  const formatMedicationForm = useCallback((form: string): string => {
+    return form.charAt(0).toUpperCase() + form.slice(1);
+  }, []);
+
   const getStatusIcon = useCallback((status: DoseStatus) => {
     const iconMap = {
       taken: <CheckCircle className="h-4 w-4 text-green-500" aria-label="Dose taken" />,

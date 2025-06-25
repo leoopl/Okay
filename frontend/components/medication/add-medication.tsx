@@ -39,7 +39,14 @@ import { Label } from '../ui/label';
 import { toast } from 'sonner';
 
 // Constants
-const MEDICATION_FORMS = ['Capsule', 'Tablet', 'Drops', 'Injectable', 'Ointment', 'Other'] as const;
+const MEDICATION_FORMS: Array<{ value: MedicationForm; label: string }> = [
+  { value: 'capsule', label: 'Capsule' },
+  { value: 'tablet', label: 'Tablet' },
+  { value: 'drops', label: 'Drops' },
+  { value: 'injectable', label: 'Injectable' },
+  { value: 'ointment', label: 'Ointment' },
+  { value: 'other', label: 'Other' },
+];
 
 const DAYS_OF_WEEK: Array<{ value: DayOfWeek; label: string }> = [
   { value: DayOfWeek.MONDAY, label: 'Monday' },
@@ -65,7 +72,7 @@ const medicationFormSchema = z
   .object({
     name: z.string().min(1, { message: 'Medication name is required' }),
     dosage: z.string().min(1, { message: 'Dosage is required' }),
-    form: z.enum(MEDICATION_FORMS),
+    form: z.enum(['capsule', 'tablet', 'drops', 'injectable', 'ointment', 'other'] as const),
     startDate: z.date({ required_error: 'Start date is required' }),
     endDate: z
       .date()
@@ -121,7 +128,7 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
       return {
         name: '',
         dosage: '',
-        form: 'Tablet' as const,
+        form: 'tablet' as const,
         startDate: new Date(),
         endDate: undefined,
         schedule: [],
@@ -296,8 +303,8 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
                 </FormControl>
                 <SelectContent>
                   {MEDICATION_FORMS.map((form) => (
-                    <SelectItem key={form} value={form}>
-                      {form.charAt(0).toUpperCase() + form.slice(1)}
+                    <SelectItem key={form.value} value={form.value}>
+                      {form.label}
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -10,16 +10,24 @@ import {
   type CreateMedicationDto as SupabaseCreateMedicationDto,
   type UpdateMedicationDto as SupabaseUpdateMedicationDto,
 } from '@/lib/actions/supabase-medications';
+import {
+  logDose as logDoseAction,
+  getDoseLogs,
+  getTodaySchedule,
+  getAdherenceStats,
+  type CreateDoseLogDto,
+} from '@/lib/actions/supabase-dose-logs';
+import type { Database } from '@/lib/supabase/database.types';
 
 // Enums and constants
 export enum DayOfWeek {
-  MONDAY = 'Monday',
-  TUESDAY = 'Tuesday',
-  WEDNESDAY = 'Wednesday',
-  THURSDAY = 'Thursday',
-  FRIDAY = 'Friday',
-  SATURDAY = 'Saturday',
-  SUNDAY = 'Sunday',
+  MONDAY = 'monday',
+  TUESDAY = 'tuesday',
+  WEDNESDAY = 'wednesday',
+  THURSDAY = 'thursday',
+  FRIDAY = 'friday',
+  SATURDAY = 'saturday',
+  SUNDAY = 'sunday',
 }
 
 export const DEFAULT_DAYS_BACK = 7;
@@ -27,8 +35,8 @@ export const TIME_FORMAT = 'HH:mm';
 export const DATE_FORMAT = 'yyyy-MM-dd';
 
 // Type definitions with better specificity
-export type DoseStatus = 'taken' | 'skipped' | 'delayed';
-export type MedicationForm = 'Capsule' | 'Tablet' | 'Drops' | 'Injectable' | 'Ointment' | 'Other';
+export type DoseStatus = Database['public']['Enums']['dose_status'];
+export type MedicationForm = Database['public']['Enums']['medication_form'];
 
 export interface ScheduleTime {
   id?: string;
@@ -195,15 +203,27 @@ const normalizeScheduleTime = (time: string): string => {
 
 const processMedicationDates = (medication: any): Medication => ({
   ...medication,
-  startDate: validateDate(medication.startDate) || new Date(),
-  endDate: validateDate(medication.endDate) || undefined,
-  createdAt: validateDate(medication.createdAt) || new Date(),
-  updatedAt: validateDate(medication.updatedAt) || new Date(),
+  startDate: validateDate(medication.start_date) || new Date(),
+  endDate: validateDate(medication.end_date) || undefined,
+  createdAt: validateDate(medication.created_at) || new Date(),
+  updatedAt: validateDate(medication.updated_at) || new Date(),
   schedule:
-    medication.schedule?.map((item: ScheduleTime) => ({
-      ...item,
+    medication.schedule?.map((item: any) => ({
+      id: item.id,
       time: normalizeScheduleTime(item.time),
+      days: item.days as DayOfWeek[],
     })) || [],
+});
+
+const processDoseLog = (log: any): DoseLog => ({
+  id: log.id,
+  medicationId: log.medication_id,
+  timestamp: validateDate(log.timestamp) || new Date(),
+  status: log.status,
+  notes: log.notes,
+  scheduledTime: log.scheduled_time,
+  createdAt: validateDate(log.created_at) || new Date(),
+  updatedAt: validateDate(log.updated_at) || new Date(),
 });
 
 const initialLoadingStates: LoadingStates = {
@@ -270,13 +290,22 @@ export const useMedicationStore = create<MedicationStore>()(
       }));
 
       try {
-        // TODO: Implement with Supabase actions
-        // const response = await getTodaySchedule();
+        const response = await getTodaySchedule();
 
-        set((state) => ({
-          todaySchedule: [], // Temporary empty array
-          loadingStates: { ...state.loadingStates, todaySchedule: false },
-        }));
+        if (response.success && response.schedule) {
+          // Map response to match ScheduleItem interface
+          const scheduleItems: ScheduleItem[] = response.schedule.map((item) => ({
+            ...item,
+            form: item.form as MedicationForm,
+          }));
+
+          set((state) => ({
+            todaySchedule: scheduleItems,
+            loadingStates: { ...state.loadingStates, todaySchedule: false },
+          }));
+        } else {
+          throw new Error(response.error || "Failed to fetch today's schedule");
+        }
       } catch (error: any) {
         const scheduleError = createMedicationError('network', "Failed to fetch today's schedule");
 
@@ -302,13 +331,18 @@ export const useMedicationStore = create<MedicationStore>()(
       }));
 
       try {
-        // TODO: Implement with Supabase actions
-        // const response = await getDoseLogs(medicationId, startDate, endDate, daysBack);
+        const response = await getDoseLogs(medicationId, startDate, endDate, daysBack);
 
-        set((state) => ({
-          doseLogs: [], // Temporary empty array
-          loadingStates: { ...state.loadingStates, doseLogs: false },
-        }));
+        if (response.success && response.doseLogs) {
+          const doseLogs = response.doseLogs.map(processDoseLog);
+
+          set((state) => ({
+            doseLogs,
+            loadingStates: { ...state.loadingStates, doseLogs: false },
+          }));
+        } else {
+          throw new Error(response.error || 'Failed to fetch dose logs');
+        }
       } catch (error: any) {
         const logsError = createMedicationError('network', 'Failed to fetch dose logs');
 
@@ -328,13 +362,16 @@ export const useMedicationStore = create<MedicationStore>()(
       }));
 
       try {
-        // TODO: Implement with Supabase actions
-        // const response = await getAdherenceStats(medicationId, daysBack);
+        const response = await getAdherenceStats(medicationId, daysBack);
 
-        set((state) => ({
-          adherenceStats: null, // Temporary null
-          loadingStates: { ...state.loadingStates, adherenceStats: false },
-        }));
+        if (response.success && response.stats) {
+          set((state) => ({
+            adherenceStats: response.stats!,
+            loadingStates: { ...state.loadingStates, adherenceStats: false },
+          }));
+        } else {
+          throw new Error(response.error || 'Failed to fetch adherence stats');
+        }
       } catch (error: any) {
         const statsError = createMedicationError('network', 'Failed to fetch adherence stats');
 
@@ -355,15 +392,19 @@ export const useMedicationStore = create<MedicationStore>()(
       }));
 
       try {
-        // Convert to Supabase format
+        // Convert to Supabase format with lowercase enum values
         const supabaseData: SupabaseCreateMedicationDto = {
           name: data.name,
           dosage: data.dosage,
-          form: data.form as any, // Convert enum
+          form: data.form,
           startDate: data.startDate,
           endDate: data.endDate,
           notes: data.notes,
           instructions: data.instructions,
+          schedule: data.schedule.map((s) => ({
+            time: s.time,
+            days: s.days as any, // Database expects lowercase day_of_week enum
+          })),
         };
 
         const response = await createMedicationAction(supabaseData);
@@ -409,11 +450,15 @@ export const useMedicationStore = create<MedicationStore>()(
         const supabaseData: SupabaseUpdateMedicationDto = {
           name: data.name,
           dosage: data.dosage,
-          form: data.form as any,
+          form: data.form,
           startDate: data.startDate,
           endDate: data.endDate,
           notes: data.notes,
           instructions: data.instructions,
+          schedule: data.schedule?.map((s) => ({
+            time: s.time,
+            days: s.days as any,
+          })),
         };
 
         const response = await updateMedicationAction(id, supabaseData);
@@ -491,32 +536,33 @@ export const useMedicationStore = create<MedicationStore>()(
       }));
 
       try {
-        // TODO: Implement with Supabase actions
-        // const response = await logDoseAction(data);
-
-        // Temporary mock response
-        const newLog: DoseLog = {
-          id: Date.now().toString(),
+        const doseData: CreateDoseLogDto = {
           medicationId: data.medicationId,
-          timestamp: typeof data.timestamp === 'string' ? new Date(data.timestamp) : data.timestamp,
           status: data.status,
-          notes: data.notes,
+          timestamp: data.timestamp,
           scheduledTime: data.scheduledTime,
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          notes: data.notes,
         };
 
-        // Optimistically update related data
-        const { fetchTodaySchedule } = get();
-        await fetchTodaySchedule();
+        const response = await logDoseAction(doseData);
 
-        set((state) => ({
-          doseLogs: [newLog, ...state.doseLogs],
-          loadingStates: { ...state.loadingStates, logging: false },
-        }));
+        if (response.success && response.doseLog) {
+          const newLog = processDoseLog(response.doseLog);
 
-        toast.success('Dose logged successfully');
-        return newLog;
+          // Optimistically update related data
+          const { fetchTodaySchedule, fetchAdherenceStats } = get();
+          await Promise.all([fetchTodaySchedule(), fetchAdherenceStats()]);
+
+          set((state) => ({
+            doseLogs: [newLog, ...state.doseLogs],
+            loadingStates: { ...state.loadingStates, logging: false },
+          }));
+
+          toast.success('Dose logged successfully');
+          return newLog;
+        } else {
+          throw new Error(response.error || 'Failed to log dose');
+        }
       } catch (error: any) {
         const logError = createMedicationError('network', 'Failed to log dose');
 

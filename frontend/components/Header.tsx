@@ -22,7 +22,6 @@ import { Button } from './ui/button';
 import { Separator } from './ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { getProfilePictureUrl, getUserInitials } from '@/lib/utils';
-import { signOut } from '@/lib/actions/supabase-auth';
 import { useState } from 'react';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -88,12 +87,12 @@ const userPages: Page[] = [
 ];
 
 const Header: React.FC = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setIsMobileMenuOpen(false); // Close menu on logout
-    signOut();
+    await signOut();
   };
 
   return (
