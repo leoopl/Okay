@@ -52,9 +52,10 @@ export async function getMedications(): Promise<MedicationActionResponse> {
 
   // Get current user
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user) {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
     return { success: false, error: 'Você precisa estar logado para visualizar medicamentos' };
   }
 
@@ -68,7 +69,7 @@ export async function getMedications(): Promise<MedicationActionResponse> {
         schedule:schedule_times (*)
       `,
       )
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -99,16 +100,17 @@ export async function createMedication(
 
   // Get current user
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user) {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
     return { success: false, error: 'Você precisa estar logado para criar medicamentos' };
   }
 
   try {
     // Start a transaction by creating the medication first
     const medicationData: MedicationInsert = {
-      user_id: session.user.id,
+      user_id: user.id,
       name: data.name,
       dosage: data.dosage,
       form: data.form,
@@ -206,9 +208,10 @@ export async function updateMedication(
 
   // Get current user
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user) {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
     return { success: false, error: 'Você precisa estar logado para atualizar medicamentos' };
   }
 
@@ -218,7 +221,7 @@ export async function updateMedication(
       .from('medications')
       .select('*')
       .eq('id', medicationId)
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .single();
 
     if (fetchError || !existingMedication) {
@@ -257,7 +260,7 @@ export async function updateMedication(
       .from('medications')
       .update(updateData)
       .eq('id', medicationId)
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .select()
       .single();
 
@@ -338,9 +341,10 @@ export async function deleteMedication(medicationId: string): Promise<Medication
 
   // Get current user
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user) {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
     return { success: false, error: 'Você precisa estar logado para deletar medicamentos' };
   }
 
@@ -351,7 +355,7 @@ export async function deleteMedication(medicationId: string): Promise<Medication
       .from('medications')
       .delete()
       .eq('id', medicationId)
-      .eq('user_id', session.user.id);
+      .eq('user_id', user.id);
 
     if (error) {
       console.error('Error deleting medication:', error);
@@ -380,9 +384,10 @@ export async function getMedication(medicationId: string): Promise<MedicationAct
 
   // Get current user
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user) {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
     return { success: false, error: 'Você precisa estar logado para visualizar o medicamento' };
   }
 
@@ -391,7 +396,7 @@ export async function getMedication(medicationId: string): Promise<MedicationAct
       .from('medications')
       .select('*')
       .eq('id', medicationId)
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .single();
 
     if (error || !medication) {

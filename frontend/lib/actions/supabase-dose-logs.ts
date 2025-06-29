@@ -63,9 +63,10 @@ export async function logDose(data: CreateDoseLogDto): Promise<DoseLogActionResp
   const supabase = await createClient();
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user) {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
     return { success: false, error: 'Você precisa estar logado para registrar doses' };
   }
 
@@ -75,7 +76,7 @@ export async function logDose(data: CreateDoseLogDto): Promise<DoseLogActionResp
       .from('medications')
       .select('id')
       .eq('id', data.medicationId)
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .single();
 
     if (medError || !medication) {
@@ -87,7 +88,7 @@ export async function logDose(data: CreateDoseLogDto): Promise<DoseLogActionResp
 
     const doseLogData: DoseLogInsert = {
       medication_id: data.medicationId,
-      user_id: session.user.id,
+      user_id: user.id,
       timestamp: typeof data.timestamp === 'string' ? data.timestamp : data.timestamp.toISOString(),
       status: data.status,
       scheduled_time: data.scheduledTime || null,
@@ -132,9 +133,10 @@ export async function getDoseLogs(
   const supabase = await createClient();
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user) {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
     return { success: false, error: 'Você precisa estar logado' };
   }
 
@@ -142,18 +144,18 @@ export async function getDoseLogs(
     let query = supabase
       .from('dose_logs')
       .select('*')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .order('timestamp', { ascending: false });
 
     if (medicationId) {
       query = query.eq('medication_id', medicationId);
     }
 
-    // Date filtering
+    // Date filtering with proper timezone handling
     if (startDate && endDate) {
       query = query
-        .gte('timestamp', startDate.toISOString())
-        .lte('timestamp', endDate.toISOString());
+        .gte('timestamp', startOfDay(startDate).toISOString())
+        .lte('timestamp', endOfDay(endDate).toISOString());
     } else if (daysBack) {
       const start = startOfDay(subDays(new Date(), daysBack - 1));
       query = query.gte('timestamp', start.toISOString());
@@ -186,9 +188,10 @@ export async function getTodaySchedule(): Promise<TodayScheduleResponse> {
   const supabase = await createClient();
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user) {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
     return { success: false, error: 'Você precisa estar logado' };
   }
 
@@ -214,7 +217,7 @@ export async function getTodaySchedule(): Promise<TodayScheduleResponse> {
         )
       `,
       )
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .or(`end_date.is.null,end_date.gte.${format(today, 'yyyy-MM-dd')}`)
       .lte('start_date', format(today, 'yyyy-MM-dd'));
 
@@ -226,20 +229,19 @@ export async function getTodaySchedule(): Promise<TodayScheduleResponse> {
       };
     }
 
-    // Filter schedules for today and check if already taken
+    // Filter schedules for today and check if already logged (any status)
     const todayStart = startOfDay(today);
     const todayEnd = endOfDay(today);
 
-    // Get today's dose logs to filter out already taken medications
+    // Get today's dose logs to filter out already logged medications (all statuses)
     const { data: todayLogs } = await supabase
       .from('dose_logs')
-      .select('medication_id, scheduled_time')
-      .eq('user_id', session.user.id)
+      .select('medication_id, scheduled_time, status')
+      .eq('user_id', user.id)
       .gte('timestamp', todayStart.toISOString())
-      .lte('timestamp', todayEnd.toISOString())
-      .eq('status', 'taken');
+      .lte('timestamp', todayEnd.toISOString());
 
-    const takenMap = new Map(
+    const loggedMap = new Map(
       todayLogs?.map((log) => [`${log.medication_id}-${log.scheduled_time}`, true]) || [],
     );
 
@@ -249,7 +251,7 @@ export async function getTodaySchedule(): Promise<TodayScheduleResponse> {
       med.schedule_times?.forEach((scheduleTime: any) => {
         if (scheduleTime.days.includes(dayOfWeek)) {
           const key = `${med.id}-${scheduleTime.time}`;
-          if (!takenMap.has(key)) {
+          if (!loggedMap.has(key)) {
             schedule.push({
               medicationId: med.id,
               medicationName: med.name,
@@ -287,9 +289,10 @@ export async function getAdherenceStats(
   const supabase = await createClient();
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user) {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
     return { success: false, error: 'Você precisa estar logado' };
   }
 
@@ -300,7 +303,7 @@ export async function getAdherenceStats(
     let query = supabase
       .from('dose_logs')
       .select('status')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .gte('timestamp', startDate.toISOString())
       .lte('timestamp', endDate.toISOString());
 

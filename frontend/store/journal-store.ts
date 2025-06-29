@@ -10,6 +10,7 @@ import {
   searchJournalEntries,
 } from '@/lib/actions/supabase-journal';
 import { Database } from '@/lib/supabase/database.types';
+import { offlineStorage } from '@/store/offline-storage';
 
 // Frontend-compatible Journal type
 export type Journal = {
@@ -127,14 +128,28 @@ export const useJournalStore = create<JournalState>()(
           });
 
           try {
+            // If offline, load from IndexedDB
+            if (!navigator.onLine) {
+              const cachedEntries = await offlineStorage.getAllJournals();
+              set((state) => {
+                state.entries = cachedEntries;
+                state.isLoading = false;
+              });
+              return;
+            }
+
             const result = await getJournalEntries();
             if (result.success && result.entries) {
+              const serverEntries = mapArraySupabaseToFrontend(
+                result.entries as SupabaseJournalEntry[],
+              );
+
+              // Save to offline storage
+              await offlineStorage.saveJournals(serverEntries);
+
               set((state) => {
                 // Preserve optimistic updates
                 const optimisticEntries = state.entries.filter((e) => e._optimistic);
-                const serverEntries = mapArraySupabaseToFrontend(
-                  result.entries as SupabaseJournalEntry[],
-                );
 
                 // Merge optimistic and server entries
                 const mergedEntries = [...optimisticEntries];
@@ -149,16 +164,45 @@ export const useJournalStore = create<JournalState>()(
                 state.lastSync = new Date();
               });
             } else {
+              // If failed, try to load from cache
+              const cachedEntries = await offlineStorage.getAllJournals();
+              if (cachedEntries.length > 0) {
+                set((state) => {
+                  state.entries = cachedEntries;
+                  state.isLoading = false;
+                  state.error = 'Carregando do cache offline';
+                });
+              } else {
+                set((state) => {
+                  state.error = result.error || 'Falha ao buscar entradas do diário';
+                  state.isLoading = false;
+                });
+              }
+            }
+          } catch (error) {
+            // If error, try to load from cache
+            try {
+              const cachedEntries = await offlineStorage.getAllJournals();
+              if (cachedEntries.length > 0) {
+                set((state) => {
+                  state.entries = cachedEntries;
+                  state.isLoading = false;
+                  state.error = 'Carregando do cache offline';
+                });
+              } else {
+                set((state) => {
+                  state.error =
+                    error instanceof Error ? error.message : 'Falha ao buscar entradas do diário';
+                  state.isLoading = false;
+                });
+              }
+            } catch (cacheError) {
               set((state) => {
-                state.error = result.error || 'Failed to fetch journals';
+                state.error =
+                  error instanceof Error ? error.message : 'Falha ao buscar entradas do diário';
                 state.isLoading = false;
               });
             }
-          } catch (error) {
-            set((state) => {
-              state.error = error instanceof Error ? error.message : 'Failed to fetch journals';
-              state.isLoading = false;
-            });
           }
         },
 
@@ -218,7 +262,7 @@ export const useJournalStore = create<JournalState>()(
           const tempEntry: Journal = {
             id: tempId,
             user_id: '', // Will be filled by server
-            title: data.title || 'Give your thoughts a title...',
+            title: data.title || 'Dê um título aos seus pensamentos...',
             content:
               data.content ||
               JSON.stringify({
@@ -227,7 +271,7 @@ export const useJournalStore = create<JournalState>()(
                   {
                     type: 'paragraph',
                     attrs: { textAlign: null },
-                    content: [{ type: 'text', text: 'Start writing...' }],
+                    content: [{ type: 'text', text: 'Comece a escrever...' }],
                   },
                 ],
               }),
@@ -471,29 +515,53 @@ export const useJournalStore = create<JournalState>()(
             try {
               if (entry._optimistic) {
                 // This was a create operation
-                await get().createJournal({
-                  title: entry.title,
-                  content: entry.content,
-                  tags: entry.tags,
-                  mood: entry.mood,
-                });
+                const result = await createJournalEntry(
+                  entry.title,
+                  entry.content,
+                  entry.mood as any,
+                  entry.tags,
+                  entry.is_content_encrypted,
+                );
+
+                if (result.success && result.entry) {
+                  // Replace temp entry with real entry
+                  set((state) => {
+                    const index = state.entries.findIndex((e) => e.id === entry.id);
+                    if (index !== -1) {
+                      state.entries[index] = mapSupabaseToFrontend(
+                        result.entry as SupabaseJournalEntry,
+                      );
+                    }
+                  });
+                } else {
+                  throw new Error(result.error || 'Failed to create journal');
+                }
               } else {
                 // This was an update operation
-                await get().updateJournal(entry.id, {
-                  title: entry.title,
-                  content: entry.content,
-                  tags: entry.tags,
-                  mood: entry.mood,
-                });
+                const result = await updateJournalEntry(
+                  entry.id,
+                  entry.title,
+                  entry.content,
+                  entry.mood as any,
+                  entry.tags,
+                  entry.is_content_encrypted,
+                );
+
+                if (result.success && result.entry) {
+                  get().markAsSynced(entry.id);
+                } else {
+                  throw new Error(result.error || 'Failed to update journal');
+                }
               }
-              get().markAsSynced(entry.id);
             } catch (error) {
               get().markAsError(entry.id);
+              console.error(`Failed to sync entry ${entry.id}:`, error);
             }
           }
 
           set((state) => {
             state.isSyncing = false;
+            state.lastSync = new Date();
           });
         },
 

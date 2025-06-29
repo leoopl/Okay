@@ -3,6 +3,14 @@ import { z } from 'zod';
 // Export types
 export type SignInInput = z.infer<typeof SignInSchema>;
 export type SignUpInput = z.infer<typeof SignUpSchema>;
+export type ForgotPasswordInput = z.infer<typeof ForgotPasswordSchema>;
+
+/**
+ * Forgot Password schema with email validation
+ */
+export const ForgotPasswordSchema = z.object({
+  email: z.string().email('Email inválido').toLowerCase().trim(),
+});
 
 /**
  * Sign In schema with email and password validation

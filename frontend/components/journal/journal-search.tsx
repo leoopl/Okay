@@ -20,17 +20,17 @@ import { useJournalStore, JournalSearchFilters } from '@/store/journal-store';
 // import { debounce } from 'lodash';
 
 const MOOD_OPTIONS = [
-  { value: 'happy', label: '😊 Happy' },
-  { value: 'sad', label: '😢 Sad' },
-  { value: 'excited', label: '🤩 Excited' },
-  { value: 'anxious', label: '😰 Anxious' },
-  { value: 'calm', label: '😌 Calm' },
-  { value: 'angry', label: '😠 Angry' },
-  { value: 'grateful', label: '🙏 Grateful' },
-  { value: 'confused', label: '😕 Confused' },
-  { value: 'proud', label: '😎 Proud' },
-  { value: 'tired', label: '😴 Tired' },
-  { value: 'neutral', label: '😐 Neutral' },
+  { value: 'happy', label: '😊 Feliz' },
+  { value: 'sad', label: '😢 Triste' },
+  { value: 'excited', label: '🤩 Animado' },
+  { value: 'anxious', label: '😰 Ansioso' },
+  { value: 'calm', label: '😌 Calmo' },
+  { value: 'angry', label: '😠 Irritado' },
+  { value: 'grateful', label: '🙏 Grato' },
+  { value: 'confused', label: '😕 Confuso' },
+  { value: 'proud', label: '😎 Orgulhoso' },
+  { value: 'tired', label: '😴 Cansado' },
+  { value: 'neutral', label: '😐 Neutro' },
 ];
 
 interface AdvancedSearchProps {
@@ -112,7 +112,7 @@ export function AdvancedJournalSearch({ onSearch, className }: AdvancedSearchPro
           <Search className="text-grey-dark absolute top-1/2 left-3 -translate-y-1/2" size={18} />
           <Input
             type="text"
-            placeholder="Search journals by content, title, or tags..."
+            placeholder="Buscar por conteúdo, título ou tags..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="border-grey-light focus-visible:ring-blue-dark pl-10"
@@ -124,10 +124,10 @@ export function AdvancedJournalSearch({ onSearch, className }: AdvancedSearchPro
           className="gap-2"
         >
           <Filter size={18} />
-          Filters
+          Filtros
           {hasActiveFilters && (
             <Badge variant="secondary" className="ml-1">
-              Active
+              Ativos
             </Badge>
           )}
         </Button>
@@ -140,21 +140,33 @@ export function AdvancedJournalSearch({ onSearch, className }: AdvancedSearchPro
           <div className="space-y-2">
             <Label className="flex items-center gap-2 text-sm font-medium">
               <Smile size={16} />
-              Mood
+              Humor
             </Label>
-            <Select value={mood} onValueChange={setMood}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select mood..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">All moods</SelectItem>
-                {MOOD_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <Select value={mood || undefined} onValueChange={(value) => setMood(value)}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Todos os humores..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {MOOD_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {mood && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setMood('')}
+                  className="h-10 w-10"
+                >
+                  <X size={16} />
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Tags filter */}
@@ -173,11 +185,11 @@ export function AdvancedJournalSearch({ onSearch, className }: AdvancedSearchPro
                     handleAddTag();
                   }
                 }}
-                placeholder="Add tag..."
+                placeholder="Adicionar tag..."
                 className="flex-1"
               />
               <Button type="button" onClick={handleAddTag} variant="outline" size="sm">
-                Add
+                Adicionar
               </Button>
             </div>
             {tags.length > 0 && (
@@ -201,12 +213,12 @@ export function AdvancedJournalSearch({ onSearch, className }: AdvancedSearchPro
             <div className="space-y-2">
               <Label className="flex items-center gap-2 text-sm font-medium">
                 <Calendar size={16} />
-                Start Date
+                Data Inicial
               </Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start text-left font-normal">
-                    {startDate ? format(startDate, 'PPP') : 'Pick a date'}
+                    {startDate ? format(startDate, 'dd/MM/yyyy') : 'Selecionar data'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -223,12 +235,12 @@ export function AdvancedJournalSearch({ onSearch, className }: AdvancedSearchPro
             <div className="space-y-2">
               <Label className="flex items-center gap-2 text-sm font-medium">
                 <Calendar size={16} />
-                End Date
+                Data Final
               </Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start text-left font-normal">
-                    {endDate ? format(endDate, 'PPP') : 'Pick a date'}
+                    {endDate ? format(endDate, 'dd/MM/yyyy') : 'Selecionar data'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -253,7 +265,7 @@ export function AdvancedJournalSearch({ onSearch, className }: AdvancedSearchPro
                 onClick={clearFilters}
                 className="text-destructive hover:text-destructive"
               >
-                Clear all filters
+                Limpar todos os filtros
               </Button>
             </div>
           )}

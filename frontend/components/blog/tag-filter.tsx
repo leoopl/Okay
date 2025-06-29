@@ -30,7 +30,7 @@ export function TagFilter({ selectedTag = '', availableTags = [] }: TagFilterPro
   };
 
   if (availableTags.length === 0) {
-    return <div className="text-beige-dark text-sm">No tags available</div>;
+    return <div className="text-beige-dark text-sm">Nenhuma tag disponível</div>;
   }
 
   return (

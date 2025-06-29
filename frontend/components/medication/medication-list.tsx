@@ -22,7 +22,7 @@ interface MedicationListProps {
   className?: string;
 }
 
-const SEARCH_PLACEHOLDER = 'Search medications by name or dosage...';
+const SEARCH_PLACEHOLDER = 'Buscar medicamentos por nome ou dosagem...';
 const SEARCH_DEBOUNCE_MS = 300;
 
 export default function MedicationList({ className }: MedicationListProps) {
@@ -164,7 +164,7 @@ export default function MedicationList({ className }: MedicationListProps) {
                     className="hover:text-blue-light size-8 hover:bg-transparent"
                     onClick={() => handleOpenEditDialog(medication)}
                     disabled={isDeleting}
-                    aria-label={`Edit ${medication.name}`}
+                    aria-label={`Editar ${medication.name}`}
                   >
                     <Edit className="size-4" />
                   </Button>
@@ -174,7 +174,7 @@ export default function MedicationList({ className }: MedicationListProps) {
                     className="hover:text-destructive size-8 hover:bg-transparent"
                     onClick={() => handleOpenDeleteDialog(medication)}
                     disabled={isDeleting}
-                    aria-label={`Delete ${medication.name}`}
+                    aria-label={`Deletar ${medication.name}`}
                   >
                     {isDeleting && selectedMedication?.id === medication.id ? (
                       <Loader2 className="size-4 animate-spin" />
@@ -194,23 +194,23 @@ export default function MedicationList({ className }: MedicationListProps) {
                 </Badge>
                 {!isActive && (
                   <Badge variant="outline" className="bg-gray-100 text-gray-500">
-                    Expired
+                    Expirado
                   </Badge>
                 )}
               </div>
 
               <div className="text-beige-dark flex flex-col space-y-1 text-sm">
                 <div className="flex justify-between">
-                  <span>Start date:</span>
+                  <span>Data de início:</span>
                   <time dateTime={medication.startDate.toISOString()}>
-                    {format(medication.startDate, 'MMM d, yyyy')}
+                    {format(medication.startDate, 'dd/MM/yyyy')}
                   </time>
                 </div>
                 {medication.endDate && (
                   <div className="flex justify-between">
-                    <span>End date:</span>
+                    <span>Data de término:</span>
                     <time dateTime={medication.endDate.toISOString()}>
-                      {format(medication.endDate, 'MMM d, yyyy')}
+                      {format(medication.endDate, 'dd/MM/yyyy')}
                     </time>
                   </div>
                 )}
@@ -220,7 +220,7 @@ export default function MedicationList({ className }: MedicationListProps) {
           <CardFooter className="flex flex-col gap-4 p-4">
             {medication.schedule && medication.schedule.length > 0 ? (
               <div className="w-full space-y-2">
-                <p className="text-sm font-semibold">Schedule:</p>
+                <p className="text-sm font-semibold">Agenda:</p>
                 {medication.schedule.map((scheduleItem, index) => (
                   <div
                     key={index}
@@ -239,7 +239,13 @@ export default function MedicationList({ className }: MedicationListProps) {
                           variant="outline"
                           className="border-blue-light bg-blue-light/10 text-beige-dark px-1.5 py-0.5 text-[10px] font-normal"
                         >
-                          {day.substring(0, 3)}
+                          {day === 'monday' && 'seg'}
+                          {day === 'tuesday' && 'ter'}
+                          {day === 'wednesday' && 'qua'}
+                          {day === 'thursday' && 'qui'}
+                          {day === 'friday' && 'sex'}
+                          {day === 'saturday' && 'sáb'}
+                          {day === 'sunday' && 'dom'}
                         </Badge>
                       ))}
                     </div>
@@ -248,7 +254,9 @@ export default function MedicationList({ className }: MedicationListProps) {
               </div>
             ) : (
               <div className="flex w-full items-center justify-center rounded-md border border-dashed border-gray-300 p-3">
-                <p className="text-sm text-gray-500">No schedule defined for this medication.</p>
+                <p className="text-sm text-gray-500">
+                  Nenhuma agenda definida para este medicamento.
+                </p>
               </div>
             )}
 
@@ -256,18 +264,18 @@ export default function MedicationList({ className }: MedicationListProps) {
               <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="notes" className="border-none">
                   <AccordionTrigger className="cursor-pointer py-2 text-sm hover:no-underline">
-                    Notes & Instructions
+                    Notas e Instruções
                   </AccordionTrigger>
                   <AccordionContent>
                     {medication.notes && (
                       <div className="mb-2">
-                        <p className="text-sm font-semibold">Notes:</p>
+                        <p className="text-sm font-semibold">Notas:</p>
                         <p className="text-muted-foreground text-sm">{medication.notes}</p>
                       </div>
                     )}
                     {medication.instructions && (
                       <div>
-                        <p className="text-sm font-semibold">Instructions:</p>
+                        <p className="text-sm font-semibold">Instruções:</p>
                         <p className="text-muted-foreground text-sm">{medication.instructions}</p>
                       </div>
                     )}
@@ -288,11 +296,13 @@ export default function MedicationList({ className }: MedicationListProps) {
       <div className={cn('space-y-6', className)}>
         <div className="py-12 text-center">
           <AlertCircle className="mx-auto mb-4 h-16 w-16 text-red-500" />
-          <h3 className="mb-2 text-xl font-medium text-red-800">Unable to load medications</h3>
+          <h3 className="mb-2 text-xl font-medium text-red-800">
+            Não foi possível carregar os medicamentos
+          </h3>
           <p className="mb-4 text-red-600">{error}</p>
           <Button onClick={fetchMedications} variant="outline" disabled={isLoading}>
             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Try Again
+            Tentar Novamente
           </Button>
         </div>
       </div>
@@ -303,12 +313,12 @@ export default function MedicationList({ className }: MedicationListProps) {
     <div className={cn('space-y-6', className)}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="text-green-dark font-varela text-2xl font-bold">Your Medications</h2>
+          <h2 className="text-green-dark font-varela text-2xl font-bold">Seus Medicamentos</h2>
           {isLoading && <Loader2 className="text-green-dark size-5 animate-spin" />}
         </div>
         <Button onClick={handleOpenAddDialog} disabled={isLoading} className="gap-2">
           <PlusCircle className="mb-0.5 size-4" />
-          Add New Medication
+          Adicionar Novo Medicamento
         </Button>
       </div>
 
@@ -320,7 +330,7 @@ export default function MedicationList({ className }: MedicationListProps) {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10"
           disabled={isLoading}
-          aria-label="Search medications"
+          aria-label="Buscar medicamentos"
         />
         <Search
           className="text-muted-foreground absolute top-2.5 left-3 size-5"
@@ -328,7 +338,7 @@ export default function MedicationList({ className }: MedicationListProps) {
         />
         {debouncedSearchTerm && (
           <div className="text-muted-foreground mt-2 text-sm">
-            {filteredMedications.length} of {medications.length} medications shown
+            {filteredMedications.length} de {medications.length} medicamentos exibidos
           </div>
         )}
       </div>
@@ -336,29 +346,33 @@ export default function MedicationList({ className }: MedicationListProps) {
       {isLoading && medications.length === 0 ? (
         <div className="py-12 text-center">
           <Loader2 className="text-green-dark mx-auto mb-4 h-8 w-8 animate-spin" />
-          <p className="text-muted-foreground">Loading your medications...</p>
+          <p className="text-muted-foreground">Carregando seus medicamentos...</p>
         </div>
       ) : medications.length === 0 ? (
         <div className="py-12 text-center">
           <div className="bg-green-light/40 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
             <Pill className="text-green-dark h-8 w-8" />
           </div>
-          <h3 className="text-green-dark mb-2 text-xl font-medium">No medications found</h3>
-          <p className="text-beige-dark mb-6">Start by adding your medications to track them</p>
+          <h3 className="text-green-dark mb-2 text-xl font-medium">
+            Nenhum medicamento encontrado
+          </h3>
+          <p className="text-beige-dark mb-6">
+            Comece adicionando seus medicamentos para rastreá-los
+          </p>
           <Button onClick={handleOpenAddDialog}>
             <PlusCircle className="mr-2 mb-0.5 size-4" />
-            Add your first medication
+            Adicione seu primeiro medicamento
           </Button>
         </div>
       ) : filteredMedications.length === 0 ? (
         <div className="py-12 text-center">
           <Search className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
-          <h3 className="mb-2 text-lg font-medium">No medications match your search</h3>
+          <h3 className="mb-2 text-lg font-medium">Nenhum medicamento corresponde à sua busca</h3>
           <p className="text-muted-foreground mb-4">
-            Try adjusting your search terms or browse all medications
+            Tente ajustar seus termos de busca ou navegue por todos os medicamentos
           </p>
           <Button variant="outline" onClick={() => setSearchTerm('')}>
-            Clear Search
+            Limpar Busca
           </Button>
         </div>
       ) : (
@@ -373,7 +387,7 @@ export default function MedicationList({ className }: MedicationListProps) {
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[625px]">
           <DialogHeader>
-            <DialogTitle>Add New Medication</DialogTitle>
+            <DialogTitle>Adicionar Novo Medicamento</DialogTitle>
           </DialogHeader>
           <AddMedicationForm onClose={handleCloseDialogs} />
         </DialogContent>
@@ -383,7 +397,7 @@ export default function MedicationList({ className }: MedicationListProps) {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[625px]">
           <DialogHeader>
-            <DialogTitle>Edit Medication</DialogTitle>
+            <DialogTitle>Editar Medicamento</DialogTitle>
           </DialogHeader>
           {selectedMedication && (
             <AddMedicationForm medication={selectedMedication} onClose={handleCloseDialogs} />
@@ -395,14 +409,14 @@ export default function MedicationList({ className }: MedicationListProps) {
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogTitle>Confirmar Exclusão</DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <p>
-              Are you sure you want to delete <strong>{selectedMedication?.name}</strong>?
+              Tem certeza de que deseja excluir <strong>{selectedMedication?.name}</strong>?
             </p>
             <p className="text-muted-foreground mt-2 text-sm">
-              This action cannot be undone and will remove all associated dose logs.
+              Esta ação não pode ser desfeita e removerá todos os registros de doses associados.
             </p>
           </div>
           <div className="flex justify-end gap-4">
@@ -411,16 +425,16 @@ export default function MedicationList({ className }: MedicationListProps) {
               onClick={() => setIsDeleteDialogOpen(false)}
               disabled={isDeleting}
             >
-              Cancel
+              Cancelar
             </Button>
             <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
               {isDeleting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting...
+                  Excluindo...
                 </>
               ) : (
-                'Delete'
+                'Excluir'
               )}
             </Button>
           </div>

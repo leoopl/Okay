@@ -3,8 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { createClient, logAuditTrail } from '@/lib/supabase/server';
 import { getRequestMetadata } from '@/lib/actions/supabase-auth';
+import type { Database } from '@/lib/supabase/database.types';
 import { JournalSearchFilters } from '@/store/journal-store';
-import { Database } from '../supabase/database.types';
+import { JournalError, JournalErrorType, getErrorType } from '@/components/journal/journal-utils';
 
 type JournalEntry = Database['public']['Tables']['journal_entries']['Row'];
 type JournalInsert = Database['public']['Tables']['journal_entries']['Insert'];
@@ -17,47 +18,6 @@ export interface JournalActionResponse {
   error?: string;
   entry?: JournalEntry;
   entries?: JournalEntry[];
-}
-
-// Error types for better error handling
-export enum JournalErrorType {
-  NETWORK_ERROR = 'NETWORK_ERROR',
-  AUTH_ERROR = 'AUTH_ERROR',
-  PERMISSION_ERROR = 'PERMISSION_ERROR',
-  VALIDATION_ERROR = 'VALIDATION_ERROR',
-  NOT_FOUND = 'NOT_FOUND',
-  QUOTA_EXCEEDED = 'QUOTA_EXCEEDED',
-  ENCRYPTION_ERROR = 'ENCRYPTION_ERROR',
-  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
-}
-
-export class JournalError extends Error {
-  constructor(
-    public type: JournalErrorType,
-    message: string,
-    public retryable: boolean = false,
-    public details?: any,
-  ) {
-    super(message);
-    this.name = 'JournalError';
-  }
-}
-
-// Helper function to determine error type
-function getErrorType(error: any): JournalErrorType {
-  if (error?.code === 'PGRST301' || error?.message?.includes('JWT')) {
-    return JournalErrorType.AUTH_ERROR;
-  }
-  if (error?.code === '42501' || error?.message?.includes('permission denied')) {
-    return JournalErrorType.PERMISSION_ERROR;
-  }
-  if (error?.code === '23505' || error?.message?.includes('duplicate')) {
-    return JournalErrorType.VALIDATION_ERROR;
-  }
-  if (error?.code === 'ECONNREFUSED' || error?.message?.includes('network')) {
-    return JournalErrorType.NETWORK_ERROR;
-  }
-  return JournalErrorType.UNKNOWN_ERROR;
 }
 
 export async function createJournalEntry(
@@ -537,35 +497,17 @@ export async function searchJournalEntries(
       );
     }
 
-    // Build query
-    let query = supabase.from('journal_entries').select('*').eq('user_id', user.id);
-
-    // Apply filters
-    if (filters.query) {
-      // Use PostgreSQL full-text search
-      query = query.or(`title.ilike.%${filters.query}%,content->>.ilike.%${filters.query}%`);
-    }
-
-    if (filters.mood) {
-      query = query.eq('mood' as JournalMood, filters.mood);
-    }
-
-    if (filters.tags && filters.tags.length > 0) {
-      query = query.overlaps('tags', filters.tags);
-    }
-
-    if (filters.startDate) {
-      query = query.gte('created_at', filters.startDate);
-    }
-
-    if (filters.endDate) {
-      query = query.lte('created_at', filters.endDate);
-    }
-
-    // Execute query with ordering and pagination
-    const { data: entries, error } = await query
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+    // Use the PostgreSQL function for full-text search
+    const { data: entries, error } = await supabase.rpc('search_journal_entries', {
+      p_user_id: user.id,
+      p_query: filters.query || undefined,
+      p_mood: (filters.mood as JournalMood) || undefined,
+      p_tags: filters.tags || undefined,
+      p_start_date: filters.startDate || undefined,
+      p_end_date: filters.endDate || undefined,
+      p_limit: limit,
+      p_offset: offset,
+    });
 
     if (error) {
       console.error('Error searching journal entries:', error);
@@ -592,7 +534,7 @@ export async function searchJournalEntries(
             end: filters.endDate,
           },
         },
-        resultCount: entries.length,
+        resultCount: entries?.length || 0,
       },
       ipAddress,
       userAgent,
@@ -600,7 +542,7 @@ export async function searchJournalEntries(
 
     return {
       success: true,
-      entries: entries,
+      entries: (entries || []) as unknown as JournalEntry[],
     };
   } catch (error) {
     console.error('Error searching journal entries:', error);

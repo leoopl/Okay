@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon, Plus, Trash2, Loader2 } from 'lucide-react';
@@ -40,53 +41,53 @@ import { toast } from 'sonner';
 
 // Constants
 const MEDICATION_FORMS: Array<{ value: MedicationForm; label: string }> = [
-  { value: 'capsule', label: 'Capsule' },
-  { value: 'tablet', label: 'Tablet' },
-  { value: 'drops', label: 'Drops' },
-  { value: 'injectable', label: 'Injectable' },
-  { value: 'ointment', label: 'Ointment' },
-  { value: 'other', label: 'Other' },
+  { value: 'capsule', label: 'Cápsula' },
+  { value: 'tablet', label: 'Comprimido' },
+  { value: 'drops', label: 'Gotas' },
+  { value: 'injectable', label: 'Injetável' },
+  { value: 'ointment', label: 'Pomada' },
+  { value: 'other', label: 'Outro' },
 ];
 
 const DAYS_OF_WEEK: Array<{ value: DayOfWeek; label: string }> = [
-  { value: DayOfWeek.MONDAY, label: 'Monday' },
-  { value: DayOfWeek.TUESDAY, label: 'Tuesday' },
-  { value: DayOfWeek.WEDNESDAY, label: 'Wednesday' },
-  { value: DayOfWeek.THURSDAY, label: 'Thursday' },
-  { value: DayOfWeek.FRIDAY, label: 'Friday' },
-  { value: DayOfWeek.SATURDAY, label: 'Saturday' },
-  { value: DayOfWeek.SUNDAY, label: 'Sunday' },
+  { value: DayOfWeek.MONDAY, label: 'Segunda' },
+  { value: DayOfWeek.TUESDAY, label: 'Terça' },
+  { value: DayOfWeek.WEDNESDAY, label: 'Quarta' },
+  { value: DayOfWeek.THURSDAY, label: 'Quinta' },
+  { value: DayOfWeek.FRIDAY, label: 'Sexta' },
+  { value: DayOfWeek.SATURDAY, label: 'Sábado' },
+  { value: DayOfWeek.SUNDAY, label: 'Domingo' },
 ];
 
 // Validation schema
 const scheduleItemSchema = z.object({
   time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-    message: 'Time format must be HH:MM',
+    message: 'O formato do horário deve ser HH:MM',
   }),
   days: z.array(z.nativeEnum(DayOfWeek)).min(1, {
-    message: 'Select at least one day',
+    message: 'Selecione pelo menos um dia',
   }),
 });
 
 const medicationFormSchema = z
   .object({
-    name: z.string().min(1, { message: 'Medication name is required' }),
-    dosage: z.string().min(1, { message: 'Dosage is required' }),
+    name: z.string().min(1, { message: 'O nome do medicamento é obrigatório' }),
+    dosage: z.string().min(1, { message: 'A dosagem é obrigatória' }),
     form: z.enum(['capsule', 'tablet', 'drops', 'injectable', 'ointment', 'other'] as const),
-    startDate: z.date({ required_error: 'Start date is required' }),
+    startDate: z.date({ required_error: 'A data de início é obrigatória' }),
     endDate: z
       .date()
       .optional()
       .nullable()
       .transform((val) => val || undefined), // Handle null values
     schedule: z.array(scheduleItemSchema).min(1, {
-      message: 'At least one schedule is required',
+      message: 'Pelo menos um horário é obrigatório',
     }),
     notes: z.string().optional(),
     instructions: z.string().optional(),
   })
   .refine((data) => !data.endDate || data.endDate >= data.startDate, {
-    message: 'End date must be after start date',
+    message: 'A data de término deve ser posterior à data de início',
     path: ['endDate'],
   });
 
@@ -154,7 +155,7 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
     if (hasConflict) {
       form.setError('schedule', {
         type: 'manual',
-        message: 'This time already exists for one or more selected days',
+        message: 'Este horário já existe para um ou mais dias selecionados',
       });
       return;
     }
@@ -227,7 +228,7 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
           // Only update if there are changes
           if (Object.keys(changes).length > 0) {
             const result = await updateMedication(medication.id, changes as any);
-            if (result) toast.success('Medication updated successfully');
+            if (result) toast.success('Medicamento atualizado com sucesso');
           }
         } else {
           await createMedication(payload as any);
@@ -260,9 +261,9 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Medication Name *</FormLabel>
+                <FormLabel>Nome do Medicamento *</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Sertraline" {...field} disabled={isLoading} />
+                  <Input placeholder="ex: Sertralina" {...field} disabled={isLoading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -274,9 +275,9 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
             name="dosage"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Dosage *</FormLabel>
+                <FormLabel>Dosagem *</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., 50mg" {...field} disabled={isLoading} />
+                  <Input placeholder="ex: 50mg" {...field} disabled={isLoading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -290,7 +291,7 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
           name="form"
           render={({ field }) => (
             <FormItem className="md:w-1/2">
-              <FormLabel>Form *</FormLabel>
+              <FormLabel>Forma *</FormLabel>
               <Select
                 onValueChange={field.onChange}
                 defaultValue={field.value}
@@ -298,7 +299,7 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select form" />
+                    <SelectValue placeholder="Selecione a forma" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -321,7 +322,7 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
             name="startDate"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Start Date *</FormLabel>
+                <FormLabel>Data de Início *</FormLabel>
                 <Popover modal={true}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -333,7 +334,11 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
                           !field.value && 'text-muted-foreground',
                         )}
                       >
-                        {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                        {field.value ? (
+                          format(field.value, 'PPP', { locale: ptBR })
+                        ) : (
+                          <span>Escolha uma data</span>
+                        )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>
@@ -344,7 +349,7 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
                       selected={field.value}
                       onSelect={field.onChange}
                       initialFocus
-                      locale={undefined} // Use default locale instead of ptBR
+                      locale={ptBR}
                       disabled={(date) => date < new Date('1900-01-01')}
                     />
                   </PopoverContent>
@@ -359,7 +364,7 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
             name="endDate"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>End Date (optional)</FormLabel>
+                <FormLabel>Data de Término (opcional)</FormLabel>
                 <Popover modal={true}>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -371,7 +376,11 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
                           !field.value && 'text-muted-foreground',
                         )}
                       >
-                        {field.value ? format(field.value, 'PPP') : <span>No end date</span>}
+                        {field.value ? (
+                          format(field.value, 'PPP', { locale: ptBR })
+                        ) : (
+                          <span>Sem data de término</span>
+                        )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>
@@ -382,7 +391,7 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
                       selected={field.value}
                       onSelect={field.onChange}
                       initialFocus
-                      locale={undefined} // Use default locale instead of ptBR
+                      locale={ptBR}
                       disabled={(date) => {
                         const startDate = form.getValues('startDate');
                         return startDate ? date < startDate : date < new Date('1900-01-01');
@@ -390,7 +399,7 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
                     />
                   </PopoverContent>
                 </Popover>
-                <FormDescription>Leave empty for ongoing medications</FormDescription>
+                <FormDescription>Deixe vazio para medicamentos contínuos</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -400,11 +409,11 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
         {/* Schedule Section */}
         <div className="space-y-4">
           <div className="rounded-md border p-4">
-            <h3 className="mb-4 text-lg font-medium">Add Schedule Time</h3>
+            <h3 className="mb-4 text-lg font-medium">Adicionar Horário</h3>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <Label htmlFor="schedule-time">Time *</Label>
+                <Label htmlFor="schedule-time">Horário *</Label>
                 <Input
                   id="schedule-time"
                   type="time"
@@ -416,7 +425,7 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
               </div>
 
               <div>
-                <Label>Days of Week *</Label>
+                <Label>Dias da Semana *</Label>
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   {DAYS_OF_WEEK.map((day) => (
                     <div key={day.value} className="flex items-center space-x-2">
@@ -447,13 +456,13 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
               className="mt-4 w-full"
             >
               <Plus className="mr-2 h-4 w-4" />
-              Add Time
+              Adicionar Horário
             </Button>
           </div>
 
           {/* Schedule Display */}
           <div>
-            <FormLabel>Scheduled Times *</FormLabel>
+            <FormLabel>Horários Agendados *</FormLabel>
             <div className="mt-2 divide-y rounded-md border">
               {scheduleItems && scheduleItems.length > 0 ? (
                 scheduleItems.map((timeEntry, index) => (
@@ -462,7 +471,7 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
                       <p className="font-medium">{timeEntry.time}</p>
                       <p className="text-muted-foreground text-sm">
                         {timeEntry.days.length === 7
-                          ? 'Every day'
+                          ? 'Todos os dias'
                           : timeEntry.days
                               .map((day) => DAYS_OF_WEEK.find((d) => d.value === day)?.label)
                               .join(', ')}
@@ -474,19 +483,21 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
                       onClick={() => removeScheduleTime(index)}
                       disabled={isLoading}
                       type="button"
-                      aria-label={`Remove ${timeEntry.time} schedule`}
+                      aria-label={`Remover horário ${timeEntry.time}`}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 ))
               ) : (
-                <div className="text-muted-foreground p-4 text-center">No times scheduled yet</div>
+                <div className="text-muted-foreground p-4 text-center">
+                  Nenhum horário agendado ainda
+                </div>
               )}
             </div>
 
             <FormDescription className="mt-2">
-              Add specific times when you need to take this medication
+              Adicione horários específicos para tomar este medicamento
             </FormDescription>
 
             {hasScheduleError && (
@@ -502,10 +513,10 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
             name="notes"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Notes (optional)</FormLabel>
+                <FormLabel>Notas (opcional)</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Add any personal notes about this medication"
+                    placeholder="Adicione notas pessoais sobre este medicamento"
                     className="min-h-[80px]"
                     disabled={isLoading}
                     {...field}
@@ -521,10 +532,10 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
             name="instructions"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Doctor's Instructions (optional)</FormLabel>
+                <FormLabel>Instruções do Médico (opcional)</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Add any instructions from your doctor"
+                    placeholder="Adicione instruções do seu médico"
                     className="min-h-[80px]"
                     disabled={isLoading}
                     {...field}
@@ -539,22 +550,18 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
         {/* Action Buttons */}
         <div className="flex justify-end gap-4 pt-4">
           <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
-            Cancel
+            Cancelar
           </Button>
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="bg-green-dark hover:bg-green-medium text-white"
-          >
+          <Button type="submit" disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {isEditMode ? 'Updating...' : 'Adding...'}
+                {isEditMode ? 'Atualizando...' : 'Adicionando...'}
               </>
             ) : isEditMode ? (
-              'Update Medication'
+              'Atualizar Medicamento'
             ) : (
-              'Add Medication'
+              'Adicionar Medicamento'
             )}
           </Button>
         </div>

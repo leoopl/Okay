@@ -367,7 +367,7 @@ export async function uploadProfilePicture(
       console.error('Error uploading file:', uploadError);
       return {
         success: false,
-        message: 'Erro ao fazer upload da foto',
+        message: `Erro ao fazer upload da foto: ${uploadError.message || 'Erro desconhecido'}`,
       };
     }
 
@@ -388,7 +388,7 @@ export async function uploadProfilePicture(
       console.error('Error updating profile picture URL:', updateError);
       return {
         success: false,
-        message: 'Erro ao atualizar foto no perfil',
+        message: `Erro ao atualizar foto no perfil: ${updateError.message || 'Erro desconhecido'}`,
       };
     }
 

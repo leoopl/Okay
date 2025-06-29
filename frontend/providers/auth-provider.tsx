@@ -213,23 +213,8 @@ export function AuthProvider({ children, initialData }: AuthProviderProps) {
         console.error('Supabase signOut error:', error);
       }
 
-      // Navigate to home page - use window.location for guaranteed navigation
-      if (window.location.pathname !== '/') {
-        console.log('Attempting navigation to home page...');
-        // Try router.push first
-        router.push('/');
-
-        // Use window.location as fallback to ensure navigation
-        setTimeout(() => {
-          console.log('Checking if navigation worked, current path:', window.location.pathname);
-          if (window.location.pathname !== '/') {
-            console.log('Router.push failed, using window.location.href fallback');
-            window.location.href = '/';
-          }
-        }, 100);
-      } else {
-        console.log('Already on home page, no navigation needed');
-      }
+      // Navigate to home page
+      router.push('/');
     } catch (error) {
       console.error('Error signing out:', error);
       // Even if there's an error, ensure user is redirected

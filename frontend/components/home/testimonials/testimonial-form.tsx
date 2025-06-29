@@ -124,7 +124,7 @@ export default function TestimonialForm() {
             className="w-full cursor-pointer px-4 py-2 font-bold"
             disabled={isPending}
           >
-            {isPending ? 'Sending...' : 'Compartilhar'}
+            {isPending ? 'Enviando...' : 'Compartilhar'}
           </Button>
         </div>
       </form>

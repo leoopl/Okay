@@ -218,7 +218,7 @@ export default function SignupPage() {
 
         <div className="hidden md:flex md:justify-center">
           <Image
-            alt="Sign In Illustration"
+            alt="Ilustração de Cadastro"
             width={500}
             height={500}
             src="/login.svg"

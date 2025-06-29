@@ -10,7 +10,7 @@ export async function signInWithGoogle() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/auth/callback`,
+      redirectTo: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/auth/v1/callback`,
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',
@@ -40,7 +40,7 @@ export async function linkGoogleAccount() {
   const { data, error } = await supabase.auth.linkIdentity({
     provider: 'google',
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/auth/callback?action=link`,
+      redirectTo: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/auth/v1/callback?action=link`,
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',

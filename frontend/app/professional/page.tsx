@@ -96,7 +96,7 @@ const ProfessionalPage: React.FC = () => {
           </div>
           <div className="hidden md:flex md:justify-center">
             <Image
-              alt="Profisional Image"
+              alt="Imagem de Profissional"
               src="/professional.svg"
               width={400}
               height={400}

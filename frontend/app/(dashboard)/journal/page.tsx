@@ -2,26 +2,51 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, WifiOff, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { JournalCard } from '@/components/journal/journal-card';
+import { AdvancedJournalSearch } from '@/components/journal/journal-search';
 import { useJournalStore } from '@/store/journal-store';
 import type { Journal } from '@/store/journal-store';
+import { useOfflineSync } from '@/hooks/use-offline-sync';
+import { SyncStatusIndicator } from '@/components/journal/sync-status';
 
 export default function JournalPage() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Store state and actions
-  const { entries, isLoading, error, getAllJournals, createJournal, deleteJournal, clearError } =
-    useJournalStore();
+  const {
+    entries,
+    isLoading,
+    error,
+    getAllJournals,
+    createJournal,
+    deleteJournal,
+    clearError,
+    searchFilters,
+  } = useJournalStore();
 
-  // Load journal entries on mount
+  // Offline sync
+  const { isOnline, isSyncing, pendingChanges, lastSync, syncNow, initializeOfflineStorage } =
+    useOfflineSync();
+
+  // Initialize offline storage and load data
   useEffect(() => {
-    getAllJournals();
-  }, [getAllJournals]);
+    const init = async () => {
+      try {
+        await initializeOfflineStorage();
+        await getAllJournals();
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Falha ao inicializar:', error);
+        toast.error('Falha ao inicializar o diário. Por favor, atualize a página.');
+      }
+    };
+
+    init();
+  }, [initializeOfflineStorage, getAllJournals]);
 
   // Handle errors with toast notifications
   useEffect(() => {
@@ -31,22 +56,61 @@ export default function JournalPage() {
     }
   }, [error, clearError]);
 
-  // Filter entries based on search query
+  // Auto-sync when coming online
+  useEffect(() => {
+    if (isOnline && pendingChanges > 0) {
+      syncNow();
+    }
+  }, [isOnline, pendingChanges, syncNow]);
+
+  // Filter entries based on search filters
   const filteredEntries = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return entries;
+    let filtered = entries;
+
+    // Filter by search query
+    if (searchFilters.query) {
+      const query = searchFilters.query.toLowerCase();
+      filtered = filtered.filter((entry) => {
+        const searchableText = [
+          entry.title,
+          JSON.stringify(entry.content),
+          entry.mood || '',
+          ...(entry.tags || []),
+        ]
+          .join(' ')
+          .toLowerCase();
+
+        return searchableText.includes(query);
+      });
     }
 
-    const query = searchQuery.toLowerCase();
-    return entries.filter((entry) => {
-      // Search in title, content preview, and tags
-      const titleMatch = entry.title.toLowerCase().includes(query);
-      const contentMatch = entry.content.toLowerCase().includes(query);
-      const tagsMatch = entry.tags.some((tag) => tag.toLowerCase().includes(query));
+    // Filter by mood
+    if (searchFilters.mood) {
+      filtered = filtered.filter((entry) => entry.mood === searchFilters.mood);
+    }
 
-      return titleMatch || contentMatch || tagsMatch;
-    });
-  }, [entries, searchQuery]);
+    // Filter by tags
+    if (searchFilters.tags && searchFilters.tags.length > 0) {
+      filtered = filtered.filter((entry) =>
+        searchFilters.tags!.some((tag) => entry.tags.includes(tag)),
+      );
+    }
+
+    // Filter by date range
+    if (searchFilters.startDate) {
+      filtered = filtered.filter(
+        (entry) => new Date(entry.created_at) >= new Date(searchFilters.startDate!),
+      );
+    }
+
+    if (searchFilters.endDate) {
+      filtered = filtered.filter(
+        (entry) => new Date(entry.created_at) <= new Date(searchFilters.endDate!),
+      );
+    }
+
+    return filtered;
+  }, [entries, searchFilters]);
 
   // Sort entries by creation date (most recent first)
   const sortedEntries = useMemo(() => {
@@ -59,11 +123,11 @@ export default function JournalPage() {
   const handleCreateEntry = async () => {
     try {
       const newEntry = await createJournal();
-      toast.success('New journal entry created');
+      toast.success('Nova entrada criada com sucesso');
       router.push(`/journal/${newEntry.id}`);
     } catch (error) {
-      toast.error('Failed to create journal entry');
-      console.error('Error creating journal:', error);
+      toast.error('Falha ao criar entrada no diário');
+      console.error('Erro ao criar entrada do diário:', error);
     }
   };
 
@@ -71,9 +135,9 @@ export default function JournalPage() {
   const handleDeleteEntry = async (id: string) => {
     try {
       await deleteJournal(id);
-      toast.success('Journal entry deleted');
+      toast.success('Entrada deletada com sucesso');
     } catch (error) {
-      toast.error('Failed to delete journal entry');
+      toast.error('Falha ao deletar entrada');
       console.error('Error deleting journal:', error);
     }
   };
@@ -83,102 +147,188 @@ export default function JournalPage() {
     router.push(`/journal/${entry.id}`);
   };
 
+  // Handle manual sync
+  const handleManualSync = async () => {
+    try {
+      await syncNow();
+      toast.success('Sincronização concluída com sucesso');
+    } catch (error) {
+      toast.error('Sincronização falhou. Tente novamente.');
+    }
+  };
+
+  if (!isInitialized) {
+    return (
+      <div className="container mx-auto max-w-3xl px-4 py-8">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-[#7F9463] border-t-transparent"></div>
+            <p className="text-beige-medium">Inicializando diário...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto max-w-3xl px-4 py-8">
-      {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-green-dark font-varela text-3xl font-bold md:text-4xl">Journal</h1>
-        <Button onClick={handleCreateEntry} className="font-varela font-bold" disabled={isLoading}>
-          <Plus size={18} className="mr-2" />
-          New Entry
-        </Button>
+      {/* Header with sync status */}
+      <div className="mb-8">
+        <div className="mb-4 flex items-center justify-between">
+          <h1 className="text-green-dark font-varela text-3xl font-bold md:text-4xl">Diário</h1>
+          <div className="flex items-center gap-2">
+            <SyncStatusIndicator
+              isOnline={isOnline}
+              isSyncing={isSyncing}
+              pendingChanges={pendingChanges}
+              lastSync={lastSync}
+            />
+            <Button
+              onClick={handleCreateEntry}
+              className="font-varela font-bold"
+              disabled={isLoading}
+            >
+              <Plus size={18} className="mr-2" />
+              Nova Entrada
+            </Button>
+          </div>
+        </div>
+
+        {/* Offline indicator */}
+        {!isOnline && (
+          <div className="mb-4 flex items-center gap-2 rounded-lg border border-yellow-300 bg-yellow-100 p-3">
+            <WifiOff size={18} className="text-yellow-700" />
+            <span className="text-sm text-yellow-700">
+              Você está offline. Suas alterações serão sincronizadas quando a conexão for
+              restaurada.
+            </span>
+            {pendingChanges > 0 && (
+              <span className="ml-auto text-sm font-medium text-yellow-700">
+                {pendingChanges}{' '}
+                {pendingChanges === 1 ? 'alteração pendente' : 'alterações pendentes'}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Manual sync button when there are pending changes */}
+        {isOnline && pendingChanges > 0 && !isSyncing && (
+          <div className="mb-4 flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 p-3">
+            <span className="text-sm text-blue-700">
+              Você tem {pendingChanges}{' '}
+              {pendingChanges === 1 ? 'alteração não salva' : 'alterações não salvas'}.
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleManualSync}
+              className="border-blue-400 text-blue-700 hover:bg-blue-100"
+            >
+              <RefreshCw size={14} className="mr-2" />
+              Sincronizar Agora
+            </Button>
+          </div>
+        )}
       </div>
 
-      {/* Search */}
-      <div className="relative mb-6">
-        <Search
-          className="text-grey-dark absolute top-1/2 left-3 -translate-y-1/2 transform"
-          size={18}
-        />
-        <Input
-          type="text"
-          placeholder="Search journal entries..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="border-grey-light focus-visible:ring-blue-dark bg-white pl-10"
-        />
-      </div>
+      {/* Advanced search */}
+      <AdvancedJournalSearch className="mb-6" />
 
       {/* Loading State */}
       {isLoading && entries.length === 0 && (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-[#7F9463] border-t-transparent"></div>
-            <p className="text-beige-medium">Loading your journal entries...</p>
+            <p className="text-beige-medium">Carregando suas entradas...</p>
           </div>
         </div>
       )}
 
       {/* Empty State */}
-      {!isLoading && sortedEntries.length === 0 && !searchQuery && (
+      {!isLoading && sortedEntries.length === 0 && !searchFilters.query && (
         <div className="py-12 text-center">
           <div className="bg-beige-light/40 mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full">
             <Plus size={32} className="text-blue-dark" />
           </div>
-          <h3 className="text-grey-dark mb-2 text-lg font-medium">No journal entries yet</h3>
-          <p className="text-beige-dark mb-4">Start documenting your thoughts and experiences.</p>
+          <h3 className="text-grey-dark mb-2 text-lg font-medium">Nenhuma entrada ainda</h3>
+          <p className="text-beige-dark mb-4">
+            Comece a documentar seus pensamentos e experiências.
+          </p>
           <Button
             onClick={handleCreateEntry}
             className="font-varela font-bold"
             disabled={isLoading}
           >
             <Plus size={18} className="mr-2" />
-            Create Your First Entry
+            Criar Primeira Entrada
           </Button>
         </div>
       )}
 
       {/* No Search Results */}
-      {!isLoading && sortedEntries.length === 0 && searchQuery && (
-        <div className="py-12 text-center">
-          <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-[#F2DECC]/20">
-            <Search size={32} className="text-[#7F9463]" />
+      {!isLoading &&
+        sortedEntries.length === 0 &&
+        (searchFilters.query || searchFilters.mood || searchFilters.tags) && (
+          <div className="py-12 text-center">
+            <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-[#F2DECC]/20">
+              <Search size={32} className="text-[#7F9463]" />
+            </div>
+            <h3 className="mb-2 text-lg font-medium text-[#797D89]">Nenhuma entrada encontrada</h3>
+            <p className="mb-4 text-[#91857A]">
+              Nenhuma entrada corresponde aos seus critérios de busca.
+            </p>
+            <Button
+              onClick={() => {
+                // Clear search by triggering a new search with empty filters
+                const store = useJournalStore.getState();
+                store.searchJournals({});
+              }}
+              variant="outline"
+              className="border-[#7F9463] text-[#7F9463] hover:bg-[#7F9463] hover:text-white"
+            >
+              Limpar Busca
+            </Button>
           </div>
-          <h3 className="mb-2 text-lg font-medium text-[#797D89]">No entries found</h3>
-          <p className="mb-4 text-[#91857A]">
-            No journal entries match your search for "{searchQuery}".
-          </p>
-          <Button
-            onClick={() => setSearchQuery('')}
-            variant="outline"
-            className="border-[#7F9463] text-[#7F9463] hover:bg-[#7F9463] hover:text-white"
-          >
-            Clear Search
-          </Button>
-        </div>
-      )}
+        )}
 
       {/* Journal Entries List */}
       {!isLoading && sortedEntries.length > 0 && (
         <div className="space-y-4">
           {sortedEntries.map((entry) => (
-            <JournalCard
-              key={entry.id}
-              entry={entry}
-              onDelete={handleDeleteEntry}
-              onClick={() => handleEntryClick(entry)}
-            />
+            <div key={entry.id} className="relative">
+              <JournalCard
+                entry={entry}
+                onDelete={handleDeleteEntry}
+                onClick={() => handleEntryClick(entry)}
+              />
+              {/* Sync status indicator for individual entries */}
+              {entry._syncStatus === 'pending' && (
+                <div className="absolute top-2 right-2">
+                  <div
+                    className="h-2 w-2 animate-pulse rounded-full bg-yellow-500"
+                    title="Sincronização pendente"
+                  />
+                </div>
+              )}
+              {entry._syncStatus === 'error' && (
+                <div className="absolute top-2 right-2">
+                  <div className="h-2 w-2 rounded-full bg-red-500" title="Erro de sincronização" />
+                </div>
+              )}
+            </div>
           ))}
         </div>
       )}
 
       {/* Search Results Count */}
-      {searchQuery && sortedEntries.length > 0 && (
-        <div className="text-beige-dark mt-6 text-center text-sm">
-          Found {sortedEntries.length} {sortedEntries.length === 1 ? 'entry' : 'entries'}
-          matching "{searchQuery}"
-        </div>
-      )}
+      {(searchFilters.query || searchFilters.mood || searchFilters.tags) &&
+        sortedEntries.length > 0 && (
+          <div className="text-beige-dark mt-6 text-center text-sm">
+            {sortedEntries.length === 1
+              ? 'Encontrada 1 entrada'
+              : `Encontradas ${sortedEntries.length} entradas`}
+          </div>
+        )}
     </div>
   );
 }

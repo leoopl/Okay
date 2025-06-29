@@ -6,8 +6,10 @@ import { createClient, logAuditTrail } from '@/lib/supabase/server';
 import {
   SignInSchema,
   SignUpSchema,
+  ForgotPasswordSchema,
   type SignInInput,
   type SignUpInput,
+  type ForgotPasswordInput,
 } from '@/lib/schemas/auth-schemas';
 import { ActionResult } from '../definitions';
 import { headers } from 'next/headers';
@@ -238,6 +240,72 @@ export async function signOut(): Promise<ActionResult> {
       error: {
         code: 'INTERNAL_ERROR',
         message: 'Ocorreu um erro ao fazer logout',
+      },
+    };
+  }
+}
+
+/**
+ * Forgot password action - sends password reset email
+ */
+export async function forgotPassword(input: ForgotPasswordInput): Promise<ActionResult> {
+  try {
+    // Validate input
+    const validatedData = ForgotPasswordSchema.parse(input);
+    const supabase = await createClient();
+    const { ipAddress, userAgent } = await getRequestMetadata();
+
+    // Send password reset email
+    const { error } = await supabase.auth.resetPasswordForEmail(validatedData.email, {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/reset-password`,
+    });
+
+    if (error) {
+      // Log failed password reset attempt
+      await supabase.from('audit_logs').insert({
+        action: 'failed_login',
+        resource: 'auth',
+        details: { email: validatedData.email, error: error.message },
+        ip_address: ipAddress,
+        user_agent: userAgent,
+      });
+
+      return {
+        success: false,
+        error: {
+          code: 'AUTH_ERROR',
+          message: 'Erro ao enviar email de recuperação',
+        },
+      };
+    }
+
+    // Log successful password reset request
+    await supabase.from('audit_logs').insert({
+      action: 'password_reset_request',
+      resource: 'auth',
+      details: { email: validatedData.email },
+      ip_address: ipAddress,
+      user_agent: userAgent,
+    });
+
+    return { success: true };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return {
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: error.errors[0].message,
+        },
+      };
+    }
+
+    console.error('Forgot password error:', error);
+    return {
+      success: false,
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'Ocorreu um erro ao solicitar recuperação de senha',
       },
     };
   }

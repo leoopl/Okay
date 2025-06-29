@@ -16,16 +16,16 @@ type TabValue = 'medications' | 'schedule' | 'history';
 // Constants
 const TABS_CONFIG = {
   medications: {
-    label: 'Medications',
-    description: 'Manage your medication list',
+    label: 'Medicamentos',
+    description: 'Gerencie sua lista de medicamentos',
   },
   schedule: {
-    label: 'Schedule',
-    description: "View and log today's doses",
+    label: 'Agenda',
+    description: 'Visualize e registre as doses de hoje',
   },
   history: {
-    label: 'History & Reports',
-    description: 'Track adherence and view reports',
+    label: 'Histórico e Relatórios',
+    description: 'Acompanhe a adesão e visualize relatórios',
   },
 } as const;
 
@@ -58,7 +58,7 @@ export default function MedicationPage() {
         }
       } catch (error) {
         if (!controller.signal.aborted) {
-          console.error('Failed to initialize medication data:', error);
+          console.error('Falha ao inicializar dados de medicamentos:', error);
         }
       }
     };
@@ -82,7 +82,7 @@ export default function MedicationPage() {
       clearAllErrors();
       await Promise.allSettled([fetchMedications(), fetchTodaySchedule()]);
     } catch (error) {
-      console.error('Retry failed:', error);
+      console.error('Tentativa falhou:', error);
     }
   }, [fetchMedications, fetchTodaySchedule, clearAllErrors]);
 
@@ -103,10 +103,10 @@ export default function MedicationPage() {
           <div className="py-16 text-center">
             <Loader2 className="text-green-dark mx-auto mb-6 h-12 w-12 animate-spin" />
             <h2 className="text-green-dark mb-2 text-2xl font-semibold">
-              Loading Medication Tracker
+              Carregando Rastreador de Medicamentos
             </h2>
             <p className="text-muted-foreground">
-              Please wait while we load your medication data...
+              Por favor, aguarde enquanto carregamos seus dados de medicamentos...
             </p>
           </div>
         </div>
@@ -122,11 +122,11 @@ export default function MedicationPage() {
           <div className="py-16 text-center">
             <AlertCircle className="mx-auto mb-6 h-16 w-16 text-red-500" />
             <h2 className="mb-2 text-2xl font-semibold text-red-800">
-              Unable to Load Medication Tracker
+              Não foi possível carregar o Rastreador de Medicamentos
             </h2>
             <p className="mx-auto mb-6 max-w-md text-red-600">
               {errors.medications?.message ||
-                'An unexpected error occurred while loading your medication data.'}
+                'Ocorreu um erro inesperado ao carregar seus dados de medicamentos.'}
             </p>
             <div className="flex flex-col justify-center gap-3 sm:flex-row">
               <Button
@@ -140,10 +140,10 @@ export default function MedicationPage() {
                 ) : (
                   <RefreshCw className="size-4" />
                 )}
-                Try Again
+                Tentar Novamente
               </Button>
               <Button onClick={() => window.location.reload()} variant="secondary">
-                Refresh Page
+                Recarregar Página
               </Button>
             </div>
           </div>
@@ -159,7 +159,7 @@ export default function MedicationPage() {
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-green-dark font-varela text-3xl font-bold md:text-4xl">
-              Medication Tracker
+              Rastreador de Medicamentos
             </h1>
             <p className="text-muted-foreground mt-2">{TABS_CONFIG[activeTab].description}</p>
           </div>
@@ -168,7 +168,7 @@ export default function MedicationPage() {
           {isAnyLoading && (
             <div className="text-green-dark flex items-center gap-2">
               <Loader2 className="h-5 w-5 animate-spin" />
-              <span className="text-sm font-medium">Updating...</span>
+              <span className="text-sm font-medium">Atualizando...</span>
             </div>
           )}
         </div>

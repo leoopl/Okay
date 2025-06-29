@@ -223,6 +223,7 @@ export async function userHasRole(roleName: string): Promise<boolean> {
 
 /**
  * Log audit trail for sensitive operations
+ * This is non-blocking - failures won't affect the main operation
  */
 export async function logAuditTrail({
   action,
@@ -239,25 +240,29 @@ export async function logAuditTrail({
   ipAddress?: string;
   userAgent?: string;
 }) {
-  const supabase = await createClient();
-  const user = await getAuthenticatedUser();
+  try {
+    const supabase = await createClient();
+    const user = await getAuthenticatedUser();
 
-  if (!user) {
-    console.error('Cannot log audit trail without authenticated user');
-    return;
-  }
+    // log even if there's no authenticated user
+    const auditData = {
+      user_id: user?.id || null,
+      action,
+      resource,
+      resource_id: resourceId,
+      details,
+      ip_address: ipAddress,
+      user_agent: userAgent,
+    };
 
-  const { error } = await supabase.from('audit_logs').insert({
-    user_id: user.id,
-    action,
-    resource,
-    resource_id: resourceId,
-    details,
-    ip_address: ipAddress,
-    user_agent: userAgent,
-  });
+    const { error } = await supabase.from('audit_logs').insert(auditData);
 
-  if (error) {
-    console.error('Error logging audit trail:', error);
+    if (error) {
+      // Log the error but don't throw - audit logging should not block operations
+      console.error('Error logging audit trail:', error);
+    }
+  } catch (error) {
+    // Catch all errors and log them, but don't propagate
+    console.error('Error in audit logging:', error);
   }
 }

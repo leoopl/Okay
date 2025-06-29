@@ -71,7 +71,7 @@ const DEFAULT_JOURNAL_CONTENT = {
       content: [
         {
           type: 'text',
-          text: 'Start writing your thoughts...',
+          text: 'Comece a escrever seus pensamentos...',
         },
       ],
     },
@@ -163,7 +163,7 @@ const MainToolbarContent = ({
       <ToolbarSeparator />
 
       <ToolbarGroup>
-        <ImageUploadButton text="Add" />
+        <ImageUploadButton text="Adicionar" />
       </ToolbarGroup>
 
       <Spacer />
@@ -200,7 +200,7 @@ export function JournalEditor({
   content,
   onUpdate,
   editable = true,
-  placeholder = "Write, type '/' for commands…",
+  placeholder = "Escreva, digite '/' para comandos…",
   className = '',
 }: JournalEditorProps) {
   const isMobile = useMobile();
@@ -234,7 +234,7 @@ export function JournalEditor({
         autocomplete: 'off',
         autocorrect: 'off',
         autocapitalize: 'off',
-        'aria-label': 'Journal content area, start typing to enter text.',
+        'aria-label': 'Área de conteúdo do diário, comece a digitar para inserir texto.',
         'data-placeholder': placeholder,
       },
     },

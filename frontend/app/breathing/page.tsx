@@ -127,7 +127,7 @@ const Breathing: React.FC = () => {
             <div className="hidden md:flex md:justify-center">
               <Image
                 src="/meditation1.svg"
-                alt="Breathing Avatar"
+                alt="Avatar de Meditação"
                 width={500}
                 height={500}
                 className="mx-auto"

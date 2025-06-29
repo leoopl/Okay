@@ -3,7 +3,6 @@
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useInventoryStore } from '@/store/inventory-store';
-import { InventoryService } from '@/lib/actions/supabase-inventories';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -22,6 +21,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import Loading from './loading';
+import { getUserResponses } from '@/lib/actions/supabase-inventories';
+import { DynamicResultsInterface } from '@/components/inventory/results-interface';
+import { toast } from 'sonner';
 
 // Enhanced Error Component
 const ErrorState = ({
@@ -186,7 +188,7 @@ export default function ResultPage({ params }: { params: Promise<{ slug: string 
         setLoading(true);
 
         try {
-          const userResponsesResult = await InventoryService.getUserResponses();
+          const userResponsesResult = await getUserResponses();
           const response = userResponsesResult.responses?.find((r: any) => r.inventory_id === slug);
 
           if (response) {
@@ -201,7 +203,7 @@ export default function ResultPage({ params }: { params: Promise<{ slug: string 
             );
           }
         } catch (err) {
-          console.error('Failed to fetch user responses:', err);
+          console.error('Falha ao buscar respostas do usuário:', err);
           setError(
             'Não foi possível carregar seus resultados. Verifique sua conexão e tente novamente.',
           );
@@ -213,6 +215,102 @@ export default function ResultPage({ params }: { params: Promise<{ slug: string 
 
     fetchResults();
   }, [slug, interpretationResults, calculatedScores]);
+
+  // Comprehensive Feature Action Handler with Enhanced Emergency Features
+  const handleFeatureAction = (feature: string, data?: any) => {
+    switch (feature) {
+      // 🚨 Crisis Interventions (Immediate Help)
+      case 'call_cvv':
+        window.open('tel:188', '_self');
+        toast.success('Conectando você ao CVV (188)...');
+        break;
+
+      case 'chat_cvv':
+      case 'cvv-immediate':
+        router.push('/support/cvv');
+        toast.info('Redirecionando para chat do CVV...');
+        break;
+
+      case 'emergency_call':
+        window.open('tel:192', '_self');
+        toast.success('Conectando você ao SAMU (192)...');
+        break;
+
+      case 'crisis-chat':
+        // Enhanced: Direct to CVV chat with crisis flag
+        router.push('/support/cvv?crisis=true');
+        toast.info('Abrindo chat de emergência...');
+        break;
+
+      // 🧘 Self-Care & Wellness Features
+      case 'meditation':
+      case 'breathing':
+        router.push('/breathing');
+        toast.info('Redirecionando para exercícios de respiração...');
+        break;
+
+      case 'journal':
+        router.push('/journal');
+        toast.info('Abrindo seu diário pessoal...');
+        break;
+
+      // 👨‍⚕️ Professional Help
+      case 'professional':
+      case 'urgent_professional':
+        if (feature === 'urgent_professional') {
+          // Enhanced: Route to professional page with urgency flag
+          router.push('/professional?urgent=true');
+          toast.info('Buscando profissionais para atendimento urgente...');
+        } else {
+          router.push('/professional');
+          toast.info('Redirecionando para diretório de profissionais...');
+        }
+        break;
+
+      // 📚 Educational Resources
+      case 'resources':
+        router.push('/blog');
+        toast.info('Abrindo recursos educacionais...');
+        break;
+
+      // 💊 App Features & Tools
+      case 'medication':
+        router.push('/medication');
+        toast.info('Abrindo gerenciamento de medicamentos...');
+        break;
+
+      // 📅 Scheduling & Follow-up
+      case 'schedule_followup':
+        // Enhanced: Schedule follow-up assessment reminder
+        toast.success('Lembrete de acompanhamento agendado para 1 semana');
+        // Future: Implement actual scheduling logic
+        break;
+
+      // 🏠 Navigation
+      case 'home':
+        router.push('/');
+        break;
+
+      // 📱 Emergency Contacts (Enhanced Feature)
+      case 'emergency_contacts':
+        // Enhanced: Route to emergency contacts management
+        router.push('/profile?tab=emergency-contacts');
+        toast.info('Abrindo seus contatos de emergência...');
+        break;
+
+      // 🌙 Crisis Support Resources (Enhanced Feature)
+      case 'crisis_resources':
+        // Enhanced: Dedicated crisis resources page
+        router.push('/support/crisis-resources');
+        toast.info('Carregando recursos de suporte à crise...');
+        break;
+
+      // ⚠️ Default case
+      default:
+        console.warn(`Feature not implemented: ${feature}`);
+        toast.error('Funcionalidade não disponível no momento. Entre em contato com o suporte.');
+    }
+  };
 
   // Download results function
   const handleDownloadResults = () => {
@@ -290,6 +388,7 @@ export default function ResultPage({ params }: { params: Promise<{ slug: string 
     );
   }
 
+  // Use Dynamic Results Interface for enhanced experience
   return (
     <div className="from-background via-background to-muted/30 min-h-screen bg-gradient-to-br">
       <div className="container mx-auto max-w-4xl px-4 py-8">

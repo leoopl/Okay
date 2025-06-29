@@ -37,7 +37,7 @@ export function BlogSearch({ initialSearch = '' }: BlogSearchProps) {
     <SearchInput
       defaultValue={initialSearch}
       onChange={handleSearch}
-      placeholder="Search articles..."
+      placeholder="Buscar artigos..."
       className="border-grey-light focus-visible:ring-blue-dark bg-white"
       containerClassName="w-full"
     />

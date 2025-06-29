@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { InventoryService, type InventoryResponse } from '@/lib/actions/supabase-inventories';
+import {
+  getUserResponses,
+  withdrawConsent,
+  type InventoryResponse,
+} from '@/lib/actions/supabase-inventories';
 import {
   Card,
   CardContent,
@@ -41,7 +45,7 @@ export default function UserResponses() {
     async function fetchResponses() {
       try {
         setLoading(true);
-        const data = await InventoryService.getUserResponses();
+        const data = await getUserResponses();
         setResponses(data.responses || []);
         setError(null);
       } catch (err) {
@@ -64,7 +68,7 @@ export default function UserResponses() {
   const handleWithdrawConsent = async (responseId: string) => {
     try {
       setWithdrawingConsent(responseId);
-      await InventoryService.withdrawConsent(responseId);
+      await withdrawConsent(responseId);
 
       // Remove from list
       setResponses(responses.filter((r) => r.id !== responseId));

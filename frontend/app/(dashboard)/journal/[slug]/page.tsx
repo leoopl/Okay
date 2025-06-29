@@ -2,7 +2,7 @@
 
 import React, { use, useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Save, Trash2, Tag, Smile } from 'lucide-react';
+import { ArrowLeft, Save, Trash2, Tag, Smile, Cloud, CloudOff } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -28,7 +28,9 @@ import {
 import { useJournalStore } from '@/store/journal-store';
 import { createDefaultTipTapContent, validateTipTapContent } from '@/lib/tiptap-utils';
 import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
+import { useOfflineSync } from '@/hooks/use-offline-sync';
 import { JournalEditor } from '@/components/journal/journal-editor';
+import { getClientUser } from '@/lib/supabase/client';
 
 interface JournalEditorPageProps {
   params: Promise<{ slug: string }>;
@@ -36,17 +38,17 @@ interface JournalEditorPageProps {
 
 // Mood options for journal entries
 const MOOD_OPTIONS = [
-  { value: 'happy', label: '😊 Happy' },
-  { value: 'sad', label: '😢 Sad' },
-  { value: 'excited', label: '🤩 Excited' },
-  { value: 'anxious', label: '😰 Anxious' },
-  { value: 'calm', label: '😌 Calm' },
-  { value: 'angry', label: '😠 Angry' },
-  { value: 'grateful', label: '🙏 Grateful' },
-  { value: 'confused', label: '😕 Confused' },
-  { value: 'proud', label: '😎 Proud' },
-  { value: 'tired', label: '😴 Tired' },
-  { value: 'neutral', label: '😐 Neutral' },
+  { value: 'happy', label: '😊 Feliz' },
+  { value: 'sad', label: '😢 Triste' },
+  { value: 'excited', label: '🤩 Animado' },
+  { value: 'anxious', label: '😰 Ansioso' },
+  { value: 'calm', label: '😌 Calmo' },
+  { value: 'angry', label: '😠 Irritado' },
+  { value: 'grateful', label: '🙏 Grato' },
+  { value: 'confused', label: '😕 Confuso' },
+  { value: 'proud', label: '😎 Orgulhoso' },
+  { value: 'tired', label: '😴 Cansado' },
+  { value: 'neutral', label: '😐 Neutro' },
 ];
 
 export default function JournalEditorPage({ params }: JournalEditorPageProps) {
@@ -62,8 +64,6 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
     getJournalById,
     createJournal,
     updateJournal,
-    deleteJournal,
-    setCurrentEntry,
     clearError,
   } = useJournalStore();
 
@@ -73,6 +73,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
   const [tags, setTags] = useState<string[]>([]);
   const [mood, setMood] = useState('');
   const [newTag, setNewTag] = useState('');
+  const [userId, setUserId] = useState<string | null>(null);
 
   // Initial values for unsaved changes detection
   const [initialValues, setInitialValues] = useState({
@@ -85,19 +86,28 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
   // Track if this is the first load
   const [isFirstLoad, setIsFirstLoad] = useState(true);
 
+  // Offline sync
+  const { isOnline, updateOffline } = useOfflineSync();
+
+  // Get user ID on mount
+  useEffect(() => {
+    const getUserId = async () => {
+      const user = await getClientUser();
+      if (user) {
+        setUserId(user.id);
+      }
+    };
+    getUserId();
+  }, []);
+
   // Helper function to compare tag arrays (order-independent)
   const tagsAreEqual = useCallback((a: string[], b: string[]): boolean => {
     if (a.length !== b.length) return false;
-
-    // Create sets for O(1) lookup instead of sorting
     const setA = new Set(a);
     const setB = new Set(b);
-
-    // Check if all items in A exist in B
     for (const item of setA) {
       if (!setB.has(item)) return false;
     }
-
     return true;
   }, []);
 
@@ -116,85 +126,8 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
   // Unsaved changes hook
   const { showDialog, handleContinue, handleCancel, checkAndShowDialog } = useUnsavedChanges({
     hasUnsavedChanges,
-    message: 'You have unsaved changes. Do you want to save them before leaving?',
+    message: 'Você tem alterações não salvas. Deseja salvá-las antes de sair?',
   });
-
-  useEffect(() => {
-    // Additional protection for browser events
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges) {
-        e.preventDefault();
-        e.returnValue = ''; // Required for Chrome
-        return ''; // Required for some browsers
-      }
-    };
-
-    const handleUnload = () => {
-      if (hasUnsavedChanges) {
-        // Attempt to save data to localStorage as a backup
-        localStorage.setItem(
-          'unsaved_journal_backup',
-          JSON.stringify({
-            title,
-            content,
-            tags,
-            mood,
-            timestamp: Date.now(),
-          }),
-        );
-      }
-    };
-
-    // Listen for browser events
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('unload', handleUnload);
-
-    // Cleanup
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('unload', handleUnload);
-    };
-  }, [hasUnsavedChanges, title, content, tags, mood]);
-
-  // Optional: Add this useEffect to recover from localStorage on page load
-  useEffect(() => {
-    // Check for backup data on page load
-    const backup = localStorage.getItem('unsaved_journal_backup');
-    if (backup && isNewEntry) {
-      try {
-        const backupData = JSON.parse(backup);
-        const backupAge = Date.now() - backupData.timestamp;
-
-        // Only restore if backup is less than 1 hour old
-        if (backupAge < 60 * 60 * 1000) {
-          // Show option to restore
-          if (
-            confirm(
-              'We found unsaved changes from your previous session. Would you like to restore them?',
-            )
-          ) {
-            setTitle(backupData.title);
-            setContent(backupData.content);
-            setTags(backupData.tags);
-            setMood(backupData.mood);
-          }
-        }
-
-        // Clear the backup
-        localStorage.removeItem('unsaved_journal_backup');
-      } catch (error) {
-        console.error('Error restoring backup:', error);
-        localStorage.removeItem('unsaved_journal_backup');
-      }
-    }
-  }, [isNewEntry]);
-
-  // Clear backup when saving successfully
-  useEffect(() => {
-    if (!hasUnsavedChanges) {
-      localStorage.removeItem('unsaved_journal_backup');
-    }
-  }, [hasUnsavedChanges]);
 
   // Load entry data
   useEffect(() => {
@@ -202,12 +135,12 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
       if (isNewEntry) {
         // Set default values for new entry
         const defaultContent = JSON.stringify(createDefaultTipTapContent());
-        setTitle('Give your thoughts a title...');
+        setTitle('Dê um título aos seus pensamentos...');
         setContent(defaultContent);
         setTags([]);
         setMood('');
         setInitialValues({
-          title: 'Give your thoughts a title...',
+          title: 'Dê um título aos seus pensamentos...',
           content: defaultContent,
           tags: [],
           mood: '',
@@ -230,7 +163,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
           }
           setIsFirstLoad(false);
         } catch (error) {
-          toast.error('Failed to load journal entry');
+          toast.error('Falha ao carregar entrada do diário');
           router.push('/journal');
         }
       }
@@ -238,6 +171,18 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
 
     loadEntry();
   }, [slug, isNewEntry, getJournalById, router]);
+
+  // Auto-save when content changes
+  // useEffect(() => {
+  //   if (!isNewEntry && hasUnsavedChanges && !isFirstLoad) {
+  //     autoSave(slug, {
+  //       title,
+  //       content,
+  //       tags,
+  //       mood: mood || undefined,
+  //     });
+  //   }
+  // }, [title, content, tags, mood, hasUnsavedChanges, isFirstLoad, isNewEntry, slug, autoSave]);
 
   // Handle errors
   useEffect(() => {
@@ -250,28 +195,22 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
   // Handle saving
   const handleSave = useCallback(async () => {
     if (!title.trim()) {
-      toast.error('Please enter a title for your journal entry');
+      toast.error('Por favor, insira um título para sua entrada');
       return;
     }
 
     if (!content.trim() || !validateTipTapContent(content)) {
-      toast.error('Please enter some content for your journal entry');
+      toast.error('Por favor, insira algum conteúdo para sua entrada');
       return;
     }
 
     try {
-      // Prepare the data object
       const journalData = {
         title: title.trim(),
         content,
         tags,
-        mood,
+        mood: mood || undefined,
       };
-
-      // Only include mood if it's not empty
-      if (mood && mood.trim()) {
-        journalData.mood = mood;
-      }
 
       if (isNewEntry) {
         const newEntry = await createJournal(journalData);
@@ -284,10 +223,14 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
           mood: newEntry.mood || '',
         });
 
-        toast.success('Journal entry created successfully');
+        toast.success('Entrada criada com sucesso');
         router.replace(`/journal/${newEntry.id}`);
       } else {
-        await updateJournal(slug, journalData);
+        if (isOnline) {
+          await updateJournal(slug, journalData);
+        } else {
+          await updateOffline(slug, journalData);
+        }
 
         // Update initial values
         setInitialValues({
@@ -297,27 +240,25 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
           mood: mood || '',
         });
 
-        toast.success('Journal entry saved successfully');
+        toast.success(isOnline ? 'Entrada salva com sucesso' : 'Salvo offline');
       }
     } catch (error) {
-      toast.error('Failed to save journal entry');
-      console.error('Error saving journal:', error);
+      toast.error('Falha ao salvar entrada');
+      console.error('Erro ao salvar entrada do diário:', error);
     }
-  }, [title, content, tags, mood, isNewEntry, createJournal, updateJournal, slug, router]);
-
-  // Handle deleting
-  const handleDelete = useCallback(async () => {
-    if (isNewEntry) return;
-
-    try {
-      await deleteJournal(slug);
-      toast.success('Journal entry deleted');
-      router.push('/journal');
-    } catch (error) {
-      toast.error('Failed to delete journal entry');
-      console.error('Error deleting journal:', error);
-    }
-  }, [deleteJournal, slug, router, isNewEntry]);
+  }, [
+    title,
+    content,
+    tags,
+    mood,
+    isNewEntry,
+    isOnline,
+    createJournal,
+    updateJournal,
+    updateOffline,
+    slug,
+    router,
+  ]);
 
   // Handle back navigation
   const handleBack = useCallback(() => {
@@ -325,7 +266,6 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
       router.push('/journal');
     });
 
-    // If no unsaved changes, navigate immediately
     if (!shouldShowDialog) {
       router.push('/journal');
     }
@@ -367,7 +307,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-[#7F9463] border-t-transparent"></div>
-            <p className="text-beige-dark">Loading journal entry...</p>
+            <p className="text-beige-dark">Carregando entrada...</p>
           </div>
         </div>
       </div>
@@ -380,29 +320,37 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
       <div className="mb-6 flex items-center justify-between">
         <Button variant="ghost" onClick={handleBack} className="hover:bg-yellow-light">
           <ArrowLeft size={18} className="mr-2" />
-          Back to Journal
+          Voltar ao Diário
         </Button>
 
-        <div className="flex gap-2">
-          {!isNewEntry && (
-            <Button
-              variant="outline"
-              onClick={handleDelete}
-              className="border-destructive hover:bg-destructive font-varela text-destructive hover:text-red-700"
-            >
-              <Trash2 size={18} className="mb-0.5" />
-              Delete
-            </Button>
-          )}
+        <div className="flex items-center gap-4">
+          {/* Connection status */}
+          <div className="flex items-center gap-2 text-sm">
+            {isOnline ? (
+              <>
+                <div className="flex items-center gap-1 text-green-600">
+                  <Cloud size={16} />
+                  <span>Conectado</span>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center gap-1 text-yellow-600">
+                <CloudOff size={16} />
+                <span>Offline</span>
+              </div>
+            )}
+          </div>
 
-          <Button
-            onClick={handleSave}
-            disabled={isLoading || !hasUnsavedChanges}
-            className="bg-yellow-dark hover:bg-yellow-medium font-varela text-black disabled:opacity-50"
-          >
-            <Save size={18} className="mb-0.5" />
-            Save
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={handleSave}
+              disabled={isLoading || !hasUnsavedChanges}
+              className="bg-yellow-dark hover:bg-yellow-medium font-varela text-black disabled:opacity-50"
+            >
+              <Save size={18} className="mb-0.5" />
+              Salvar
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -411,7 +359,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         className="font-varela !text-green-dark placeholder:!text-green-dark/50 focus-visible:!border-green-dark/30 !h-auto !border-b-2 !border-none !border-transparent !bg-transparent !px-0 !py-4 !text-4xl !leading-tight !font-bold !tracking-tight !shadow-none !transition-colors !duration-200 focus-visible:!ring-0"
-        placeholder="Give your thoughts a title..."
+        placeholder="Dê um título aos seus pensamentos..."
       />
 
       {/* Metadata Section */}
@@ -420,14 +368,11 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
         <div className="space-y-2">
           <Label htmlFor="mood" className="text-green-dark flex items-center text-sm font-medium">
             <Smile size={16} className="mr-2" />
-            How are you feeling?
+            Como você está se sentindo?
           </Label>
-          <Select
-            value={mood || undefined} // Convert empty string to undefined for placeholder
-            onValueChange={(value) => setMood(value || '')} // Convert back to empty string internally
-          >
+          <Select value={mood || undefined} onValueChange={(value) => setMood(value || '')}>
             <SelectTrigger className="border-grey-light focus:ring-blue-dark w-full">
-              <SelectValue placeholder="Select your mood..." />
+              <SelectValue placeholder="Selecione seu humor..." />
             </SelectTrigger>
             <SelectContent>
               {MOOD_OPTIONS.map((option) => (
@@ -452,7 +397,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
               value={newTag}
               onChange={(e) => setNewTag(e.target.value)}
               onKeyPress={handleTagKeyPress}
-              placeholder="Add a tag..."
+              placeholder="Adicionar tag..."
               className="border-grey-light focus-visible:ring-blue-medium"
             />
             <Button
@@ -461,7 +406,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
               variant="outline"
               className="border-yellow-dark text-yellow-dark font-varela hover:bg-yellow-dark hover:text-black"
             >
-              Add
+              Adicionar
             </Button>
           </div>
 
@@ -497,14 +442,14 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
+            <AlertDialogTitle>Alterações Não Salvas</AlertDialogTitle>
             <AlertDialogDescription className="text-black/80">
-              You have unsaved changes. Do you want to save them before leaving?
+              Você tem alterações não salvas. Deseja salvá-las antes de sair?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex flex-col gap-2 sm:flex-row">
             <AlertDialogCancel className="hover:bg-beige-dark text-black" onClick={handleCancel}>
-              Cancel
+              Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={async () => {
@@ -512,20 +457,19 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
                   await handleSave();
                   handleContinue();
                 } catch (error) {
-                  // If save fails, don't navigate
                   console.error('Failed to save:', error);
-                  toast.error('Failed to save. Please try again.');
+                  toast.error('Falha ao salvar. Por favor, tente novamente.');
                 }
               }}
               className="bg-yellow-dark hover:bg-yellow-medium text-black"
             >
-              Save & Continue
+              Salvar e Continuar
             </AlertDialogAction>
             <AlertDialogAction
               onClick={handleContinue}
               className="hover:bg-destructive bg-red-200 text-black"
             >
-              Discard Changes
+              Descartar Alterações
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -2,7 +2,7 @@ import { Inter, Varela_Round } from 'next/font/google';
 import type { Metadata } from 'next';
 import './globals.css';
 import Header from '@/components/Header';
-import Footer from '@/components/footer';
+import Footer from '@/components/Footer';
 import { cn } from '@/lib/utils';
 import { Toaster } from 'sonner';
 import Script from 'next/script';
@@ -106,7 +106,7 @@ export default async function RootLayout({
       <meta name="apple-mobile-web-app-title" content="Okay" />
       <link rel="manifest" href="/manifest.json" />
       <head />
-      <body className={`gradient-background min-h-screen antialiased`}>
+      <body className="gradient-background min-h-screen antialiased">
         <AuthProvider initialData={authData}>
           <div className="relative flex min-h-screen flex-col bg-gradient-to-b from-transparent to-white/95">
             <Script

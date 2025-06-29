@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { Trash2, Tag, Smile } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,8 +48,14 @@ export function JournalCard({ entry, onDelete, onClick }: JournalCardProps) {
   };
 
   // Format dates
-  const createdTimeAgo = formatDistanceToNow(new Date(created_at), { addSuffix: true });
-  const updatedTimeAgo = formatDistanceToNow(new Date(updated_at), { addSuffix: true });
+  const createdTimeAgo = formatDistanceToNow(new Date(created_at), {
+    addSuffix: true,
+    locale: ptBR,
+  });
+  const updatedTimeAgo = formatDistanceToNow(new Date(updated_at), {
+    addSuffix: true,
+    locale: ptBR,
+  });
 
   return (
     <Card
@@ -63,7 +70,6 @@ export function JournalCard({ entry, onDelete, onClick }: JournalCardProps) {
           {/* Mood Display */}
           {mood && MOOD_DISPLAY[mood] && (
             <div className="ml-3 flex items-center gap-1 text-sm text-[#91857A]">
-              <Smile size={14} />
               <span className="text-lg">{MOOD_DISPLAY[mood]}</span>
             </div>
           )}
@@ -99,14 +105,14 @@ export function JournalCard({ entry, onDelete, onClick }: JournalCardProps) {
       <CardFooter className="flex items-center justify-between border-t border-[#CBCFD7]/50 pt-2 pb-4 text-xs text-[#A3A6B0]">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-1">
-            <span className="font-medium">Created:</span>
+            <span className="font-medium">Criado:</span>
             <span>{createdTimeAgo}</span>
           </div>
 
           {/* Only show updated time if it's different from created time */}
           {new Date(updated_at).getTime() - new Date(created_at).getTime() > 60000 && (
             <div className="flex items-center gap-1">
-              <span className="font-medium">Updated:</span>
+              <span className="font-medium">Atualizado:</span>
               <span>{updatedTimeAgo}</span>
             </div>
           )}
@@ -117,7 +123,7 @@ export function JournalCard({ entry, onDelete, onClick }: JournalCardProps) {
           size="icon"
           className="text-[#C2B2A3] transition-colors hover:bg-red-50 hover:text-red-600"
           onClick={handleDelete}
-          title="Delete journal entry"
+          title="Deletar entrada"
         >
           <Trash2 size={16} />
         </Button>

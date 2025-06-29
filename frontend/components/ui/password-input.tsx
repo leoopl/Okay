@@ -35,7 +35,7 @@ const PasswordInput = React.forwardRef<HTMLInputElement, InputProps>(
           ) : (
             <EyeOffIcon className="size-4" aria-hidden="true" />
           )}
-          <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
+          <span className="sr-only">{showPassword ? 'Ocultar senha' : 'Mostrar senha'}</span>
         </Button>
 
         {/* hides browsers password toggles */}

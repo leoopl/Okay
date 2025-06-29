@@ -253,6 +253,7 @@ export type Database = {
           id: string;
           is_content_encrypted: boolean;
           mood: Database['public']['Enums']['journal_mood'] | null;
+          search_vector: unknown | null;
           tags: string[] | null;
           title: string;
           updated_at: string;
@@ -264,6 +265,7 @@ export type Database = {
           id?: string;
           is_content_encrypted?: boolean;
           mood?: Database['public']['Enums']['journal_mood'] | null;
+          search_vector?: unknown | null;
           tags?: string[] | null;
           title: string;
           updated_at?: string;
@@ -275,6 +277,7 @@ export type Database = {
           id?: string;
           is_content_encrypted?: boolean;
           mood?: Database['public']['Enums']['journal_mood'] | null;
+          search_vector?: unknown | null;
           tags?: string[] | null;
           title?: string;
           updated_at?: string;
@@ -674,8 +677,48 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      get_user_roles: {
+        Args: Record<PropertyKey, never>;
+        Returns: string[];
+      };
+      is_admin_or_owner: {
+        Args: { owner_id: string };
+        Returns: boolean;
+      };
       is_admin_user: {
         Args: { user_id?: string };
+        Returns: boolean;
+      };
+      search_journal_entries: {
+        Args: {
+          p_user_id: string;
+          p_query?: string;
+          p_mood?: Database['public']['Enums']['journal_mood'];
+          p_tags?: string[];
+          p_start_date?: string;
+          p_end_date?: string;
+          p_limit?: number;
+          p_offset?: number;
+        };
+        Returns: {
+          id: string;
+          user_id: string;
+          title: string;
+          content: Json;
+          mood: Database['public']['Enums']['journal_mood'];
+          tags: string[];
+          is_content_encrypted: boolean;
+          created_at: string;
+          updated_at: string;
+          rank: number;
+        }[];
+      };
+      user_has_any_role: {
+        Args: { role_names: string[] };
+        Returns: boolean;
+      };
+      user_has_role: {
+        Args: { role_name: string };
         Returns: boolean;
       };
     };

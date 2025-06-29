@@ -33,8 +33,8 @@ import { cn } from '@/lib/utils';
 import Loading from './loading';
 import {
   Inventory,
-  InventoryService,
   UserResponseOption,
+  getInventory,
   submitInventoryResponse,
 } from '@/lib/actions/supabase-inventories';
 
@@ -327,7 +327,7 @@ export default function InventoryPage({ params }: { params: Promise<{ slug: stri
       try {
         setLoading(true);
         setError(null);
-        const result = await InventoryService.getInventory(slug);
+        const result = await getInventory(slug);
         if (result.success && result.inventory) {
           setInventory(result.inventory);
           setCurrentInventory(result.inventory);
@@ -335,7 +335,7 @@ export default function InventoryPage({ params }: { params: Promise<{ slug: stri
           setError(result.error || 'Não foi possível carregar o questionário');
         }
       } catch (err) {
-        console.error('Failed to fetch inventory:', err);
+        console.error('Falha ao buscar questionário:', err);
         setError(
           'Não foi possível carregar o questionário. Verifique sua conexão e tente novamente.',
         );
@@ -417,7 +417,7 @@ export default function InventoryPage({ params }: { params: Promise<{ slug: stri
         setError(result.error || 'Não foi possível enviar suas respostas. Tente novamente.');
       }
     } catch (err) {
-      console.error('Failed to submit responses:', err);
+      console.error('Falha ao enviar respostas:', err);
       setError('Não foi possível enviar suas respostas. Tente novamente.');
     } finally {
       setSubmitting(false);

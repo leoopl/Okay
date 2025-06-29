@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -17,10 +17,18 @@ import {
   FormMessage,
   FormLabel,
 } from '@/components/ui/form';
-import { AlertCircle } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 import type { z } from 'zod';
-import { signInFormAction } from '@/lib/actions/supabase-auth';
-import { SignInSchema } from '@/lib/schemas/auth-schemas';
+import { signInFormAction, forgotPassword } from '@/lib/actions/supabase-auth';
+import { SignInSchema, ForgotPasswordSchema } from '@/lib/schemas/auth-schemas';
 
 const SigninPage: React.FC = () => {
   const searchParams = useSearchParams();
@@ -97,12 +105,7 @@ const SigninPage: React.FC = () => {
                     </FormControl>
                     <FormMessage />
                     <div className="flex justify-end">
-                      <Link
-                        href="/forgot-password"
-                        className="small-caps hover:text-beige-dark text-sm font-semibold"
-                      >
-                        Esqueceu sua senha?
-                      </Link>
+                      <ForgotPasswordDialog />
                     </div>
                   </FormItem>
                 )}
@@ -133,7 +136,7 @@ const SigninPage: React.FC = () => {
 
         <div className="hidden md:flex md:justify-center">
           <Image
-            alt="Sign In Illustration"
+            alt="Ilustração de Login"
             src="/login.svg"
             width={500}
             height={500}
@@ -146,4 +149,143 @@ const SigninPage: React.FC = () => {
     </div>
   );
 };
+
+// Forgot Password Dialog Component
+const ForgotPasswordDialog: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Initialize form with Zod schema
+  const form = useForm<z.infer<typeof ForgotPasswordSchema>>({
+    resolver: zodResolver(ForgotPasswordSchema),
+    defaultValues: { email: '' },
+    mode: 'onTouched',
+  });
+
+  const handleSubmit = async (data: z.infer<typeof ForgotPasswordSchema>) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await forgotPassword(data);
+
+      if (result.success) {
+        setSuccess(true);
+        form.reset();
+      } else {
+        setError(result.error.message);
+      }
+    } catch (err) {
+      setError('Ocorreu um erro inesperado');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (!open) {
+      // Reset form and states when dialog closes
+      form.reset();
+      setError(null);
+      setSuccess(false);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
+        <button
+          type="button"
+          className="small-caps hover:text-beige-dark cursor-pointer text-sm font-semibold"
+        >
+          Esqueceu sua senha?
+        </button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="small-caps text-green-dark">Recuperar Senha</DialogTitle>
+          <DialogDescription>
+            Digite seu e-mail para receber um link de recuperação de senha.
+          </DialogDescription>
+        </DialogHeader>
+
+        {success ? (
+          <div className="space-y-4">
+            <div className="rounded-md border border-green-300 bg-green-50 p-4 text-green-800">
+              <div className="flex">
+                <CheckCircle className="h-5 w-5 text-green-400" />
+                <p className="ml-3 text-sm">
+                  E-mail enviado com sucesso! Verifique sua caixa de entrada e siga as instruções
+                  para redefinir sua senha.
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={() => handleOpenChange(false)}
+              className="small-caps w-full font-semibold"
+            >
+              Fechar
+            </Button>
+          </div>
+        ) : (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>E-mail</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="email"
+                        placeholder="Digite seu e-mail"
+                        required
+                        className="transition-all duration-200 focus:scale-[1.02]"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {error && (
+                <div className="rounded border border-red-400 bg-red-50 p-4 text-red-700">
+                  <div className="flex items-center">
+                    <AlertCircle className="h-5 w-5 text-red-400" />
+                    <span className="ml-3">{error}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleOpenChange(false)}
+                  className="small-caps flex-1 font-semibold"
+                  disabled={isLoading}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  className="small-caps flex-1 font-semibold"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Enviando...' : 'Enviar E-mail'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 export default SigninPage;

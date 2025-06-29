@@ -24,8 +24,10 @@ import {
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { formatDate } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/providers/auth-provider';
+import { toast } from 'sonner';
+import { CheckCircle, AlertCircle } from 'lucide-react';
 
 // Feature card component for better reusability
 interface FeatureCardProps {
@@ -90,6 +92,44 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState('profile');
   const { user, profile, roles, isLoading, signOut } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Handle OAuth messages
+  useEffect(() => {
+    const success = searchParams.get('success');
+    const error = searchParams.get('error');
+    const message = searchParams.get('message');
+
+    if (success === 'account_linked') {
+      toast.success('Conta Google vinculada com sucesso!', {
+        icon: <CheckCircle className="h-5 w-5" />,
+      });
+    } else if (error) {
+      const errorMessage = message ? decodeURIComponent(message) : 'Erro ao processar autenticação';
+      if (error === 'oauth_link_error') {
+        toast.error(`Erro ao vincular conta Google: ${errorMessage}`, {
+          icon: <AlertCircle className="h-5 w-5" />,
+        });
+      } else if (error === 'link_error') {
+        toast.error('Erro ao vincular conta Google. Por favor, tente novamente.', {
+          icon: <AlertCircle className="h-5 w-5" />,
+        });
+      } else if (error === 'session_error') {
+        toast.error(`Erro de sessão: ${errorMessage}`, {
+          icon: <AlertCircle className="h-5 w-5" />,
+        });
+      }
+    }
+
+    // Clear the URL params after showing the message
+    if (success || error) {
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('success');
+      newUrl.searchParams.delete('error');
+      newUrl.searchParams.delete('message');
+      window.history.replaceState({}, '', newUrl.toString());
+    }
+  }, [searchParams]);
 
   // Redirect if not authenticated
   useEffect(() => {

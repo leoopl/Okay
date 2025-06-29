@@ -41,28 +41,28 @@ export default function UserButton() {
 
   const menuItems = [
     {
-      label: 'Journal',
+      label: 'Diário',
       icon: BookHeart,
       path: '/journal',
-      description: 'Personal reflections and thoughts',
+      description: 'Reflexões pessoais e pensamentos',
     },
     {
-      label: 'Inventory',
+      label: 'Inventário',
       icon: NotebookPen,
       path: '/inventory',
-      description: 'Psychological assessments',
+      description: 'Avaliações psicológicas',
     },
     {
-      label: 'Medications',
+      label: 'Medicamentos',
       icon: Pill,
       path: '/medication',
-      description: 'Medication tracking and reminders',
+      description: 'Acompanhamento de medicamentos e lembretes',
     },
     {
-      label: 'Settings',
+      label: 'Configurações',
       icon: Settings,
       path: '/profile',
-      description: 'Account and app preferences',
+      description: 'Preferências da conta e do aplicativo',
     },
   ];
 
@@ -149,7 +149,7 @@ export default function UserButton() {
           >
             <div className="flex w-full items-center gap-3">
               <LogOut className="size-4" />
-              <span className="text-sm font-medium">Logout</span>
+              <span className="text-sm font-medium">Sair</span>
             </div>
           </DropdownMenuItem>
         </div>

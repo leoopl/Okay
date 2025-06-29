@@ -208,35 +208,71 @@ export function createDefaultTipTapContent() {
     content: [
       {
         type: 'paragraph',
-        content: [],
+        attrs: { textAlign: null },
+        content: [{ type: 'text', text: 'Comece a escrever...' }],
       },
     ],
   };
 }
 
-export function validateTipTapContent(content: any): boolean {
-  if (!content || typeof content !== 'object') return false;
-  if (content.type !== 'doc') return false;
-  if (!Array.isArray(content.content)) return false;
-  return true;
+export function validateTipTapContent(content: string | any): boolean {
+  try {
+    // If it's already an object, validate its structure
+    if (typeof content === 'object' && content !== null) {
+      return content.type === 'doc' && Array.isArray(content.content);
+    }
+
+    // If it's a string, try to parse it
+    if (typeof content === 'string') {
+      if (content.trim() === '') return false;
+
+      const parsed = JSON.parse(content);
+      return parsed && parsed.type === 'doc' && Array.isArray(parsed.content);
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Invalid TipTap content:', error);
+    return false;
+  }
 }
 
 export function extractTextFromTipTapContent(content: any): string {
-  if (!content || typeof content !== 'object') return '';
-
-  function extractText(node: any): string {
-    if (!node) return '';
-
-    if (node.type === 'text') {
-      return node.text || '';
+  try {
+    // Handle string content
+    if (typeof content === 'string') {
+      try {
+        content = JSON.parse(content);
+      } catch {
+        return content; // Return as-is if not JSON
+      }
     }
 
-    if (node.content && Array.isArray(node.content)) {
-      return node.content.map(extractText).join('');
+    // Validate structure
+    if (!content || typeof content !== 'object' || !content.content) {
+      return '';
     }
 
+    // Extract text recursively
+    const extractText = (node: any): string => {
+      if (!node) return '';
+
+      // Direct text node
+      if (node.type === 'text') {
+        return node.text || '';
+      }
+
+      // Node with content array
+      if (Array.isArray(node.content)) {
+        return node.content.map(extractText).join(' ');
+      }
+
+      return '';
+    };
+
+    return extractText(content).trim();
+  } catch (error) {
+    console.error('Error extracting text from TipTap content:', error);
     return '';
   }
-
-  return extractText(content);
 }

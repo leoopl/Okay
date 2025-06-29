@@ -29,27 +29,27 @@ interface LogData {
 
 // Constants
 const QUICK_LOG_MESSAGES = {
-  taken: 'Quick logged as taken',
-  skipped: 'Quick logged as skipped',
-  delayed: 'Quick logged as delayed',
+  taken: 'Registrado rapidamente como tomado',
+  skipped: 'Registrado rapidamente como pulado',
+  delayed: 'Registrado rapidamente como atrasado',
 } as const;
 
 const STATUS_CONFIG = {
   taken: {
     icon: CheckCircle,
-    label: 'Taken',
+    label: 'Tomado',
     className: 'border-green-dark text-green-dark hover:bg-green-light/30',
     color: 'text-green-500',
   },
   skipped: {
     icon: XCircle,
-    label: 'Skip',
+    label: 'Pulado',
     className: 'border-red-500 text-red-500 hover:bg-red-50',
     color: 'text-red-500',
   },
   delayed: {
     icon: Clock,
-    label: 'Delay',
+    label: 'Atrasado',
     className: 'border-amber-500 text-amber-500 hover:bg-amber-50',
     color: 'text-amber-500',
   },
@@ -193,7 +193,7 @@ export default function MedicationSchedule({ className }: MedicationScheduleProp
               size="sm"
               disabled={loadingStates.logging}
               className={cn('gap-1', config.className)}
-              aria-label={`Mark as ${config.label.toLowerCase()}`}
+              aria-label={`Marcar como ${config.label.toLowerCase()}`}
             >
               {loadingStates.logging ? (
                 <Loader2 className="size-4 animate-spin" />
@@ -210,9 +210,9 @@ export default function MedicationSchedule({ className }: MedicationScheduleProp
           size="sm"
           disabled={loadingStates.logging}
           className="gap-1"
-          aria-label="Open manual log dialog"
+          aria-label="Abrir diálogo de registro manual"
         >
-          Log
+          Registrar
         </Button>
       </div>
     ),
@@ -226,11 +226,13 @@ export default function MedicationSchedule({ className }: MedicationScheduleProp
         <CardContent className="p-6">
           <div className="py-8 text-center">
             <AlertCircle className="mx-auto mb-4 h-12 w-12 text-red-500" />
-            <h3 className="mb-2 text-lg font-medium text-red-800">Unable to load schedule</h3>
+            <h3 className="mb-2 text-lg font-medium text-red-800">
+              Não foi possível carregar a agenda
+            </h3>
             <p className="mb-4 text-red-600">{error}</p>
             <Button onClick={fetchTodaySchedule} variant="outline" disabled={isLoading}>
               {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Try Again
+              Tentar Novamente
             </Button>
           </div>
         </CardContent>
@@ -244,7 +246,7 @@ export default function MedicationSchedule({ className }: MedicationScheduleProp
         <CardHeader className="pb-3">
           <CardTitle className="text-green-dark flex items-center gap-2 text-xl">
             <CalendarCheck className="size-5" aria-hidden="true" />
-            Today's Schedule
+            Agenda de Hoje
             {isLoading && <Loader2 className="ml-auto size-4 animate-spin" />}
           </CardTitle>
         </CardHeader>
@@ -252,15 +254,15 @@ export default function MedicationSchedule({ className }: MedicationScheduleProp
           {isLoading && scheduleItems.length === 0 ? (
             <div className="py-8 text-center">
               <Loader2 className="text-green-dark mx-auto mb-4 h-8 w-8 animate-spin" />
-              <p className="text-muted-foreground">Loading today's schedule...</p>
+              <p className="text-muted-foreground">Carregando a agenda de hoje...</p>
             </div>
           ) : scheduleItems.length === 0 ? (
             <div className="text-muted-foreground py-8 text-center">
               <CalendarCheck className="text-green-dark/50 mx-auto mb-4 h-12 w-12" />
-              <p className="font-medium">No medications scheduled for today!</p>
+              <p className="font-medium">Nenhum medicamento agendado para hoje!</p>
               <p className="mt-2 text-sm">
-                All medications have been taken or you don't have any active medications scheduled
-                for today.
+                Todos os medicamentos foram tomados ou você não tem medicamentos ativos agendados
+                para hoje.
               </p>
             </div>
           ) : (
@@ -299,20 +301,20 @@ export default function MedicationSchedule({ className }: MedicationScheduleProp
       <Dialog open={isLogDialogOpen} onOpenChange={setIsLogDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Log Medication Dose</DialogTitle>
+            <DialogTitle>Registrar Dose de Medicamento</DialogTitle>
           </DialogHeader>
           {selectedMedication && (
             <div className="space-y-4 py-4">
               <div className="space-y-1">
                 <h3 className="font-medium">{selectedMedication.medicationName}</h3>
                 <p className="text-muted-foreground text-sm">
-                  Scheduled for{' '}
+                  Agendado para{' '}
                   <time dateTime={selectedMedication.time}>{selectedMedication.time}</time>
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="log-time">Time Taken</Label>
+                <Label htmlFor="log-time">Horário Tomado</Label>
                 <Input
                   id="log-time"
                   type="time"
@@ -321,7 +323,7 @@ export default function MedicationSchedule({ className }: MedicationScheduleProp
                   aria-describedby="log-time-help"
                 />
                 <p id="log-time-help" className="text-muted-foreground text-xs">
-                  Use 24-hour format (HH:MM)
+                  Use o formato 24 horas (HH:MM)
                 </p>
               </div>
 
@@ -334,21 +336,21 @@ export default function MedicationSchedule({ className }: MedicationScheduleProp
                   }
                 >
                   <SelectTrigger id="log-status">
-                    <SelectValue placeholder="Select status" />
+                    <SelectValue placeholder="Selecione o status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="taken">Taken</SelectItem>
-                    <SelectItem value="skipped">Skipped</SelectItem>
-                    <SelectItem value="delayed">Delayed</SelectItem>
+                    <SelectItem value="taken">Tomado</SelectItem>
+                    <SelectItem value="skipped">Pulado</SelectItem>
+                    <SelectItem value="delayed">Atrasado</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="log-notes">Notes (optional)</Label>
+                <Label htmlFor="log-notes">Notas (opcional)</Label>
                 <Textarea
                   id="log-notes"
-                  placeholder="Add any notes about this dose"
+                  placeholder="Adicione notas sobre esta dose"
                   value={logData.notes}
                   onChange={(e) => setLogData((prev) => ({ ...prev, notes: e.target.value }))}
                   className="min-h-[80px]"
@@ -361,7 +363,7 @@ export default function MedicationSchedule({ className }: MedicationScheduleProp
                   onClick={() => setIsLogDialogOpen(false)}
                   disabled={loadingStates.logging}
                 >
-                  Cancel
+                  Cancelar
                 </Button>
                 <Button
                   onClick={handleManualLog}
@@ -371,10 +373,10 @@ export default function MedicationSchedule({ className }: MedicationScheduleProp
                   {loadingStates.logging ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
+                      Salvando...
                     </>
                   ) : (
-                    'Save Log'
+                    'Salvar Registro'
                   )}
                 </Button>
               </div>
