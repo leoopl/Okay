@@ -232,7 +232,7 @@ export default function MedicationList({ className }: MedicationListProps) {
                         {scheduleItem.time}
                       </time>
                     </div>
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap justify-end gap-1">
                       {scheduleItem.days.map((day) => (
                         <Badge
                           key={day}

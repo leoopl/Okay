@@ -11,10 +11,12 @@ import { useJournalStore } from '@/store/journal-store';
 import type { Journal } from '@/store/journal-store';
 import { useOfflineSync } from '@/hooks/use-offline-sync';
 import { SyncStatusIndicator } from '@/components/journal/sync-status';
+import { useMobile } from '@/hooks/use-mobile';
 
 export default function JournalPage() {
   const router = useRouter();
   const [isInitialized, setIsInitialized] = useState(false);
+  const isMobile = useMobile();
 
   // Store state and actions
   const {
@@ -182,6 +184,7 @@ export default function JournalPage() {
               isSyncing={isSyncing}
               pendingChanges={pendingChanges}
               lastSync={lastSync}
+              compact={isMobile}
             />
             <Button
               onClick={handleCreateEntry}

@@ -24,6 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { getProfilePictureUrl, getUserInitials } from '@/lib/utils';
 import { useState } from 'react';
 import { useAuth } from '@/providers/auth-provider';
+import { useMobile } from '@/hooks/use-mobile';
 
 interface Page {
   name: string;
@@ -61,26 +62,26 @@ const pages: Page[] = [
 
 const userPages: Page[] = [
   {
-    name: 'Journal',
-    description: 'Personal reflections and thoughts',
+    name: 'Diário',
+    description: 'Reflexões pessoais e pensamentos',
     icon: BookHeart,
     href: '/journal',
   },
   {
-    name: 'Inventory',
-    description: 'Psychological assessments',
+    name: 'Inventário',
+    description: 'Avaliações psicológicas',
     icon: NotebookPen,
     href: '/inventory',
   },
   {
-    name: 'Medications',
-    description: 'Medication tracking and reminders',
+    name: 'Medicamentos',
+    description: 'Acompanhamento de medicamentos e lembretes',
     icon: Pill,
     href: '/medication',
   },
   {
-    name: 'Settings',
-    description: 'Account and app preferences',
+    name: 'Configurações',
+    description: 'Preferências da conta e do aplicativo',
     icon: Settings,
     href: '/profile',
   },
@@ -89,6 +90,7 @@ const userPages: Page[] = [
 const Header: React.FC = () => {
   const { user, profile, signOut } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isMobile = useMobile();
 
   const handleLogout = async () => {
     setIsMobileMenuOpen(false); // Close menu on logout
@@ -96,7 +98,9 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="shadow-soft-xs">
+    <header
+      className={`shadow-soft-xs ${isMobile ? 'sticky top-0 z-50 bg-white/50 backdrop-blur-sm' : ''}`}
+    >
       <nav
         aria-label="Global"
         className="mx-auto flex max-w-full items-center justify-between p-4 sm:px-6 lg:px-8"
@@ -139,7 +143,7 @@ const Header: React.FC = () => {
               <Button
                 type="button"
                 className="inline-flex items-center justify-center rounded-md bg-transparent p-2 text-gray-700 focus:ring-2 focus:outline-none focus:ring-inset"
-                aria-label="Open main menu"
+                aria-label="Abrir menu principal"
               >
                 <Menu className="size-6 cursor-pointer" aria-hidden="true" />
               </Button>

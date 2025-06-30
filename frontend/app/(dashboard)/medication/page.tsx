@@ -8,7 +8,8 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { useMedicationStore } from '@/store/medication-store';
-import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { useMobile } from '@/hooks/use-mobile';
+import { Loader2, AlertCircle, RefreshCw, Pill, Calendar, BarChart3 } from 'lucide-react';
 
 // Type definitions
 type TabValue = 'medications' | 'schedule' | 'history';
@@ -17,14 +18,17 @@ type TabValue = 'medications' | 'schedule' | 'history';
 const TABS_CONFIG = {
   medications: {
     label: 'Medicamentos',
+    icon: Pill,
     description: 'Gerencie sua lista de medicamentos',
   },
   schedule: {
     label: 'Agenda',
+    icon: Calendar,
     description: 'Visualize e registre as doses de hoje',
   },
   history: {
     label: 'Histórico e Relatórios',
+    icon: BarChart3,
     description: 'Acompanhe a adesão e visualize relatórios',
   },
 } as const;
@@ -34,6 +38,7 @@ const DEFAULT_TAB: TabValue = 'medications';
 export default function MedicationPage() {
   const { loadingStates, errors, fetchMedications, fetchTodaySchedule, clearAllErrors } =
     useMedicationStore();
+  const isMobile = useMobile();
 
   const [activeTab, setActiveTab] = useState<TabValue>(DEFAULT_TAB);
 
@@ -102,10 +107,10 @@ export default function MedicationPage() {
         <div className="mx-auto max-w-7xl">
           <div className="py-16 text-center">
             <Loader2 className="text-green-dark mx-auto mb-6 h-12 w-12 animate-spin" />
-            <h2 className="text-green-dark mb-2 text-2xl font-semibold">
+            <h2 className="text-green-dark mb-2 text-xl font-semibold sm:text-2xl">
               Carregando Rastreador de Medicamentos
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-sm sm:text-base">
               Por favor, aguarde enquanto carregamos seus dados de medicamentos...
             </p>
           </div>
@@ -121,10 +126,10 @@ export default function MedicationPage() {
         <div className="mx-auto max-w-7xl">
           <div className="py-16 text-center">
             <AlertCircle className="mx-auto mb-6 h-16 w-16 text-red-500" />
-            <h2 className="mb-2 text-2xl font-semibold text-red-800">
+            <h2 className="mb-2 text-xl font-semibold text-red-800 sm:text-2xl">
               Não foi possível carregar o Rastreador de Medicamentos
             </h2>
-            <p className="mx-auto mb-6 max-w-md text-red-600">
+            <p className="mx-auto mb-6 max-w-md text-sm text-red-600 sm:text-base">
               {errors.medications?.message ||
                 'Ocorreu um erro inesperado ao carregar seus dados de medicamentos.'}
             </p>
@@ -153,21 +158,23 @@ export default function MedicationPage() {
   }
 
   return (
-    <main className="container mx-auto px-4 py-8 md:py-12">
+    <main className="container mx-auto px-4 py-6 sm:py-8 md:py-12">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-green-dark font-varela text-3xl font-bold md:text-4xl">
+        <div className="mb-6 sm:mb-8">
+          <div className="text-center sm:text-left">
+            <h1 className="text-green-dark font-varela text-2xl font-bold sm:text-3xl md:text-4xl">
               Rastreador de Medicamentos
             </h1>
-            <p className="text-muted-foreground mt-2">{TABS_CONFIG[activeTab].description}</p>
+            <p className="text-muted-foreground mt-2 text-sm sm:text-base">
+              {TABS_CONFIG[activeTab].description}
+            </p>
           </div>
 
           {/* Global loading indicator */}
           {isAnyLoading && (
-            <div className="text-green-dark flex items-center gap-2">
-              <Loader2 className="h-5 w-5 animate-spin" />
+            <div className="text-green-dark mt-4 flex items-center justify-center gap-2 sm:justify-start">
+              <Loader2 className="h-4 w-4 animate-spin sm:h-5 sm:w-5" />
               <span className="text-sm font-medium">Atualizando...</span>
             </div>
           )}
@@ -176,20 +183,24 @@ export default function MedicationPage() {
         {/* Main Content */}
         <div className="space-y-2">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="bg-grey-light/40 grid w-full grid-cols-3">
-              {Object.entries(TABS_CONFIG).map(([value, config]) => (
-                <TabsTrigger
-                  key={value}
-                  value={value}
-                  className="data-[state=active]:text-blue-dark data-[state=active]:bg-background transition-colors"
-                  aria-label={config.description}
-                >
-                  {config.label}
-                </TabsTrigger>
-              ))}
+            <TabsList className="bg-grey-light/40 grid h-auto w-full grid-cols-3">
+              {Object.entries(TABS_CONFIG).map(([value, config]) => {
+                const IconComponent = config.icon;
+                return (
+                  <TabsTrigger
+                    key={value}
+                    value={value}
+                    className="data-[state=active]:text-blue-dark data-[state=active]:bg-background flex-col gap-1 px-2 py-3 text-xs transition-colors sm:flex-row sm:gap-2 sm:py-2 sm:text-sm"
+                    aria-label={config.description}
+                  >
+                    <IconComponent className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate leading-tight">{isMobile ? null : config.label}</span>
+                  </TabsTrigger>
+                );
+              })}
             </TabsList>
 
-            <Card className="border-grey-light min-h-[600px] bg-white/80 p-6">
+            <Card className="border-grey-light min-h-[600px] bg-white/80 p-4 sm:p-6">
               <TabsContent value="medications" className="mt-0">
                 {TabContent.medications}
               </TabsContent>

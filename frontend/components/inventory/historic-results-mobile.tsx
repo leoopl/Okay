@@ -46,7 +46,7 @@ export function HistoricResultsMobile({
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex-1 space-y-1">
-                  <h4 className="line-clamp-1 text-base font-semibold">
+                  <h4 className="text-base font-semibold">
                     {inventory?.title || 'Questionário não identificado'}
                   </h4>
                   <div className="text-muted-foreground flex items-center gap-2 text-sm">
@@ -67,20 +67,20 @@ export function HistoricResultsMobile({
             </CardHeader>
             <CardContent className="pt-0">
               <div className="space-y-3">
-                {inventory?.description && (
+                {/* {inventory?.description && (
                   <p className="text-muted-foreground line-clamp-2 text-sm">
                     {inventory.description}
                   </p>
-                )}
+                )} */}
 
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <Badge
+                    {/* <Badge
                       className={`${getSeverityColor(result?.severity)} border-0`}
                       variant="secondary"
                     >
                       {result?.label || 'Resultado não disponível'}
-                    </Badge>
+                    </Badge> */}
                     {response.calculated_scores && (
                       <div className="text-muted-foreground flex items-center gap-1 text-sm">
                         <BarChart4 className="h-3 w-3" />

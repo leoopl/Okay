@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Inventory, getInventories } from '@/lib/actions/supabase-inventories';
 import { useInventoryStore } from '@/store/inventory-store';
 import { HistoricResultsTab } from '@/components/inventory/historic-results-tab';
+import { useMobile } from '@/hooks/use-mobile';
 import {
   AlertCircle,
   BookOpen,
@@ -124,6 +125,7 @@ export default function InventoriesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const resetState = useInventoryStore((state) => state.resetState);
+  const isMobile = useMobile();
 
   // Load inventories on component mount
   useEffect(() => {
@@ -157,49 +159,55 @@ export default function InventoriesPage() {
 
   return (
     <div className="from-background via-background to-muted/30 min-h-screen bg-gradient-to-br">
-      <div className="container mx-auto px-4 py-8 lg:py-12">
-        <Tabs defaultValue="inventories" className="space-y-8">
-          <TabsList className="mx-auto grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="inventories" className="gap-2">
+      <div className="container mx-auto px-4 py-6 sm:py-8 lg:py-12">
+        <Tabs defaultValue="inventories" className="space-y-6 sm:space-y-8">
+          <TabsList className="bg-grey-light/40 mx-auto grid w-full max-w-md grid-cols-2">
+            <TabsTrigger
+              value="inventories"
+              className="data-[state=active]:text-blue-dark data-[state=active]:bg-background gap-2"
+            >
               <LayoutGrid className="h-4 w-4" />
-              Questionários
+              <span className={isMobile ? 'text-xs' : ''}>Questionários</span>
             </TabsTrigger>
-            <TabsTrigger value="history" className="gap-2">
+            <TabsTrigger
+              value="history"
+              className="data-[state=active]:text-blue-dark data-[state=active]:bg-background gap-2"
+            >
               <History className="h-4 w-4" />
-              Histórico
+              <span className={isMobile ? 'text-xs' : ''}>Histórico</span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="inventories" className="space-y-8">
-            <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+          <TabsContent value="inventories" className="space-y-6 sm:space-y-8">
+            <div className="grid gap-8 sm:gap-12 lg:grid-cols-2 lg:items-center">
               {/* Hero Section */}
-              <div className="animate-fade-in space-y-8 text-center lg:text-left">
-                <div className="space-y-4">
+              <div className="animate-fade-in space-y-6 text-center sm:space-y-8 lg:text-left">
+                <div className="space-y-3 sm:space-y-4">
                   {/* <div className="bg-primary/10 text-primary inline-flex items-center rounded-full px-4 py-2 text-sm font-medium">
                 <Heart className="mr-2 h-4 w-4" />
                 Cuidado Personalizado
               </div> */}
 
-                  <h1 className="text-green-dark font-varela text-3xl font-bold md:text-4xl">
+                  <h1 className="text-green-dark font-varela text-2xl leading-tight font-bold sm:text-3xl md:text-4xl">
                     Questionários de Saúde Mental
                   </h1>
 
-                  <p className="text-muted-foreground text-lg leading-relaxed">
+                  <p className="text-muted-foreground mx-auto max-w-2xl text-base leading-relaxed sm:text-lg lg:mx-0">
                     Avalie seu bem-estar mental com questionários cientificamente validados. Seus
                     dados são protegidos e você mantém controle total sobre suas informações.
                   </p>
                 </div>
 
-                <div className="flex flex-col gap-4 sm:flex-row sm:justify-center lg:justify-start">
-                  <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                <div className="flex flex-col gap-3 sm:flex-row sm:justify-center sm:gap-4 lg:justify-start">
+                  <div className="text-muted-foreground flex items-center justify-center gap-2 text-sm lg:justify-start">
                     <div className="h-2 w-2 rounded-full bg-green-500"></div>
                     <span>Seguro e Privado</span>
                   </div>
-                  <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                  <div className="text-muted-foreground flex items-center justify-center gap-2 text-sm lg:justify-start">
                     <div className="h-2 w-2 rounded-full bg-blue-500"></div>
                     <span>Cientificamente Validado</span>
                   </div>
-                  <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                  <div className="text-muted-foreground flex items-center justify-center gap-2 text-sm lg:justify-start">
                     <div className="h-2 w-2 rounded-full bg-purple-500"></div>
                     <span>Resultado Imediato</span>
                   </div>
@@ -208,14 +216,14 @@ export default function InventoriesPage() {
                 {/* Info Section */}
                 {!loading && !error && inventories.length > 0 && (
                   <Card className="from-muted/50 to-accent/10 border-destructive rounded-sm border bg-gradient-to-r backdrop-blur-sm">
-                    <CardContent className="p-8 text-center">
-                      <div className="mx-auto max-w-2xl space-y-4">
-                        <h3 className="text-green-dark font-varela flex items-center justify-center text-xl font-semibold">
-                          <TriangleAlert className="text-destructive mr-2" />
+                    <CardContent className="p-4 text-center sm:p-6 lg:p-8">
+                      <div className="mx-auto max-w-2xl space-y-3 sm:space-y-4">
+                        <h3 className="text-green-dark font-varela flex items-center justify-center text-lg font-semibold sm:text-xl">
+                          <TriangleAlert className="text-destructive mr-2 h-5 w-5" />
                           Informações Importantes
-                          <TriangleAlert className="text-destructive ml-2" />
+                          <TriangleAlert className="text-destructive ml-2 h-5 w-5" />
                         </h3>
-                        <p className="text-muted-foreground">
+                        <p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
                           Estes questionários são ferramentas de rastreamento e não substituem uma
                           avaliação profissional completa. Se você está passando por dificuldades
                           significativas, recomendamos buscar ajuda de um profissional de saúde
@@ -237,24 +245,28 @@ export default function InventoriesPage() {
                     alt="Ilustração representando questionários de saúde mental"
                     width={500}
                     height={500}
-                    className="relative z-10 mx-auto max-w-sm drop-shadow-2xl lg:max-w-md xl:max-w-lg"
+                    className="relative z-10 mx-auto max-w-xs drop-shadow-2xl sm:max-w-sm lg:max-w-md xl:max-w-lg"
                     priority
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     placeholder="blur"
                     blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAEtgJyBzPZIQAAAABJRU5ErkJggg=="
+                    style={{
+                      maxWidth: '100%',
+                      height: 'auto',
+                    }}
                   />
                 </div>
               </div>
             </div>
 
             {/* Content Section */}
-            <div className="mt-16 space-y-8">
+            <div className="mt-12 space-y-6 sm:mt-16 sm:space-y-8">
               {/* Section Header */}
               <div className="text-center">
-                <h2 className="text-green-dark font-varela text-2xl font-bold lg:text-3xl">
+                <h2 className="text-green-dark font-varela text-xl font-bold sm:text-2xl lg:text-3xl">
                   Escolha uma Avaliação
                 </h2>
-                <p className="text-muted-foreground mt-2">
+                <p className="text-muted-foreground mt-2 text-sm sm:text-base">
                   Selecione o questionário que melhor se adequa às suas necessidades
                 </p>
               </div>
@@ -264,7 +276,7 @@ export default function InventoriesPage() {
 
               {/* Loading State */}
               {loading && !error && (
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
                   {Array.from({ length: 6 }).map((_, index) => (
                     <Loading key={index} />
                   ))}
@@ -276,7 +288,7 @@ export default function InventoriesPage() {
 
               {/* Inventories Grid */}
               {!loading && !error && inventories.length > 0 && (
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
                   {inventories.map((inventory) => (
                     <InventoryCard
                       key={inventory.id}

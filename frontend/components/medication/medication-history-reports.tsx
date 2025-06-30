@@ -18,6 +18,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CheckCircle, XCircle, Clock, AlertCircle, CalendarIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useMobile } from '@/hooks/use-mobile';
 
 // Type definitions for better type safety
 type TimeRange = 'today' | '7days' | '30days' | '90days' | 'specific';
@@ -60,6 +61,7 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
   const [timeRange, setTimeRange] = useState<TimeRange>(DEFAULT_TIME_RANGE);
   const [selectedMedication, setSelectedMedication] = useState<string>(ALL_MEDICATIONS);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const isMobile = useMobile();
 
   // Memoized medication lookup for performance
   const medicationMap = useMemo(() => {
@@ -243,7 +245,7 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
                 </div>
                 <div className="mt-2 flex items-center">
                   <div className="bg-green-dark mr-2 h-3 w-3 rounded-full" aria-hidden="true"></div>
-                  <p className="text-beige-dark">Tomadas</p>
+                  <p className="text-beige-dark">Tomados</p>
                 </div>
               </div>
               <div className="flex flex-col items-center">
@@ -258,21 +260,26 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
                     className="bg-yellow-dark mr-2 h-3 w-3 rounded-full"
                     aria-hidden="true"
                   ></div>
-                  <p className="text-beige-dark">Puladas</p>
+                  <p className="text-beige-dark">Pulados</p>
                 </div>
               </div>
-              <div className="flex flex-col items-center">
-                <div
-                  className="text-blue-dark text-3xl font-bold"
-                  aria-label={`${adherenceStats?.delayed ?? 0} doses atrasadas`}
-                >
-                  {adherenceStats?.delayed ?? 0}
+              {isMobile ? null : (
+                <div className="flex flex-col items-center">
+                  <div
+                    className="text-blue-dark text-3xl font-bold"
+                    aria-label={`${adherenceStats?.delayed ?? 0} doses atrasadas`}
+                  >
+                    {adherenceStats?.delayed ?? 0}
+                  </div>
+                  <div className="mt-2 flex items-center">
+                    <div
+                      className="bg-blue-dark mr-2 h-3 w-3 rounded-full"
+                      aria-hidden="true"
+                    ></div>
+                    <p className="text-beige-dark">Atrasadas</p>
+                  </div>
                 </div>
-                <div className="mt-2 flex items-center">
-                  <div className="bg-blue-dark mr-2 h-3 w-3 rounded-full" aria-hidden="true"></div>
-                  <p className="text-beige-dark">Atrasadas</p>
-                </div>
-              </div>
+              )}
             </div>
           )}
         </CardContent>
