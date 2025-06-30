@@ -43,8 +43,7 @@ const Footer: React.FC = () => {
             </div>
 
             <p className="text-grey-dark font-varela text-base leading-relaxed font-bold lg:text-lg lg:leading-relaxed">
-              Dedicado a apoiar a saúde mental e o bem-estar através de recursos acessíveis e
-              baseados em evidências.
+              Suporte para sua jornada de saúde mental com recursos, ferramentas e orientação.
             </p>
           </div>
 

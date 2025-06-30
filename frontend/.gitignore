@@ -40,10 +40,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# pwa
+# pwa Serwist
 sw.*
 workbox-*
 swe-worker-*
+public/sw*
+public/swe-worker*
 
 # doc
 /doc

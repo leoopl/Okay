@@ -12,12 +12,11 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ApiClient, ApiErrorType } from '@/lib/api-client';
 import { useRouter } from 'next/navigation';
-import { ProtectedContent } from '@/components/common/auth/protected-route';
 import { formatDistanceToNow } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { toast } from 'sonner';
+import ProtectedRoute from '@/components/common/auth/protected-route';
 
 enum TestimonialStatus {
   PENDING = 'pending',
@@ -50,15 +49,15 @@ export default function AdminTestimonialsPage() {
   async function fetchTestimonials() {
     setIsLoading(true);
     try {
-      const data = await ApiClient.get<Testimonial[]>('admin/testimonials');
-      setTestimonials(data);
+      // const data = await ApiClient.get<Testimonial[]>('admin/testimonials');
+      // setTestimonials(data);
     } catch (error) {
       console.error('Error fetching testimonials:', error);
 
       // If unauthorized, redirect to login
-      if ((error as { type: ApiErrorType }).type === ApiErrorType.AUTH) {
-        router.push('/signin?returnUrl=/admin/testimonials');
-      }
+      // if ((error as { type: ApiErrorType }).type === ApiErrorType.AUTH) {
+      //   router.push('/signin?returnUrl=/admin/testimonials');
+      // }
 
       toast.error('Error', {
         description: 'Failed to load testimonials',
@@ -70,7 +69,7 @@ export default function AdminTestimonialsPage() {
 
   async function approveTestimonial(id: string) {
     try {
-      await ApiClient.patch(`admin/testimonials/${id}/approve`);
+      // await ApiClient.patch(`admin/testimonials/${id}/approve`);
 
       // Update local state
       setTestimonials((prev) =>
@@ -94,7 +93,7 @@ export default function AdminTestimonialsPage() {
 
   async function rejectTestimonial(id: string) {
     try {
-      await ApiClient.patch(`admin/testimonials/${id}/reject`);
+      // await ApiClient.patch(`admin/testimonials/${id}/reject`);
 
       // Update local state
       setTestimonials((prev) =>
@@ -118,7 +117,7 @@ export default function AdminTestimonialsPage() {
     }
 
     try {
-      await ApiClient.delete(`admin/testimonials/${id}`);
+      // await ApiClient.delete(`admin/testimonials/${id}`);
 
       // Update local state
       setTestimonials((prev) => prev.filter((t) => t.id !== id));
@@ -141,7 +140,7 @@ export default function AdminTestimonialsPage() {
   });
 
   return (
-    <ProtectedContent requiredRole="admin" fallback={<div>Access Denied</div>}>
+    <ProtectedRoute requiredRoles={['admin', 'moderator']} fallback={<div>Access Denied</div>}>
       <div className="container mx-auto py-10">
         <h1 className="mb-6 text-3xl font-bold">Testimonial Management</h1>
 
@@ -232,6 +231,6 @@ export default function AdminTestimonialsPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </ProtectedContent>
+    </ProtectedRoute>
   );
 }

@@ -83,19 +83,6 @@ const detectSeverityLevel = (
   interpretationResults: InterpretationResults,
   responses: any[],
 ): SeverityLevel => {
-  // Check for crisis indicators first
-  const hasSuicidalIdeation = responses.some(
-    (r) => r.questionTitle?.toLowerCase().includes('suicid') && r.optionValue > 0,
-  );
-
-  if (hasSuicidalIdeation) {
-    return {
-      level: 'crisis',
-      score: calculatedScores.total || 0,
-      percentage: 100,
-    };
-  }
-
   // Check interpretation severity
   const severity = interpretationResults.severity?.toLowerCase();
   const totalScore = calculatedScores.total || 0;
