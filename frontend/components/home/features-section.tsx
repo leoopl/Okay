@@ -10,7 +10,7 @@ const FeaturesSection: React.FC = () => {
         'Diretório de profissionais de saúde mental, filtrável por localização e especialização.',
       icon: Users,
       color: 'blue-medium',
-      link: '/professionals',
+      link: '/professional',
     },
     {
       title: 'Técnicas de Respiração',
@@ -25,7 +25,7 @@ const FeaturesSection: React.FC = () => {
         'Uma lista visualmente estruturada de artigos categorizados por transtorno, tratamento e autocuidado.',
       icon: BookOpen,
       color: 'blue-medium',
-      link: '/articles',
+      link: '/blog',
     },
     {
       title: 'Diário e Reflexão Diária',
@@ -40,7 +40,7 @@ const FeaturesSection: React.FC = () => {
       description: 'Autoavaliações interativas com feedback instantâneo (PHQ-9, GAD-7, Beck).',
       icon: CheckSquare,
       color: 'blue-medium',
-      link: '/assessments',
+      link: '/inventory',
     },
     {
       title: 'Rastreamento de Humor',
@@ -63,7 +63,7 @@ const FeaturesSection: React.FC = () => {
         'Fundamentos de saúde mental, desmistificando condições comuns e fornecendo recursos educacionais.',
       icon: Brain,
       color: 'blue-medium',
-      link: '/education',
+      link: '/blog',
     },
   ];
 
