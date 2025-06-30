@@ -23,7 +23,7 @@ export default function Cvv() {
           </div>
           <div className="mb-4 flex items-center justify-center">
             <div className="relative size-48 sm:size-60">
-              <Image src="/cvv.png" alt="CVV Logo" fill className="object-contain" />
+              <Image src="/cvv.svg" alt="CVV Logo" fill className="object-contain" />
             </div>
           </div>
         </div>

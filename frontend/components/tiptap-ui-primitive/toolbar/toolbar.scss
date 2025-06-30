@@ -30,7 +30,7 @@
     }
   }
 
-  &[data-variant="fixed"] {
+  &[data-variant='fixed'] {
     position: sticky;
     top: 0;
     z-index: 10;
@@ -49,31 +49,57 @@
       display: none;
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 768px) {
       position: fixed;
       top: auto;
       bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
       height: calc(var(--tt-toolbar-height) + var(--tt-safe-area-bottom));
       border-top: 1px solid var(--tt-toolbar-border-color);
       border-bottom: none;
+      border-radius: 12px 12px 0 0;
       padding: 0 0.5rem var(--tt-safe-area-bottom);
       flex-wrap: nowrap;
       justify-content: flex-start;
+      max-width: calc(100vw - 20px);
+      width: auto;
+      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
 
       .tiptap-toolbar-group {
         flex: 0 0 auto;
       }
+
+      /* Better spacing for mobile toolbar groups */
+      .tiptap-toolbar-group + .tiptap-separator {
+        margin: 0 0.25rem;
+      }
+    }
+
+    /* Handle keyboard state transitions */
+    @media (max-width: 768px) {
+      &[data-keyboard-open='true'] {
+        transition: none;
+        border-radius: 12px;
+        margin-bottom: 10px;
+      }
+
+      &[data-keyboard-open='false'] {
+        transition:
+          bottom 0.3s ease,
+          transform 0.3s ease;
+      }
     }
   }
 
-  &[data-variant="floating"] {
+  &[data-variant='floating'] {
     --tt-toolbar-padding: 0.125rem;
     --tt-toolbar-border-width: 1px;
 
     padding: 0.188rem;
     border-radius: calc(
-      var(--tt-toolbar-padding) + var(--tt-radius-lg) +
-        var(--tt-toolbar-border-width)
+      var(--tt-toolbar-padding) + var(--tt-radius-lg) + var(--tt-toolbar-border-width)
     );
     border: var(--tt-toolbar-border-width) solid var(--tt-toolbar-border-color);
     background-color: var(--tt-toolbar-bg-color);
@@ -81,7 +107,7 @@
     outline: none;
     overflow: hidden;
 
-    &[data-plain="true"] {
+    &[data-plain='true'] {
       padding: 0;
       border-radius: 0;
       border: none;

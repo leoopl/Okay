@@ -57,6 +57,7 @@ import { LinkIcon } from '@/components/tiptap-icons/link-icon';
 import { useMobile } from '@/hooks/use-mobile';
 import { useWindowSize } from '@/hooks/use-window-size';
 import { useCursorVisibility } from '@/hooks/use-cursor-visibility';
+import { useVirtualKeyboard, useIsMobileDevice } from '@/hooks/use-virtual-keyboard';
 
 // --- Lib ---
 import { handleImageUpload, MAX_FILE_SIZE } from '@/lib/tiptap-utils';
@@ -204,7 +205,9 @@ export function JournalEditor({
   className = '',
 }: JournalEditorProps) {
   const isMobile = useMobile();
+  const isMobileDevice = useIsMobileDevice();
   const windowSize = useWindowSize();
+  const virtualKeyboard = useVirtualKeyboard({ threshold: 150, debounceMs: 100 });
   const [mobileView, setMobileView] = React.useState<'main' | 'highlighter' | 'link'>('main');
   const toolbarRef = React.useRef<HTMLDivElement>(null);
 
@@ -272,6 +275,8 @@ export function JournalEditor({
   const bodyRect = useCursorVisibility({
     editor,
     overlayHeight: toolbarRef.current?.getBoundingClientRect().height ?? 0,
+    virtualKeyboard,
+    isMobile: isMobileDevice,
   });
 
   // Update editor content when prop changes
@@ -287,10 +292,10 @@ export function JournalEditor({
   }, [editor, parsedContent]);
 
   React.useEffect(() => {
-    if (!isMobile && mobileView !== 'main') {
+    if (!isMobileDevice && mobileView !== 'main') {
       setMobileView('main');
     }
-  }, [isMobile, mobileView]);
+  }, [isMobileDevice, mobileView]);
 
   return (
     <div className={`journal-editor ${className}`.trim()}>
@@ -298,10 +303,20 @@ export function JournalEditor({
         {editable && (
           <Toolbar
             ref={toolbarRef}
+            data-keyboard-open={isMobileDevice ? virtualKeyboard.isOpen : undefined}
             style={
-              isMobile
+              isMobileDevice
                 ? {
-                    bottom: `calc(100% - ${windowSize.height - bodyRect.y}px)`,
+                    bottom: virtualKeyboard.isOpen
+                      ? `${virtualKeyboard.keyboardHeight + 10}px`
+                      : '10px',
+                    position: 'fixed',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    zIndex: 1000,
+                    maxWidth: 'calc(100vw - 20px)',
+                    width: 'auto',
+                    transition: virtualKeyboard.isOpen ? 'none' : 'bottom 0.3s ease',
                   }
                 : {}
             }
@@ -310,7 +325,7 @@ export function JournalEditor({
               <MainToolbarContent
                 onHighlighterClick={() => setMobileView('highlighter')}
                 onLinkClick={() => setMobileView('link')}
-                isMobile={isMobile}
+                isMobile={isMobileDevice}
               />
             ) : (
               <MobileToolbarContent
@@ -375,6 +390,67 @@ const journalEditorStyles = `
 .journal-editor .content-wrapper {
   scrollbar-width: thin;
   scrollbar-color: var(--tt-scrollbar-color) transparent;
+}
+
+/* Mobile-specific styles for better UX */
+@media (max-width: 768px) {
+  .journal-editor {
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile browsers */
+  }
+
+  .journal-editor .content-wrapper {
+    padding: 0.75rem;
+    /* Add safe area for devices with notches */
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  .journal-editor .tiptap.ProseMirror {
+    min-height: 150px;
+    font-size: 16px; /* Prevent zoom on iOS */
+    line-height: 1.5;
+  }
+
+  /* Hide scrollbars on mobile for cleaner look */
+  .journal-editor .content-wrapper::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .journal-editor .content-wrapper {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Better touch targets */
+  .journal-editor .tiptap.ProseMirror p,
+  .journal-editor .tiptap.ProseMirror li,
+  .journal-editor .tiptap.ProseMirror blockquote {
+    min-height: 1.5em;
+    margin-bottom: 0.5em;
+  }
+
+  /* Improved spacing for mobile */
+  .journal-editor .tiptap.ProseMirror h1,
+  .journal-editor .tiptap.ProseMirror h2,
+  .journal-editor .tiptap.ProseMirror h3 {
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+  }
+}
+
+/* Landscape mobile adjustments */
+@media (max-width: 768px) and (orientation: landscape) {
+  .journal-editor .content-wrapper {
+    padding: 0.5rem;
+  }
+}
+
+/* High DPI mobile screens */
+@media (max-width: 768px) and (-webkit-min-device-pixel-ratio: 2) {
+  .journal-editor .tiptap.ProseMirror {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
 `;
 

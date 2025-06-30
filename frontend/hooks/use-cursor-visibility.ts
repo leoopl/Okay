@@ -1,8 +1,18 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import type { Editor } from "@tiptap/react"
-import { useWindowSize } from "@/hooks/use-window-size"
+import * as React from 'react';
+import type { Editor } from '@tiptap/react';
+import { useWindowSize } from '@/hooks/use-window-size';
+
+/**
+ * Interface defining virtual keyboard state for cursor visibility calculations
+ */
+export interface VirtualKeyboardState {
+  isOpen: boolean;
+  height: number;
+  viewportHeight: number;
+  keyboardHeight: number;
+}
 
 /**
  * Interface defining required parameters for the cursor visibility hook
@@ -11,21 +21,29 @@ export interface CursorVisibilityOptions {
   /**
    * The TipTap editor instance
    */
-  editor: Editor | null
+  editor: Editor | null;
   /**
    * Reference to the toolbar element that may obscure the cursor
    */
-  overlayHeight?: number
+  overlayHeight?: number;
   /**
    * Reference to the element to track for cursor visibility
    */
-  elementRef?: React.RefObject<HTMLElement> | null
+  elementRef?: React.RefObject<HTMLElement> | null;
+  /**
+   * Virtual keyboard state for mobile devices
+   */
+  virtualKeyboard?: VirtualKeyboardState;
+  /**
+   * Whether to use enhanced mobile behavior
+   */
+  isMobile?: boolean;
 }
 
 /**
  * Simplified DOMRect type containing only the essential positioning properties
  */
-export type RectState = Pick<DOMRect, "x" | "y" | "width" | "height">
+export type RectState = Pick<DOMRect, 'x' | 'y' | 'width' | 'height'>;
 
 /**
  * Custom hook that ensures the cursor remains visible when typing in a TipTap editor.
@@ -41,76 +59,104 @@ export function useCursorVisibility({
   editor,
   overlayHeight = 0,
   elementRef = null,
+  virtualKeyboard,
+  isMobile = false,
 }: CursorVisibilityOptions) {
-  const { height: windowHeight } = useWindowSize()
+  const { height: windowHeight } = useWindowSize();
   const [rect, setRect] = React.useState<RectState>({
     x: 0,
     y: 0,
     width: 0,
     height: 0,
-  })
+  });
 
   const updateRect = React.useCallback(() => {
-    const element = elementRef?.current ?? document.body
+    const element = elementRef?.current ?? document.body;
 
-    const { x, y, width, height } = element.getBoundingClientRect()
-    setRect({ x, y, width, height })
-  }, [elementRef])
+    const { x, y, width, height } = element.getBoundingClientRect();
+    setRect({ x, y, width, height });
+  }, [elementRef]);
 
   React.useEffect(() => {
-    const element = elementRef?.current ?? document.body
+    const element = elementRef?.current ?? document.body;
 
-    updateRect()
+    updateRect();
 
     const resizeObserver = new ResizeObserver(() => {
-      window.requestAnimationFrame(updateRect)
-    })
+      window.requestAnimationFrame(updateRect);
+    });
 
-    resizeObserver.observe(element)
-    window.addEventListener("scroll", updateRect, { passive: true })
+    resizeObserver.observe(element);
+    window.addEventListener('scroll', updateRect, { passive: true });
 
     return () => {
-      resizeObserver.disconnect()
-      window.removeEventListener("scroll", updateRect)
-    }
-  }, [elementRef, updateRect])
+      resizeObserver.disconnect();
+      window.removeEventListener('scroll', updateRect);
+    };
+  }, [elementRef, updateRect]);
 
   React.useEffect(() => {
     const ensureCursorVisibility = () => {
-      if (!editor) return
+      if (!editor) return;
 
-      const { state, view } = editor
+      const { state, view } = editor;
 
-      if (!view.hasFocus()) return
+      if (!view.hasFocus()) return;
 
       // Get current cursor position coordinates
-      const { from } = state.selection
-      const cursorCoords = view.coordsAtPos(from)
+      const { from } = state.selection;
+      const cursorCoords = view.coordsAtPos(from);
 
-      if (windowHeight < rect.height) {
-        if (cursorCoords) {
-          // Check if there's enough space between cursor and bottom of window
-          const availableSpace =
-            windowHeight - cursorCoords.top - overlayHeight > 0
+      if (!cursorCoords) return;
 
-          // If not enough space, scroll to position cursor in the middle of viewport
-          if (!availableSpace) {
-            const targetScrollY =
-              // TODO: Needed?
-              //   window.scrollY + (cursorCoords.top - windowHeight / 2)
-              cursorCoords.top - windowHeight / 2
+      // Calculate available viewport height
+      let availableHeight = windowHeight;
+      let bottomOffset = overlayHeight;
 
-            window.scrollTo({
-              top: targetScrollY,
-              behavior: "smooth",
-            })
-          }
-        }
+      // Adjust for virtual keyboard on mobile
+      if (isMobile && virtualKeyboard?.isOpen) {
+        availableHeight = virtualKeyboard.viewportHeight;
+        // Add extra padding for better UX on mobile
+        bottomOffset += 20;
       }
-    }
 
-    ensureCursorVisibility()
-  }, [editor, overlayHeight, windowHeight, rect.height])
+      // Calculate cursor position relative to viewport
+      const cursorFromTop = cursorCoords.top;
+      const cursorFromBottom = availableHeight - cursorCoords.bottom;
 
-  return rect
+      // Check if cursor is hidden by keyboard or toolbar
+      const isHiddenByKeyboard =
+        isMobile && virtualKeyboard?.isOpen && cursorFromBottom < bottomOffset;
+      const isHiddenByToolbar = cursorFromTop < overlayHeight;
+      const isOutOfView = cursorFromTop < 0 || cursorFromBottom < bottomOffset;
+
+      if (isHiddenByKeyboard || isHiddenByToolbar || isOutOfView) {
+        let targetScrollY;
+
+        if (isMobile && virtualKeyboard?.isOpen) {
+          // On mobile with keyboard open, position cursor in the upper third of available space
+          const safeArea = availableHeight - bottomOffset - overlayHeight;
+          const targetPosition = overlayHeight + safeArea * 0.33;
+          targetScrollY = window.scrollY + (cursorFromTop - targetPosition);
+        } else {
+          // Desktop or mobile without keyboard - position in middle of viewport
+          const targetPosition = availableHeight / 2;
+          targetScrollY = window.scrollY + (cursorFromTop - targetPosition);
+        }
+
+        // Ensure we don't scroll beyond document bounds
+        const maxScrollY = Math.max(0, document.documentElement.scrollHeight - availableHeight);
+        targetScrollY = Math.max(0, Math.min(targetScrollY, maxScrollY));
+
+        window.scrollTo({
+          top: targetScrollY,
+          behavior: isMobile ? 'instant' : 'smooth', // Instant on mobile for better responsiveness
+        });
+      }
+    };
+
+    ensureCursorVisibility();
+  }, [editor, overlayHeight, windowHeight, rect.height, virtualKeyboard, isMobile]);
+
+  return rect;
 }
