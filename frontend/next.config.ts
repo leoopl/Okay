@@ -61,6 +61,13 @@ const nextConfig: NextConfig = {
   // Enable React strict mode for better error detection
   reactStrictMode: true,
 
+  // Change the body size limit for server actions
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '8mb',
+    },
+  },
+
   // Optimize images for PWA
   images: {
     formats: ['image/avif', 'image/webp'],
