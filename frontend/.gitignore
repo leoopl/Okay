@@ -41,9 +41,6 @@ yarn-error.log*
 next-env.d.ts
 
 # pwa Serwist
-sw.*
-workbox-*
-swe-worker-*
 public/sw*
 public/swe-worker*
 
