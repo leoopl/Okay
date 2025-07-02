@@ -90,7 +90,9 @@ const ConsentForm = ({
           <Shield className="text-blue-dark size-8" />
         </div>
         <div className="space-y-2">
-          <CardTitle className="text-2xl">Consentimento Informado</CardTitle>
+          <CardTitle className="fornt-varela text-green-dark text-2xl">
+            Consentimento Informado
+          </CardTitle>
           <CardDescription className="mx-auto max-w-2xl text-base">
             Sua privacidade e bem-estar são nossa prioridade. Leia as informações abaixo antes de
             prosseguir com a avaliação.
@@ -132,7 +134,7 @@ const ConsentForm = ({
         </div>
 
         {/* Consent Checkbox */}
-        <div className="bg-accent/10 border-accent/20 rounded-lg border p-6">
+        <div className="bg-accent/10 border-blue-dark/80 rounded-lg border p-6">
           <div className="flex items-start space-x-4">
             <Checkbox
               id="consent"
@@ -168,11 +170,11 @@ const ConsentForm = ({
             </div>
           </div>
 
-          <div className="flex items-start gap-3 rounded-lg bg-blue-50 p-4 dark:bg-blue-950/20">
-            <Users className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
+          <div className="bg-grey-light/20 flex items-start gap-3 rounded-lg p-4 dark:bg-blue-950/20">
+            <Users className="text-grey-medium mt-0.5 h-5 w-5 shrink-0" />
             <div className="space-y-1">
-              <h4 className="font-medium text-blue-800 dark:text-blue-300">Compartilhamento</h4>
-              <p className="text-sm text-blue-700 dark:text-blue-400">
+              <h4 className="text-grey-dark font-medium dark:text-blue-300">Compartilhamento</h4>
+              <p className="text-grey-dark text-sm dark:text-blue-400">
                 Seus dados nunca são compartilhados sem seu consentimento explícito
               </p>
             </div>
@@ -181,10 +183,12 @@ const ConsentForm = ({
 
         {/* Disclaimer */}
         {inventory.disclaimer && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
+          <Alert className="border-destructive/80 bg-destructive/5 text-destructive">
+            <AlertCircle className="size-4" />
             <AlertTitle>Importante</AlertTitle>
-            <AlertDescription className="text-sm">{inventory.disclaimer}</AlertDescription>
+            <AlertDescription className="text-beige-dark text-sm">
+              {inventory.disclaimer}
+            </AlertDescription>
           </Alert>
         )}
       </CardContent>
@@ -236,11 +240,6 @@ const QuestionCard = ({
           <Badge variant="secondary" className="text-xs">
             Pergunta {currentIndex + 1} de {totalQuestions}
           </Badge>
-          {question.subscale && (
-            <Badge variant="outline" className="text-xs">
-              {question.subscale}
-            </Badge>
-          )}
         </div>
 
         <div className="space-y-3">
@@ -362,40 +361,33 @@ export default function InventoryPage({ params }: { params: Promise<{ slug: stri
       if (!currentQuestion) return;
 
       const option = currentQuestion.options.find((opt) => opt.value === optionValue);
-      updateResponse(currentQuestion.id, optionValue, option?.label, currentQuestion.title);
+      updateResponse(
+        currentQuestion.id,
+        optionValue,
+        option?.label,
+        currentQuestion.title,
+        currentQuestion.subscale,
+      );
     },
     [currentQuestion, updateResponse],
   );
 
-  // Handle navigation
-  const handleNext = useCallback(() => {
-    if (!inventory) return;
-
-    const questions = inventory.questions as unknown as Question[];
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    } else {
-      handleSubmit();
-    }
-  }, [inventory, currentQuestionIndex]);
-
-  const handlePrevious = useCallback(() => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-    }
-  }, [currentQuestionIndex]);
-
   // Handle submission
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!inventory) return;
 
     try {
       setSubmitting(true);
 
       const questions = inventory.questions as unknown as Question[];
-      // Validate all questions answered
-      if (responses.length !== questions.length) {
+
+      // Validate all questions answered by checking unique question IDs
+      const answeredQuestionIds = new Set(responses.map((r) => r.questionId));
+      const allQuestionIds = new Set(questions.map((q) => q.id));
+
+      if (answeredQuestionIds.size !== allQuestionIds.size) {
         setError('Por favor, responda todas as perguntas antes de finalizar.');
+        setSubmitting(false);
         return;
       }
 
@@ -422,7 +414,38 @@ export default function InventoryPage({ params }: { params: Promise<{ slug: stri
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [inventory, responses, consentGiven, setResults, router, slug]);
+
+  // Handle navigation
+  const handleNext = useCallback(() => {
+    if (!inventory) return;
+
+    const questions = inventory.questions as unknown as Question[];
+
+    // For the last question, ensure response is saved before submitting
+    if (currentQuestionIndex === questions.length - 1) {
+      // Check if current question has a response
+      const currentResponse = responses.find((r) => r.questionId === currentQuestion?.id);
+
+      if (!currentResponse) {
+        setError('Por favor, selecione uma resposta antes de finalizar.');
+        return;
+      }
+
+      // Use setTimeout to ensure state is updated before submission
+      setTimeout(() => {
+        handleSubmit();
+      }, 100);
+    } else {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }
+  }, [inventory, currentQuestionIndex, currentQuestion, responses, handleSubmit]);
+
+  const handlePrevious = useCallback(() => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    }
+  }, [currentQuestionIndex]);
 
   // Handle navigation
   const handleBack = () => router.push('/inventory');

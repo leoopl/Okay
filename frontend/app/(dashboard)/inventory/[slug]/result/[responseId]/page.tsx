@@ -26,7 +26,6 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import Loading from '../../loading';
-import { DynamicResultsInterface } from '@/components/inventory/results-interface';
 import { toast } from 'sonner';
 
 // Enhanced Error Component
@@ -124,22 +123,6 @@ const ScoreDisplay = ({
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Pontuação</span>
-            <span className="font-medium">{percentage.toFixed(1)}%</span>
-          </div>
-          <div className="bg-muted relative h-3 overflow-hidden rounded-full">
-            <div
-              className={cn(
-                'h-full bg-gradient-to-r transition-all duration-1000 ease-out',
-                getColorClass(percentage),
-              )}
-              style={{ width: `${percentage}%` }}
-            />
-          </div>
-        </div>
-
         <div className={cn('rounded-lg border p-3', getBackgroundClass(percentage))}>
           <div className="flex items-start gap-2">
             <Award className="mt-0.5 h-4 w-4 shrink-0" />
@@ -406,6 +389,9 @@ export default function ResultPage({
   const interpretationResults = response.interpretation_results as any;
   const calculatedScores = response.calculated_scores as any;
 
+  // Get the severity from interpretation results
+  const severity = interpretationResults?.severity || 'normal';
+
   // Use Dynamic Results Interface for enhanced experience
   return (
     <div className="from-background via-background to-muted/30 min-h-screen bg-gradient-to-br">
@@ -454,48 +440,104 @@ export default function ResultPage({
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
-            {/* Main Score */}
-            <ScoreDisplay
-              label="Resultado Geral"
-              score={calculatedScores?.total || 0}
-              maxScore={(inventory?.scoring as any)?.totalScoreRange?.[1] || 100}
-              interpretation={interpretationResults}
-              variant="primary"
-            />
+            {/* Main Score - only show if no subscales */}
+            {!interpretationResults?.subscaleInterpretations && (
+              <ScoreDisplay
+                label="Resultado Geral"
+                score={calculatedScores?.total || 0}
+                maxScore={21} // Default max score
+                interpretation={{
+                  label: interpretationResults?.label || 'Resultado não disponível',
+                  recommendation:
+                    interpretationResults?.recommendation || 'Considere buscar apoio profissional.',
+                }}
+                variant="primary"
+              />
+            )}
 
-            {/* Subscale Scores */}
+            {/* Subscale Scores - for DASS-21 and similar inventories */}
             {interpretationResults?.subscaleInterpretations &&
               Object.keys(interpretationResults.subscaleInterpretations).length > 0 && (
                 <div className="space-y-4">
-                  <h2 className="text-foreground flex items-center gap-2 text-xl font-semibold">
-                    <TrendingUp className="text-primary h-5 w-5" />
+                  <h2 className="text-green-dark font-varela flex items-center gap-2 text-xl font-semibold">
+                    <TrendingUp className="text-blue-dark h-5 w-5" />
                     Análise por Categorias
                   </h2>
 
-                  <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-4 md:grid-cols-3">
                     {Object.entries(interpretationResults.subscaleInterpretations).map(
-                      ([key, value]) => (
-                        <ScoreDisplay
-                          key={key}
-                          label={key}
-                          score={calculatedScores[key] || 0}
-                          maxScore={
-                            (inventory?.scoring as any)?.subscales?.[key]?.maxRawScore || 100
-                          }
-                          interpretation={value as any}
-                        />
-                      ),
+                      ([key, value]: [string, any]) => {
+                        // Get the appropriate severity config for each subscale
+                        const subscaleSeverity = value.severity || 'normal';
+                        const subscaleColorConfig = getColosConfig(subscaleSeverity);
+
+                        return (
+                          <Card
+                            key={key}
+                            className={cn(
+                              'transition-all duration-200 hover:shadow-md',
+                              'border-2',
+                              subscaleColorConfig.headerBorder,
+                            )}
+                          >
+                            <CardHeader className="pb-3">
+                              <div className="flex items-center justify-between">
+                                <CardTitle className="text-lg font-semibold capitalize">
+                                  {key === 'stress'
+                                    ? 'Estresse'
+                                    : key === 'anxiety'
+                                      ? 'Ansiedade'
+                                      : key === 'depression'
+                                        ? 'Depressão'
+                                        : key}
+                                </CardTitle>
+                                <Badge
+                                  variant="outline"
+                                  className={cn('text-xs', subscaleColorConfig.accentColor)}
+                                >
+                                  {value.score || calculatedScores?.subscales?.[key] || 0}/21
+                                </Badge>
+                              </div>
+                            </CardHeader>
+
+                            <CardContent className="space-y-4">
+                              <div
+                                className={cn(
+                                  'rounded-lg border p-3',
+                                  subscaleColorConfig.headerBg,
+                                  subscaleColorConfig.headerBorder,
+                                )}
+                              >
+                                <div className="flex items-start gap-2">
+                                  <Award
+                                    className={cn(
+                                      'mt-0.5 h-4 w-4 shrink-0',
+                                      subscaleColorConfig.accentColor,
+                                    )}
+                                  />
+                                  <div className="space-y-1">
+                                    <p className="text-sm font-medium">{value.label}</p>
+                                    <p className="text-xs leading-relaxed opacity-90">
+                                      {value.recommendation}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      },
                     )}
                   </div>
                 </div>
               )}
 
             {/* Important Notice */}
-            <Card className="border-accent/20 bg-accent/5">
+            <Card className="border-destructive/80 bg-destructive/5">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="bg-accent/20 rounded-full p-2">
-                    <Shield className="text-accent-foreground h-5 w-5" />
+                    <Shield className="text-destructive size-5" />
                   </div>
                   <div className="space-y-2">
                     <h3 className="text-foreground font-semibold">Importante lembrar</h3>
@@ -522,7 +564,7 @@ export default function ResultPage({
           <TabsContent value="details" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="font-varela flex items-center gap-2">
+                <CardTitle className="font-varela text-green-dark flex items-center gap-2">
                   <Info className="text-blue-dark h-5 w-5" />
                   Suas Respostas
                 </CardTitle>
@@ -557,4 +599,47 @@ export default function ResultPage({
       </div>
     </div>
   );
+}
+
+// Helper function to get color config based on severity
+function getColosConfig(severity: string) {
+  const configs: Record<string, any> = {
+    normal: {
+      primaryColor: 'green',
+      headerBg: 'bg-green-50 dark:bg-green-950/20',
+      headerBorder: 'border-green-200 dark:border-green-800',
+      accentColor: 'text-green-600 dark:text-green-400',
+      buttonVariant: 'default' as const,
+    },
+    mild: {
+      primaryColor: 'blue',
+      headerBg: 'bg-blue-50 dark:bg-blue-950/20',
+      headerBorder: 'border-blue-200 dark:border-blue-800',
+      accentColor: 'text-blue-600 dark:text-blue-400',
+      buttonVariant: 'default' as const,
+    },
+    moderate: {
+      primaryColor: 'yellow',
+      headerBg: 'bg-yellow-50 dark:bg-yellow-950/20',
+      headerBorder: 'border-yellow-200 dark:border-yellow-800',
+      accentColor: 'text-yellow-600 dark:text-yellow-400',
+      buttonVariant: 'default' as const,
+    },
+    severe: {
+      primaryColor: 'orange',
+      headerBg: 'bg-orange-50 dark:bg-orange-950/20',
+      headerBorder: 'border-orange-200 dark:border-orange-800',
+      accentColor: 'text-orange-600 dark:text-orange-400',
+      buttonVariant: 'default' as const,
+    },
+    crisis: {
+      primaryColor: 'red',
+      headerBg: 'bg-red-50 dark:bg-red-950/20',
+      headerBorder: 'border-red-200 dark:border-red-800',
+      accentColor: 'text-red-600 dark:text-red-400',
+      buttonVariant: 'destructive' as const,
+    },
+  };
+
+  return configs[severity] || configs.normal;
 }

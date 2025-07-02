@@ -24,7 +24,7 @@ const Testimonials: React.FC = () => {
         {/* Header */}
         <header className="mb-16 text-center">
           <h2 className="text-green-dark font-varela mb-4 text-4xl font-bold">
-            Você não precisa sentir isso em silêncio.
+            Você não precisa sentir isso sozinho.
           </h2>
           <p className="mx-auto max-w-3xl text-lg text-gray-800">
             Compartilhe o que te ajudou com seus momentos dificeis. Quaisquer links para recursos,

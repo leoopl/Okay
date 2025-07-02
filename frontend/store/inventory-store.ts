@@ -48,6 +48,7 @@ interface InventoryState {
     optionValue: number,
     optionLabel?: string,
     questionTitle?: string,
+    subscale?: string,
   ) => void;
   setResponses: (responses: UserResponseOption[]) => void;
   setResults: (scores: CalculatedScores, interpretation: InterpretationResult) => void;
@@ -100,7 +101,7 @@ export const useInventoryStore = create<InventoryState>()(
           canGoNext: false,
         }),
 
-      updateResponse: (questionId, optionValue, optionLabel, questionTitle) =>
+      updateResponse: (questionId, optionValue, optionLabel, questionTitle, subscale) =>
         set((state) => {
           const existingIndex = state.responses.findIndex((r) => r.questionId === questionId);
           const newResponse: UserResponseOption = {
@@ -108,6 +109,7 @@ export const useInventoryStore = create<InventoryState>()(
             optionValue,
             optionLabel,
             questionTitle,
+            subscale,
           };
 
           const newResponses = [...state.responses];

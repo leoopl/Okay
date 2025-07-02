@@ -17,6 +17,7 @@ export interface UserResponseOption {
   optionValue: number;
   optionLabel?: string;
   questionTitle?: string;
+  subscale?: string;
 }
 
 export interface SubmitInventoryResponseInput {
@@ -305,22 +306,29 @@ export async function withdrawConsent(responseId: string) {
 
 // Helper function to calculate scores
 function calculateScores(responses: UserResponseOption[], scoringRules: any): any {
-  // This is a simplified scoring calculation
-  // Actual implementation would depend on specific inventory scoring rules
   const scores: any = {
     total: 0,
     subscales: {},
   };
 
-  responses.forEach((response) => {
-    scores.total += response.optionValue;
-  });
-
-  // Calculate subscale scores if defined
+  // If scoring rules have subscales (like DASS-21)
   if (scoringRules.subscales) {
+    // Initialize subscale scores
     Object.keys(scoringRules.subscales).forEach((subscale) => {
       scores.subscales[subscale] = 0;
-      // Add logic for subscale calculation
+    });
+
+    // Calculate scores for each response
+    responses.forEach((response) => {
+      // Add to subscale score if response has a subscale
+      if (response.subscale && scores.subscales.hasOwnProperty(response.subscale)) {
+        scores.subscales[response.subscale] += response.optionValue;
+      }
+    });
+  } else {
+    // Simple total score calculation (like GAD-7, PHQ-9)
+    responses.forEach((response) => {
+      scores.total += response.optionValue;
     });
   }
 
@@ -329,26 +337,116 @@ function calculateScores(responses: UserResponseOption[], scoringRules: any): an
 
 // Helper function to generate interpretation
 function generateInterpretation(scores: any, scoringRules: any): any {
-  // This is a simplified interpretation
-  // Actual implementation would use scoring rules to generate appropriate interpretation
-  const interpretation: any = {
-    severity: 'moderate',
-    label: 'Moderate symptoms',
-    recommendation: 'Consider consulting with a healthcare professional',
-  };
+  const interpretation: any = {};
 
-  // Add logic for determining severity and recommendations based on scores
-  if (scores.total <= scoringRules.cutoffs?.mild) {
-    interpretation.severity = 'mild';
-    interpretation.label = 'Mild symptoms';
-    interpretation.recommendation = 'Continue monitoring your symptoms';
-  } else if (scores.total >= scoringRules.cutoffs?.severe) {
-    interpretation.severity = 'severe';
-    interpretation.label = 'Severe symptoms';
-    interpretation.recommendation = 'Seek professional help immediately';
+  // Check if scoring rules have subscales (like DASS-21)
+  if (scoringRules.subscales) {
+    interpretation.subscaleInterpretations = {};
+    let overallSeverity = 'normal';
+    let highestSeverityScore = -1;
+
+    // Generate interpretation for each subscale
+    Object.entries(scoringRules.subscales).forEach(
+      ([subscaleName, subscaleRules]: [string, any]) => {
+        const subscaleScore = scores.subscales[subscaleName] || 0;
+
+        // Find the appropriate interpretation based on score range
+        for (const range of subscaleRules) {
+          if (subscaleScore >= range.min && subscaleScore <= range.max) {
+            interpretation.subscaleInterpretations[subscaleName] = {
+              severity: range.severity,
+              label: range.label,
+              recommendation: range.recommendation || getDefaultRecommendation(range.severity),
+              score: subscaleScore,
+            };
+
+            // Track the highest severity for overall interpretation
+            const severityLevel = getSeverityLevel(range.severity);
+            if (severityLevel > highestSeverityScore) {
+              highestSeverityScore = severityLevel;
+              overallSeverity = range.severity;
+            }
+            break;
+          }
+        }
+      },
+    );
+
+    // Set overall severity based on the highest subscale severity
+    interpretation.severity = overallSeverity;
+    interpretation.label = getOverallLabel(overallSeverity);
+    interpretation.recommendation = getOverallRecommendation(overallSeverity);
+  }
+  // Simple interpretation (like GAD-7, PHQ-9)
+  else if (scoringRules.interpretation) {
+    const totalScore = scores.total;
+
+    // Find the appropriate interpretation based on score range
+    for (const range of scoringRules.interpretation) {
+      if (totalScore >= range.min && totalScore <= range.max) {
+        interpretation.severity = range.severity;
+        interpretation.label = range.label;
+        interpretation.recommendation =
+          range.recommendation || getDefaultRecommendation(range.severity);
+        interpretation.score = totalScore;
+        break;
+      }
+    }
+  }
+
+  // Ensure we always have a valid interpretation
+  if (!interpretation.severity) {
+    interpretation.severity = 'moderate';
+    interpretation.label = 'Resultados da avaliação';
+    interpretation.recommendation =
+      'Considere buscar apoio profissional para uma avaliação mais detalhada.';
+    interpretation.score = scores.total || 0;
   }
 
   return interpretation;
 }
 
-// Note: Server actions must be exported individually, not as an object
+// Helper functions for severity handling
+function getSeverityLevel(severity: string): number {
+  const levels: { [key: string]: number } = {
+    normal: 0,
+    mild: 1,
+    moderate: 2,
+    severe: 3,
+    crisis: 4,
+  };
+  return levels[severity] || 2;
+}
+
+function getOverallLabel(severity: string): string {
+  const labels: { [key: string]: string } = {
+    normal: 'Resultados dentro do esperado',
+    mild: 'Sintomas leves identificados',
+    moderate: 'Sintomas moderados identificados',
+    severe: 'Sintomas significativos identificados',
+    crisis: 'Atenção imediata necessária',
+  };
+  return labels[severity] || 'Resultados da avaliação';
+}
+
+function getOverallRecommendation(severity: string): string {
+  const recommendations: { [key: string]: string } = {
+    normal: 'Seus resultados estão dentro do esperado. Continue cuidando da sua saúde mental.',
+    mild: 'Considere manter práticas de autocuidado e monitorar seus sintomas.',
+    moderate: 'Recomendamos buscar apoio profissional para uma avaliação mais detalhada.',
+    severe: 'É importante buscar ajuda profissional o quanto antes.',
+    crisis: 'Procure ajuda profissional imediatamente. Você não está sozinho(a).',
+  };
+  return recommendations[severity] || 'Considere buscar apoio profissional.';
+}
+
+function getDefaultRecommendation(severity: string): string {
+  const recommendations: { [key: string]: string } = {
+    normal: 'Continue mantendo hábitos saudáveis e práticas de autocuidado.',
+    mild: 'Considere práticas de relaxamento e mantenha o automonitoramento.',
+    moderate: 'Busque apoio profissional para melhor compreender seus sintomas.',
+    severe: 'Procure ajuda profissional especializada o mais breve possível.',
+    crisis: 'Busque ajuda imediata. Ligue 188 (CVV) ou procure um serviço de emergência.',
+  };
+  return recommendations[severity] || 'Considere buscar orientação profissional.';
+}

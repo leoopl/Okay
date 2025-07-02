@@ -16,14 +16,19 @@ import {
   Info,
   Heart,
   Shield,
+  Icon,
+  Wind,
+  BookOpen,
+  HeadphonesIcon,
+  PenTool,
+  Users,
+  Router,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import Loading from './loading';
 import { getUserResponses } from '@/lib/actions/supabase-inventories';
-import { DynamicResultsInterface } from '@/components/inventory/results-interface';
-import { toast } from 'sonner';
 
 // Enhanced Error Component
 const ErrorState = ({
@@ -64,6 +69,118 @@ const ErrorState = ({
   </div>
 );
 
+// Messages by Severity
+type Severity = 'normal' | 'mild' | 'moderate' | 'severe' | 'crisis';
+
+const getMessagesConfig = (severity: Severity) => {
+  const messages: Record<
+    Severity,
+    {
+      title: string;
+      subtitle: string;
+      description: string;
+      ctaText: string;
+      icon: any;
+      actionUrl: string;
+      isExternal?: boolean;
+    }
+  > = {
+    normal: {
+      title: '🎉 Excelente Trabalho!',
+      subtitle: 'Seus resultados indicam que você está gerenciando bem seu bem-estar mental.',
+      description:
+        'Continue priorizando seu autocuidado. As ferramentas abaixo podem ajudar a manter esse equilíbrio positivo.',
+      ctaText: 'Siga o fluxo e continue respirando',
+      icon: Wind,
+      actionUrl: '/breathing',
+    },
+    mild: {
+      title: '💙 Você Está no Caminho Certo',
+      subtitle: 'Seus resultados mostram alguns desafios que você está enfrentando.',
+      description:
+        'Isso é mais comum do que imagina. Continue cuidando da sua saúde mental com hábitos saudáveis. Considere iniciar um diário de gratidão para manter o foco positivo.',
+      ctaText: 'Expresse seus pensamentos e sentimentos',
+      icon: PenTool,
+      actionUrl: '/journal',
+    },
+    moderate: {
+      title: '🤝 Apoio Disponível Para Você',
+      subtitle:
+        'Seus resultados mostram que você está lidando com dificuldades emocionais mais significativas que muitas pessoas enfrentam.',
+      description:
+        'É importante buscar apoio adicional. Você deu um passo importante, e estamos aqui para apoiar.',
+      ctaText: 'Explore nosso conteúdo educacional',
+      icon: BookOpen,
+      actionUrl: '/blog',
+    },
+    severe: {
+      title: '🛟 Você precisa de apoio profissional',
+      subtitle: 'Suas respostas indicam desafios que estão impactando sua vida.',
+      description:
+        'Sua saúde mental é uma prioridade. Por favor, conecte-se com os recursos de apoio profissional disponíveis.',
+      ctaText: 'Buscar Ajuda Profissional Agora',
+      icon: Users,
+      actionUrl: '/professional',
+    },
+    crisis: {
+      title: '🚨 Você não está sozinho(a). Estamos aqui para ajudar.',
+      subtitle:
+        'Suas respostas mostram que você está passando por um momento extremamente difícil. O que você sente é sério, mas tratável. A ajuda está disponível.',
+      description:
+        'Existem pessoas que querem te ouvir. Que tal ligar para o seu contato de emergência ou com pessoas que podem te ajudar?',
+      ctaText: 'Falar com Alguém Agora',
+      icon: HeadphonesIcon,
+      actionUrl: 'tel:188',
+      isExternal: true,
+    },
+  };
+
+  return messages[severity];
+};
+
+// Colos Configuration by Severity
+const getColosConfig = (severity: Severity) => {
+  const configs = {
+    normal: {
+      primaryColor: 'green',
+      headerBg: 'bg-green-50 dark:bg-green-950/20',
+      headerBorder: 'border-green-200 dark:border-green-800',
+      accentColor: 'text-green-600 dark:text-green-400',
+      buttonVariant: 'default' as const,
+    },
+    mild: {
+      primaryColor: 'blue',
+      headerBg: 'bg-blue-50 dark:bg-blue-950/20',
+      headerBorder: 'border-blue-200 dark:border-blue-800',
+      accentColor: 'text-blue-600 dark:text-blue-400',
+      buttonVariant: 'default' as const,
+    },
+    moderate: {
+      primaryColor: 'yellow',
+      headerBg: 'bg-yellow-50 dark:bg-yellow-950/20',
+      headerBorder: 'border-yellow-200 dark:border-yellow-800',
+      accentColor: 'text-yellow-600 dark:text-yellow-400',
+      buttonVariant: 'default' as const,
+    },
+    severe: {
+      primaryColor: 'orange',
+      headerBg: 'bg-orange-50 dark:bg-orange-950/20',
+      headerBorder: 'border-orange-200 dark:border-orange-800',
+      accentColor: 'text-orange-600 dark:text-orange-400',
+      buttonVariant: 'default' as const,
+    },
+    crisis: {
+      primaryColor: 'red',
+      headerBg: 'bg-red-50 dark:bg-red-950/20',
+      headerBorder: 'border-red-200 dark:border-red-800',
+      accentColor: 'text-red-600 dark:text-red-400',
+      buttonVariant: 'destructive' as const,
+    },
+  };
+
+  return configs[severity];
+};
+
 // Enhanced Score Display Component
 const ScoreDisplay = ({
   label,
@@ -78,24 +195,6 @@ const ScoreDisplay = ({
   interpretation: { label: string; recommendation: string };
   variant?: 'default' | 'primary';
 }) => {
-  const percentage = (score / maxScore) * 100;
-  const getColorClass = (percentage: number) => {
-    if (percentage < 30) return 'from-green-500 to-green-600';
-    if (percentage < 60) return 'from-yellow-500 to-yellow-600';
-    if (percentage < 80) return 'from-orange-500 to-orange-600';
-    return 'from-red-500 to-red-600';
-  };
-
-  const getBackgroundClass = (percentage: number) => {
-    if (percentage < 30)
-      return 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800';
-    if (percentage < 60)
-      return 'bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800';
-    if (percentage < 80)
-      return 'bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800';
-    return 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800';
-  };
-
   return (
     <Card
       className={cn(
@@ -120,23 +219,7 @@ const ScoreDisplay = ({
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Pontuação</span>
-            <span className="font-medium">{percentage.toFixed(1)}%</span>
-          </div>
-          <div className="bg-muted relative h-3 overflow-hidden rounded-full">
-            <div
-              className={cn(
-                'h-full bg-gradient-to-r transition-all duration-1000 ease-out',
-                getColorClass(percentage),
-              )}
-              style={{ width: `${percentage}%` }}
-            />
-          </div>
-        </div>
-
-        <div className={cn('rounded-lg border p-3', getBackgroundClass(percentage))}>
+        <div className="rounded-lg border p-3">
           <div className="flex items-start gap-2">
             <Award className="mt-0.5 h-4 w-4 shrink-0" />
             <div className="space-y-1">
@@ -216,102 +299,6 @@ export default function ResultPage({ params }: { params: Promise<{ slug: string 
     fetchResults();
   }, [slug, interpretationResults, calculatedScores]);
 
-  // Comprehensive Feature Action Handler with Enhanced Emergency Features
-  const handleFeatureAction = (feature: string, data?: any) => {
-    switch (feature) {
-      // 🚨 Crisis Interventions (Immediate Help)
-      case 'call_cvv':
-        window.open('tel:188', '_self');
-        toast.success('Conectando você ao CVV (188)...');
-        break;
-
-      case 'chat_cvv':
-      case 'cvv-immediate':
-        router.push('/support/cvv');
-        toast.info('Redirecionando para chat do CVV...');
-        break;
-
-      case 'emergency_call':
-        window.open('tel:192', '_self');
-        toast.success('Conectando você ao SAMU (192)...');
-        break;
-
-      case 'crisis-chat':
-        // Enhanced: Direct to CVV chat with crisis flag
-        router.push('/support/cvv?crisis=true');
-        toast.info('Abrindo chat de emergência...');
-        break;
-
-      // 🧘 Self-Care & Wellness Features
-      case 'meditation':
-      case 'breathing':
-        router.push('/breathing');
-        toast.info('Redirecionando para exercícios de respiração...');
-        break;
-
-      case 'journal':
-        router.push('/journal');
-        toast.info('Abrindo seu diário pessoal...');
-        break;
-
-      // 👨‍⚕️ Professional Help
-      case 'professional':
-      case 'urgent_professional':
-        if (feature === 'urgent_professional') {
-          // Enhanced: Route to professional page with urgency flag
-          router.push('/professional?urgent=true');
-          toast.info('Buscando profissionais para atendimento urgente...');
-        } else {
-          router.push('/professional');
-          toast.info('Redirecionando para diretório de profissionais...');
-        }
-        break;
-
-      // 📚 Educational Resources
-      case 'resources':
-        router.push('/blog');
-        toast.info('Abrindo recursos educacionais...');
-        break;
-
-      // 💊 App Features & Tools
-      case 'medication':
-        router.push('/medication');
-        toast.info('Abrindo gerenciamento de medicamentos...');
-        break;
-
-      // 📅 Scheduling & Follow-up
-      case 'schedule_followup':
-        // Enhanced: Schedule follow-up assessment reminder
-        toast.success('Lembrete de acompanhamento agendado para 1 semana');
-        // Future: Implement actual scheduling logic
-        break;
-
-      // 🏠 Navigation
-      case 'home':
-        router.push('/');
-        break;
-
-      // 📱 Emergency Contacts (Enhanced Feature)
-      case 'emergency_contacts':
-        // Enhanced: Route to emergency contacts management
-        router.push('/profile?tab=emergency-contacts');
-        toast.info('Abrindo seus contatos de emergência...');
-        break;
-
-      // 🌙 Crisis Support Resources (Enhanced Feature)
-      case 'crisis_resources':
-        // Enhanced: Dedicated crisis resources page
-        router.push('/support/crisis-resources');
-        toast.info('Carregando recursos de suporte à crise...');
-        break;
-
-      // ⚠️ Default case
-      default:
-        console.warn(`Feature not implemented: ${feature}`);
-        toast.error('Funcionalidade não disponível no momento. Entre em contato com o suporte.');
-    }
-  };
-
   // Download results function
   const handleDownloadResults = () => {
     if (!currentInventory || !calculatedScores || !interpretationResults) return;
@@ -388,6 +375,12 @@ export default function ResultPage({ params }: { params: Promise<{ slug: string 
     );
   }
 
+  // Get the severity from interpretation results
+  const severity = interpretationResults?.severity || 'normal';
+  const messageConfig = getMessagesConfig(severity as Severity);
+  const colorConfig = getColosConfig(severity as Severity);
+  const MessageIcon = messageConfig.icon;
+
   // Use Dynamic Results Interface for enhanced experience
   return (
     <div className="from-background via-background to-muted/30 min-h-screen bg-gradient-to-br">
@@ -436,48 +429,144 @@ export default function ResultPage({ params }: { params: Promise<{ slug: string 
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
-            {/* Main Score */}
-            <ScoreDisplay
-              label="Resultado Geral"
-              score={calculatedScores.total || 0}
-              maxScore={(currentInventory?.scoring as any)?.totalScoreRange?.[1] || 100}
-              interpretation={interpretationResults}
-              variant="primary"
-            />
-
-            {/* Subscale Scores */}
+            {/* Main Score - only show if no subscales */}
+            {!interpretationResults.subscaleInterpretations && (
+              <ScoreDisplay
+                label="Resultado Geral"
+                score={calculatedScores.total || 0}
+                maxScore={(() => {
+                  const scoring = currentInventory?.scoring;
+                  if (scoring && typeof scoring === 'object' && 'totalScoreRange' in scoring) {
+                    const scoreRange = (scoring as any).totalScoreRange;
+                    return Array.isArray(scoreRange) ? scoreRange[1] : 21;
+                  }
+                  return 21;
+                })()}
+                interpretation={{
+                  label: interpretationResults.label || 'Resultado não disponível',
+                  recommendation:
+                    interpretationResults.recommendation ||
+                    'Considere buscar apoio profissional para uma avaliação mais detalhada.',
+                }}
+                variant="primary"
+              />
+            )}
+            {/* Subscale Scores - for DASS-21 and similar inventories */}
             {interpretationResults.subscaleInterpretations &&
               Object.keys(interpretationResults.subscaleInterpretations).length > 0 && (
                 <div className="space-y-4">
-                  <h2 className="text-foreground flex items-center gap-2 text-xl font-semibold">
-                    <TrendingUp className="text-primary h-5 w-5" />
+                  <h2 className="text-green-dark font-varela flex items-center gap-2 text-xl font-semibold">
+                    <TrendingUp className="text-blue-dark size-5" />
                     Análise por Categorias
                   </h2>
 
-                  <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-4 md:grid-cols-3">
                     {Object.entries(interpretationResults.subscaleInterpretations).map(
-                      ([key, value]) => (
-                        <ScoreDisplay
-                          key={key}
-                          label={key}
-                          score={calculatedScores[key] || 0}
-                          maxScore={
-                            (currentInventory?.scoring as any)?.subscales?.[key]?.maxRawScore || 100
-                          }
-                          interpretation={value as any}
-                        />
-                      ),
+                      ([key, value]: [string, any]) => {
+                        // Get the appropriate severity config for each subscale
+                        const subscaleSeverity = value.severity || 'normal';
+                        const subscaleColorConfig = getColosConfig(subscaleSeverity as Severity);
+
+                        return (
+                          <Card
+                            key={key}
+                            className={cn(
+                              'transition-all duration-200 hover:shadow-md',
+                              'border-2',
+                              subscaleColorConfig.headerBorder,
+                            )}
+                          >
+                            <CardHeader className="pb-3">
+                              <div className="flex items-center justify-between">
+                                <CardTitle className="text-lg font-semibold capitalize">
+                                  {key === 'stress'
+                                    ? 'Estresse'
+                                    : key === 'anxiety'
+                                      ? 'Ansiedade'
+                                      : key === 'depression'
+                                        ? 'Depressão'
+                                        : key}
+                                </CardTitle>
+                                <Badge
+                                  variant="outline"
+                                  className={cn('text-xs', subscaleColorConfig.accentColor)}
+                                >
+                                  {value.score || calculatedScores.subscales?.[key] || 0}/21
+                                </Badge>
+                              </div>
+                            </CardHeader>
+
+                            <CardContent className="space-y-4">
+                              <div
+                                className={cn(
+                                  'rounded-lg border p-3',
+                                  subscaleColorConfig.headerBg,
+                                  subscaleColorConfig.headerBorder,
+                                )}
+                              >
+                                <div className="flex items-start gap-2">
+                                  <Award
+                                    className={cn(
+                                      'mt-0.5 h-4 w-4 shrink-0',
+                                      subscaleColorConfig.accentColor,
+                                    )}
+                                  />
+                                  <div className="space-y-1">
+                                    <p className="text-sm font-medium">{value.label}</p>
+                                    <p className="text-xs leading-relaxed opacity-90">
+                                      {value.recommendation}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      },
                     )}
                   </div>
                 </div>
               )}
 
+            {/* Severity-based message card */}
+            <Card className={cn('border-2', colorConfig.headerBorder, colorConfig.headerBg)}>
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className={cn('rounded-full p-3', colorConfig.headerBg)}>
+                      <MessageIcon className={cn('h-6 w-6', colorConfig.accentColor)} />
+                    </div>
+                    <div className="flex-1">
+                      <h2 className="text-xl font-bold">{messageConfig.title}</h2>
+                      <p className="text-muted-foreground mt-1">{messageConfig.subtitle}</p>
+                    </div>
+                  </div>
+                  <div className="items-center justify-items-center">
+                    <p className="text-sm leading-relaxed">{messageConfig.description}</p>
+                    <Button
+                      variant={colorConfig.buttonVariant}
+                      className="mt-5 w-full text-black sm:w-auto"
+                      onClick={() => {
+                        if (messageConfig.isExternal) {
+                          window.open(messageConfig.actionUrl, '_self');
+                        } else {
+                          router.push(messageConfig.actionUrl);
+                        }
+                      }}
+                    >
+                      {messageConfig.ctaText}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Important Notice */}
-            <Card className="border-accent/20 bg-accent/5">
+            <Card className="border-destructive/80 bg-destructive/5">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="bg-accent/20 rounded-full p-2">
-                    <Shield className="text-accent-foreground h-5 w-5" />
+                    <Shield className="text-destructive size-5" />
                   </div>
                   <div className="space-y-2">
                     <h3 className="text-foreground font-semibold">Importante lembrar</h3>
@@ -504,8 +593,8 @@ export default function ResultPage({ params }: { params: Promise<{ slug: string 
           <TabsContent value="details" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="font-varela flex items-center gap-2">
-                  <Info className="text-blue-dark h-5 w-5" />
+                <CardTitle className="font-varela text-green-dark flex items-center gap-2">
+                  <Info className="text-blue-dark size-5" />
                   Suas Respostas
                 </CardTitle>
                 <CardDescription>
