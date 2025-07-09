@@ -187,6 +187,7 @@ export async function getUserResponses(inventoryId?: string) {
       `,
       )
       .eq('user_id', user.id)
+      .is('deleted_at', null) // Filter out soft-deleted records
       .order('completed_at', { ascending: false });
 
     if (inventoryId) {
@@ -231,13 +232,11 @@ export async function deleteInventoryResponse(responseId: string) {
       return { success: false, error: 'Response not found or unauthorized' };
     }
 
-    // Soft delete by anonymizing data (LGPD compliance)
+    // Soft delete by setting deleted_at timestamp
     const { error } = await supabase
       .from('inventory_responses')
       .update({
-        user_id: '00000000-0000-0000-0000-000000000000', // Anonymous user ID
-        consent_given: false,
-        ip_address: null,
+        deleted_at: new Date().toISOString(),
       })
       .eq('id', responseId);
 

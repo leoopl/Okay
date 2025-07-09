@@ -200,6 +200,7 @@ export type Database = {
           calculated_scores: Json | null;
           completed_at: string;
           consent_given: boolean;
+          deleted_at: string | null;
           id: string;
           interpretation_results: Json | null;
           inventory_id: string;
@@ -211,6 +212,7 @@ export type Database = {
           calculated_scores?: Json | null;
           completed_at?: string;
           consent_given?: boolean;
+          deleted_at?: string | null;
           id?: string;
           interpretation_results?: Json | null;
           inventory_id: string;
@@ -222,6 +224,7 @@ export type Database = {
           calculated_scores?: Json | null;
           completed_at?: string;
           consent_given?: boolean;
+          deleted_at?: string | null;
           id?: string;
           interpretation_results?: Json | null;
           inventory_id?: string;

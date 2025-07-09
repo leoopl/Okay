@@ -27,7 +27,7 @@ export function ProfessionalSearch({ onSearch }: ProfessionalSearchProps) {
         placeholder="Buscar profissionais..."
         value={query}
         onChange={handleSearch}
-        className="font-varela border-[#CBCFD7] bg-white pl-10 text-[#797D89] placeholder:text-[#A3A6B0] focus-visible:ring-[#78C7EE]"
+        className="font-varela border-[#CBCFD7] bg-transparent pl-10 text-[#797D89] placeholder:text-[#A3A6B0] focus-visible:ring-[#78C7EE]"
       />
     </div>
   );

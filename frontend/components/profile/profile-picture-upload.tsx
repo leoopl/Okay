@@ -117,6 +117,7 @@ export function ProfilePictureUpload({
   const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
   const [uploadStatus, setUploadStatus] = useState<'success' | 'error' | 'uploading' | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [imageTimestamp, setImageTimestamp] = useState<number>(Date.now());
 
   const [uploadState, uploadAction, isUploadPending] = useActionState(
     uploadProfilePicture,
@@ -129,9 +130,16 @@ export function ProfilePictureUpload({
 
   // Update local image URL when user changes
   useEffect(() => {
-    setCurrentImageUrl(profile?.profilePictureUrl || null);
+    const newUrl = profile?.profilePictureUrl || null;
+    // Only update timestamp if URL actually changed
+    if (newUrl !== currentImageUrl) {
+      setCurrentImageUrl(newUrl);
+      if (newUrl) {
+        setImageTimestamp(Date.now());
+      }
+    }
     setError(null);
-  }, [profile?.profilePictureUrl]);
+  }, [profile?.profilePictureUrl, currentImageUrl]);
 
   // Handle upload success/error
   useEffect(() => {
@@ -146,6 +154,7 @@ export function ProfilePictureUpload({
       // Update local state with new URL
       if (uploadState.profilePictureUrl) {
         setCurrentImageUrl(uploadState.profilePictureUrl);
+        setImageTimestamp(Date.now()); // Update timestamp for new image
       }
 
       // Force a router refresh to update the server session
@@ -170,6 +179,7 @@ export function ProfilePictureUpload({
         description: deleteState.message,
       });
       setCurrentImageUrl(null);
+      setImageTimestamp(Date.now()); // Update timestamp after deletion
       setError(null);
       setUploadStatus(null);
       router.refresh();
@@ -249,9 +259,9 @@ export function ProfilePictureUpload({
     const imageUrl = currentImageUrl || profile?.profilePictureUrl;
 
     if (imageUrl) {
-      // Add timestamp to prevent caching issues
+      // Add stable timestamp to prevent caching issues
       const separator = imageUrl.includes('?') ? '&' : '?';
-      return `${imageUrl}${separator}t=${Date.now()}`;
+      return `${imageUrl}${separator}t=${imageTimestamp}`;
     }
 
     // Fallback to ui-avatars.com

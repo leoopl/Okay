@@ -21,7 +21,7 @@ import Logo from './common/Logo';
 import { Button } from './ui/button';
 import { Separator } from './ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { getProfilePictureUrl, getUserInitials } from '@/lib/utils';
+import { getUserInitials } from '@/lib/utils';
 import { useState } from 'react';
 import { useAuth } from '@/providers/auth-provider';
 import { useMobile } from '@/hooks/use-mobile';
@@ -163,7 +163,7 @@ const Header: React.FC = () => {
                 <div className="mt-7 flex items-center gap-3">
                   <Avatar className="ring-beige-medium/30 size-10 ring-2">
                     <AvatarImage
-                      src={getProfilePictureUrl(profile as any)}
+                      src={profile?.profilePictureUrl ?? undefined}
                       alt={profile.name}
                       className="object-cover"
                     />

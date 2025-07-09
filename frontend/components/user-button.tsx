@@ -21,7 +21,7 @@ import {
   NotebookPen,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { getProfilePictureUrl, getUserInitials } from '@/lib/utils';
+import { getUserInitials } from '@/lib/utils';
 import { useAuth } from '@/providers/auth-provider';
 
 export default function UserButton() {
