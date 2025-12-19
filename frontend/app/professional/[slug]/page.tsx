@@ -7,12 +7,13 @@ import { ProfessionalDetail } from '@/components/professional/professional-detai
 import { getProfessionalById } from '@/data/professional-data';
 
 interface ProfessionalPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
-export async function generateMetadata({ params }: ProfessionalPageProps): Promise<Metadata> {
+export async function generateMetadata(props: ProfessionalPageProps): Promise<Metadata> {
+  const params = await props.params;
   const slug = Number.parseInt(params.slug);
   const professional = getProfessionalById(slug);
 
@@ -29,7 +30,8 @@ export async function generateMetadata({ params }: ProfessionalPageProps): Promi
   };
 }
 
-export default function ProfessionalPage({ params }: ProfessionalPageProps) {
+export default async function ProfessionalPage(props: ProfessionalPageProps) {
+  const params = await props.params;
   const slug = Number.parseInt(params.slug);
   const professional = getProfessionalById(slug);
 

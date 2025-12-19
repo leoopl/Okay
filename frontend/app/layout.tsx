@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Varela_Round } from 'next/font/google';
-import Headers from '../components/header';
-import Footer from '@/components/footer';
+import Headers from '../components/Header';
+import Footer from '@/components/Footer';
 import AuthProvider from '@/providers/auth-provider';
 import { getServerSession, logout } from '../lib/actions/server-auth';
 import SessionProvider from '@/providers/session-provider';

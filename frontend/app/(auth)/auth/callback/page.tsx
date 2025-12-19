@@ -6,6 +6,15 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
 interface OAuthCallbackPageProps {
+  searchParams: Promise<{
+    error?: string;
+    error_description?: string;
+    code?: string;
+    state?: string;
+  }>;
+}
+
+interface CallbackHandlerProps {
   searchParams: {
     error?: string;
     error_description?: string;
@@ -14,7 +23,9 @@ interface OAuthCallbackPageProps {
   };
 }
 
-export default async function OAuthCallbackPage({ searchParams }: OAuthCallbackPageProps) {
+export default async function OAuthCallbackPage(props: OAuthCallbackPageProps) {
+  const searchParams = await props.searchParams;
+
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
@@ -26,7 +37,7 @@ export default async function OAuthCallbackPage({ searchParams }: OAuthCallbackP
   );
 }
 
-async function CallbackHandler({ searchParams }: OAuthCallbackPageProps) {
+async function CallbackHandler({ searchParams }: CallbackHandlerProps) {
   const { error, error_description, code, state } = searchParams;
 
   // Handle OAuth errors
