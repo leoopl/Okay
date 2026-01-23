@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { devtools, subscribeWithSelector } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
+import { useShallow } from 'zustand/shallow';
 import {
   getJournalEntries,
   getJournalEntry,
@@ -595,8 +596,10 @@ export const useCurrentJournalEntry = () => useJournalStore((state) => state.cur
 export const useJournalLoading = () => useJournalStore((state) => state.isLoading);
 export const useJournalError = () => useJournalStore((state) => state.error);
 export const useJournalSync = () =>
-  useJournalStore((state) => ({
-    isSyncing: state.isSyncing,
-    lastSync: state.lastSync,
-    syncPendingChanges: state.syncPendingChanges,
-  }));
+  useJournalStore(
+    useShallow((state) => ({
+      isSyncing: state.isSyncing,
+      lastSync: state.lastSync,
+      syncPendingChanges: state.syncPendingChanges,
+    }))
+  );

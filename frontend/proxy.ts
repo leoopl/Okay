@@ -7,9 +7,12 @@ const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
 const RATE_LIMIT_MAX_REQUESTS = 10; // Max requests per window for auth endpoints
 
 /**
- * Main middleware that combines all middleware layers
+ * Main proxy that combines all middleware layers
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
+  // Clean up stale rate limit entries periodically (replaces setInterval)
+  cleanupStaleEntries();
+
   // Apply rate limiting to auth endpoints
   if (
     request.nextUrl.pathname.startsWith('/api/auth') ||
@@ -70,14 +73,28 @@ export async function middleware(request: NextRequest) {
 // Export the config from the Supabase middleware
 export { supabaseConfig as config };
 
-// Clean up old rate limit entries periodically
-if (typeof globalThis !== 'undefined') {
-  setInterval(() => {
-    const now = Date.now();
-    for (const [key, value] of rateLimitMap.entries()) {
-      if (now - value.lastReset > RATE_LIMIT_WINDOW * 2) {
-        rateLimitMap.delete(key);
-      }
+// Track last cleanup time to avoid cleaning on every request
+let lastCleanupTime = 0;
+const CLEANUP_INTERVAL = RATE_LIMIT_WINDOW * 2;
+
+/**
+ * Clean up stale rate limit entries.
+ * Called during request processing instead of using setInterval to avoid memory leaks.
+ * Only runs cleanup if enough time has passed since last cleanup.
+ */
+function cleanupStaleEntries(): void {
+  const now = Date.now();
+
+  // Only clean up if enough time has passed since last cleanup
+  if (now - lastCleanupTime < CLEANUP_INTERVAL) {
+    return;
+  }
+
+  lastCleanupTime = now;
+
+  for (const [key, value] of rateLimitMap.entries()) {
+    if (now - value.lastReset > CLEANUP_INTERVAL) {
+      rateLimitMap.delete(key);
     }
-  }, RATE_LIMIT_WINDOW * 2);
+  }
 }

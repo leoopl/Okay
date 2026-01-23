@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(cd:*)",
+      "Bash(tree:*)",
+      "Bash(cat:*)",
+      "Bash(wc:*)",
+      "Bash(dir /s \"C:\\\\Users\\\\leole\\\\OneDrive\\\\Área de Trabalho\\\\test\\\\okay\\\\frontend\\\\app\")",
+      "Bash(dir:*)",
+      "Bash(claude mcp remove:*)"
+    ]
+  }
+}

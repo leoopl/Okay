@@ -1,9 +1,9 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 export interface UserProfile {
   id: string;
@@ -76,7 +76,11 @@ export function AuthProvider({ children, initialData }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState(!initialData); // Loading if no initial data
   const [isHydrated, setIsHydrated] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
   const supabase = createClient();
+
+  // Track pending navigation to prevent race conditions
+  const isNavigatingRef = useRef(false);
 
   // Fetch user profile and roles
   const fetchUserData = useCallback(
@@ -259,17 +263,18 @@ export function AuthProvider({ children, initialData }: AuthProviderProps) {
         setRoles([]);
         setPermissions([]);
 
-        // Navigate to home if not already there
-        if (window.location.pathname !== '/') {
-          // Try router.push first
-          router.push('/');
+        // Navigate to home if not already there and not already navigating
+        if (pathname !== '/' && !isNavigatingRef.current) {
+          isNavigatingRef.current = true;
 
-          // Use window.location as fallback to ensure navigation
+          // Use router.replace to prevent back-button returning to protected page
+          router.replace('/');
+
+          // Reset navigation flag after a reasonable delay
+          // This allows time for the router to complete and prevents double-navigation
           setTimeout(() => {
-            if (window.location.pathname !== '/') {
-              window.location.href = '/';
-            }
-          }, 100);
+            isNavigatingRef.current = false;
+          }, 500);
         }
       } else if (event === 'SIGNED_IN' && session?.user) {
         // Update auth state
@@ -290,7 +295,7 @@ export function AuthProvider({ children, initialData }: AuthProviderProps) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [initialData, isHydrated, supabase, router, fetchUserData, initializeAuth]);
+  }, [initialData, isHydrated, supabase, router, pathname, fetchUserData, initializeAuth]);
 
   const hasPermission = useCallback(
     (resource: string, action: string) => {
