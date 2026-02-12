@@ -429,6 +429,23 @@ class OfflineStorageService {
     });
   }
 
+  // Clear all stores in a single transaction (used during logout)
+  async clearAll(): Promise<void> {
+    const db = await this.ensureDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(
+        [STORE_NAME, SYNC_QUEUE_STORE, INVENTORY_RESPONSES_STORE],
+        'readwrite',
+      );
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+
+      transaction.objectStore(STORE_NAME).clear();
+      transaction.objectStore(SYNC_QUEUE_STORE).clear();
+      transaction.objectStore(INVENTORY_RESPONSES_STORE).clear();
+    });
+  }
+
   // Close database connection
   close(): void {
     if (this.db) {

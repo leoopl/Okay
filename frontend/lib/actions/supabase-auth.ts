@@ -197,7 +197,8 @@ export async function signUp(input: SignUpInput): Promise<ActionResult> {
 }
 
 /**
- * Sign out action
+ * Sign out action — clears server-side cookies (including httpOnly) and logs audit trail.
+ * Client handles navigation via window.location.replace('/').
  */
 export async function signOut(): Promise<ActionResult> {
   try {
@@ -219,7 +220,7 @@ export async function signOut(): Promise<ActionResult> {
       });
     }
 
-    // Sign out
+    // Sign out — server client clears cookies via Next.js cookies() API
     const { error } = await supabase.auth.signOut();
 
     if (error) {
@@ -232,7 +233,7 @@ export async function signOut(): Promise<ActionResult> {
       };
     }
 
-    redirect('/');
+    return { success: true };
   } catch (error) {
     console.error('Sign out error:', error);
     return {

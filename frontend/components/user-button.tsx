@@ -25,7 +25,7 @@ import { getUserInitials } from '@/lib/utils';
 import { useAuth } from '@/providers/auth-provider';
 
 export default function UserButton() {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, isLoggingOut } = useAuth();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -145,11 +145,12 @@ export default function UserButton() {
         <div className="py-1">
           <DropdownMenuItem
             onClick={handleLogout}
+            disabled={isLoggingOut}
             className="hover:bg-destructive/40 focus:bg-destructive/40 cursor-pointer rounded-md px-3 py-2 text-red-600 transition-colors duration-150"
           >
             <div className="flex w-full items-center gap-3">
               <LogOut className="size-4" />
-              <span className="text-sm font-medium">Sair</span>
+              <span className="text-sm font-medium">{isLoggingOut ? 'Saindo...' : 'Sair'}</span>
             </div>
           </DropdownMenuItem>
         </div>

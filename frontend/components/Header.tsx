@@ -88,7 +88,7 @@ const userPages: Page[] = [
 ];
 
 const Header: React.FC = () => {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, isLoggingOut } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isMobile = useMobile();
 
@@ -217,8 +217,9 @@ const Header: React.FC = () => {
                       variant="ghost"
                       className="hover:bg-destructive/40 w-full cursor-pointer rounded-md px-3 py-2 text-left text-base font-medium text-red-600 transition-colors duration-150"
                       onClick={handleLogout}
+                      disabled={isLoggingOut}
                     >
-                      Sair
+                      {isLoggingOut ? 'Saindo...' : 'Sair'}
                       <span>
                         <LogOut className="size-4" />
                       </span>

@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 export interface UserProfile {
   id: string;
@@ -47,6 +47,7 @@ interface AuthContextType {
   hasRole: (roleName: string) => boolean;
   updateProfile: (updates: Partial<UserProfile>) => void;
   isLoading: boolean;
+  isLoggingOut: boolean;
   signOut: () => Promise<void>;
   refreshAuth: () => Promise<void>;
 }
@@ -68,19 +69,52 @@ interface AuthProviderProps {
   } | null;
 }
 
+/**
+ * Best-effort client-side cookie clearing.
+ * Only clears cookies visible to JavaScript — httpOnly cookies cannot be cleared here.
+ * The primary cookie clearing path is the server-side signOut action.
+ */
+function clearSupabaseCookies(): void {
+  document.cookie.split(';').forEach((cookie) => {
+    const name = cookie.split('=')[0].trim();
+    if (name.startsWith('sb-')) {
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+    }
+  });
+}
+
+/**
+ * Clear only auth-related keys from localStorage.
+ * Preserves user preferences (theme, language, a11y settings).
+ */
+function clearAuthStorage(): void {
+  const keysToRemove: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('sb-')) {
+      keysToRemove.push(key);
+    }
+  }
+  keysToRemove.forEach((key) => localStorage.removeItem(key));
+
+  // sessionStorage is session-scoped, safe to clear entirely
+  sessionStorage.clear();
+}
+
 export function AuthProvider({ children, initialData }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(initialData?.user || null);
   const [profile, setProfile] = useState<UserProfile | null>(initialData?.profile || null);
   const [roles, setRoles] = useState<UserRole[]>(initialData?.roles || []);
   const [permissions, setPermissions] = useState(initialData?.permissions || []);
   const [isLoading, setIsLoading] = useState(!initialData); // Loading if no initial data
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
-  const router = useRouter();
   const pathname = usePathname();
   const supabase = createClient();
 
   // Track pending navigation to prevent race conditions
   const isNavigatingRef = useRef(false);
+  const logoutChannelRef = useRef<BroadcastChannel | null>(null);
 
   // Fetch user profile and roles
   const fetchUserData = useCallback(
@@ -175,6 +209,34 @@ export function AuthProvider({ children, initialData }: AuthProviderProps) {
     setIsHydrated(true);
   }, []);
 
+  // BroadcastChannel for multi-tab logout coordination
+  useEffect(() => {
+    let channel: BroadcastChannel | null = null;
+    try {
+      channel = new BroadcastChannel('okay-auth');
+      logoutChannelRef.current = channel;
+
+      channel.onmessage = (event) => {
+        if (event.data?.type === 'LOGOUT') {
+          // Clear auth state — components re-render to logged-out UI.
+          // No hard redirect: avoids losing unsaved work in this tab.
+          // Route protection (middleware) handles access on next navigation.
+          setUser(null);
+          setProfile(null);
+          setRoles([]);
+          setPermissions([]);
+        }
+      };
+    } catch {
+      // BroadcastChannel not supported — degrade silently
+    }
+
+    return () => {
+      channel?.close();
+      logoutChannelRef.current = null;
+    };
+  }, []);
+
   // Initialize auth state
   const initializeAuth = useCallback(async () => {
     try {
@@ -199,32 +261,100 @@ export function AuthProvider({ children, initialData }: AuthProviderProps) {
     }
   }, [supabase, fetchUserData]);
 
-  // Client-side sign out
+  // Sequential, fail-secure sign out
   const signOut = useCallback(async () => {
-    try {
-      console.log('SignOut called, current path:', window.location.pathname);
+    // Double-click protection
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
 
-      // Clear local state immediately for instant UI update
+    const logStep = (step: string, success: boolean, detail?: string) => {
+      console.log(`[Logout] ${step}: ${success ? 'OK' : 'FAIL'}${detail ? ` (${detail})` : ''}`);
+    };
+
+    try {
+      // Step 1: Clear React auth state immediately (instant UI feedback)
       setUser(null);
       setProfile(null);
       setRoles([]);
       setPermissions([]);
+      logStep('clear-state', true);
 
-      // Sign out from Supabase
-      const { error } = await supabase.auth.signOut();
-
-      if (error) {
-        console.error('Supabase signOut error:', error);
+      // Step 2: Notify other tabs (they clear state only, no redirect)
+      try {
+        logoutChannelRef.current?.postMessage({ type: 'LOGOUT' });
+        logStep('broadcast', true);
+      } catch {
+        logStep('broadcast', false, 'channel unavailable');
       }
 
-      // Navigate to home page
-      router.push('/');
+      // Step 3: Client-side Supabase signOut (clears browser-visible cookies)
+      try {
+        const { error } = await supabase.auth.signOut();
+        logStep('supabase-client-signout', !error, error?.message);
+      } catch (e) {
+        logStep('supabase-client-signout', false, String(e));
+      }
+
+      // Step 4: Server-side signOut (PRIMARY cookie clearing — handles httpOnly)
+      //         Skip if offline — will be handled on next online session
+      if (navigator.onLine) {
+        try {
+          const { signOut: serverSignOut } = await import('@/lib/actions/supabase-auth');
+          const result = await serverSignOut();
+          logStep(
+            'server-signout',
+            result.success,
+            !result.success ? result.error.message : undefined,
+          );
+        } catch (e) {
+          logStep('server-signout', false, String(e));
+        }
+      } else {
+        logStep('server-signout', false, 'offline — skipped');
+      }
+
+      // Step 5: Best-effort client-side cookie clearing (non-httpOnly only)
+      try {
+        clearSupabaseCookies();
+        logStep('clear-visible-cookies', true);
+      } catch {
+        logStep('clear-visible-cookies', false);
+      }
+
+      // Step 6: Clear IndexedDB (sensitive mental health data)
+      try {
+        const { offlineStorage } = await import('@/store/offline-storage');
+        await offlineStorage.clearAll();
+        logStep('clear-indexeddb', true);
+      } catch {
+        logStep('clear-indexeddb', false);
+      }
+
+      // Step 7: Clear auth-related storage only (preserve user preferences)
+      try {
+        clearAuthStorage();
+        logStep('clear-auth-storage', true);
+      } catch {
+        logStep('clear-auth-storage', false);
+      }
+
+      // Step 8: Tell service worker to clear caches
+      try {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHE' });
+          logStep('clear-sw-cache', true);
+        }
+      } catch {
+        logStep('clear-sw-cache', false);
+      }
     } catch (error) {
-      console.error('Error signing out:', error);
-      // Even if there's an error, ensure user is redirected
-      window.location.href = '/';
+      console.error('[Logout] Unexpected error:', error);
+    } finally {
+      // Step 9: Hard redirect (always executes, even on errors)
+      // replace() prevents back-button returning to authenticated page
+      window.location.replace('/');
     }
-  }, [supabase, router]);
+  }, [supabase, isLoggingOut]);
 
   // Refresh auth state
   const refreshAuth = useCallback(async () => {
@@ -263,18 +393,10 @@ export function AuthProvider({ children, initialData }: AuthProviderProps) {
         setRoles([]);
         setPermissions([]);
 
-        // Navigate to home if not already there and not already navigating
+        // Hard redirect to ensure clean server state
         if (pathname !== '/' && !isNavigatingRef.current) {
           isNavigatingRef.current = true;
-
-          // Use router.replace to prevent back-button returning to protected page
-          router.replace('/');
-
-          // Reset navigation flag after a reasonable delay
-          // This allows time for the router to complete and prevents double-navigation
-          setTimeout(() => {
-            isNavigatingRef.current = false;
-          }, 500);
+          window.location.replace('/');
         }
       } else if (event === 'SIGNED_IN' && session?.user) {
         // Update auth state
@@ -295,7 +417,7 @@ export function AuthProvider({ children, initialData }: AuthProviderProps) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [initialData, isHydrated, supabase, router, pathname, fetchUserData, initializeAuth]);
+  }, [initialData, isHydrated, supabase, pathname, fetchUserData, initializeAuth]);
 
   const hasPermission = useCallback(
     (resource: string, action: string) => {
@@ -327,6 +449,7 @@ export function AuthProvider({ children, initialData }: AuthProviderProps) {
     hasRole,
     updateProfile,
     isLoading,
+    isLoggingOut,
     signOut,
     refreshAuth,
   };
