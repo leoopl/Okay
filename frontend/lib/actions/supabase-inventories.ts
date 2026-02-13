@@ -58,7 +58,11 @@ export async function getInventories() {
 }
 
 // Get a single inventory by ID
-export async function getInventory(id: string) {
+type GetInventoryResult =
+  | { success: true; inventory: Inventory; error: null }
+  | { success: false; inventory: null; error: string };
+
+export async function getInventory(id: string): Promise<GetInventoryResult> {
   try {
     const supabase = await createClient();
 
