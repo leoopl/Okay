@@ -89,7 +89,13 @@ export async function getInventory(id: string): Promise<GetInventoryResult> {
 }
 
 // Submit inventory response
-export async function submitInventoryResponse(input: SubmitInventoryResponseInput) {
+type SubmitInventoryResponseResult =
+  | { success: true; response: InventoryResponse; error: null }
+  | { success: false; response: null; error: string };
+
+export async function submitInventoryResponse(
+  input: SubmitInventoryResponseInput,
+): Promise<SubmitInventoryResponseResult> {
   try {
     const supabase = await createClient();
 
