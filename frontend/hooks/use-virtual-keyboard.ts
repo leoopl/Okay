@@ -29,16 +29,21 @@ interface UseVirtualKeyboardOptions {
 export function useVirtualKeyboard(options: UseVirtualKeyboardOptions = {}) {
   const { threshold = 150, debounceMs = 100 } = options;
 
-  const [keyboardState, setKeyboardState] = useState<VirtualKeyboardState>({
-    isOpen: false,
-    height: 0,
-    viewportHeight: typeof window !== 'undefined' ? window.innerHeight : 0,
-    keyboardHeight: 0,
+  const [keyboardState, setKeyboardState] = useState<VirtualKeyboardState>(() => {
+    const vh = typeof window !== 'undefined' ? window.innerHeight : 0;
+    return {
+      isOpen: false,
+      height: 0,
+      viewportHeight: vh,
+      keyboardHeight: 0,
+    };
   });
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const initialViewportHeight = useRef<number>(0);
-  const isInitialized = useRef(false);
+  const initialViewportHeight = useRef<number>(
+    typeof window !== 'undefined' ? window.innerHeight : 0,
+  );
+  const isInitialized = useRef(typeof window !== 'undefined');
 
   // Debounced state update function
   const updateKeyboardState = useCallback(
@@ -53,18 +58,6 @@ export function useVirtualKeyboard(options: UseVirtualKeyboardOptions = {}) {
     },
     [debounceMs],
   );
-
-  // Initialize viewport height on mount
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    initialViewportHeight.current = window.innerHeight;
-    setKeyboardState((prev) => ({
-      ...prev,
-      viewportHeight: window.innerHeight,
-    }));
-    isInitialized.current = true;
-  }, []);
 
   // Visual Viewport API handler (modern browsers)
   useEffect(() => {
@@ -160,24 +153,23 @@ export function useVirtualKeyboard(options: UseVirtualKeyboardOptions = {}) {
 /**
  * Hook that returns true if the device is likely mobile
  */
+function checkIsMobile(): boolean {
+  if (typeof window === 'undefined') return false;
+  const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+  const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
+    userAgent,
+  );
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const isSmallScreen = window.innerWidth <= 768;
+
+  return isMobileUA || (isTouchDevice && isSmallScreen);
+}
+
 export function useIsMobileDevice(): boolean {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => checkIsMobile());
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-
-    const checkIsMobile = () => {
-      const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
-      const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
-        userAgent,
-      );
-      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      const isSmallScreen = window.innerWidth <= 768;
-
-      return isMobileUA || (isTouchDevice && isSmallScreen);
-    };
-
-    setIsMobile(checkIsMobile());
 
     const handleResize = () => {
       setIsMobile(checkIsMobile());

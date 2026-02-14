@@ -66,7 +66,7 @@ export function TableOfContents({ rawContent }: { rawContent?: string }) {
     if (rawContent) {
       const extractedHeadings = extractHeadingsFromMarkdown(rawContent);
       if (extractedHeadings.length > 0) {
-        setHeadings(extractedHeadings);
+        setHeadings(extractedHeadings); // eslint-disable-line react-hooks/set-state-in-effect -- Derived from rawContent prop; cannot use useMemo because DOM fallback needs effect
       } else {
         // Fallback to DOM detection if markdown parsing fails
         detectHeadingsFromDOM();

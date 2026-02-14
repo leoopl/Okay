@@ -30,6 +30,7 @@ export function IncompleteProfileDialog() {
       const hasSeenThisSession = sessionStorage.getItem(sessionKey);
 
       if (!hasSeenThisSession) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: depends on auth state settling + sessionStorage write. Revisit if auth-provider refactored.
         setIsOpen(true);
         setHasShownDialog(true);
         sessionStorage.setItem(sessionKey, 'true');

@@ -5,16 +5,14 @@ import {
   getAllApproaches,
   getAllProfessions,
   mockProfessionals,
-  Professional,
 } from '@/data/professional-data';
 import { ProfessionalFilters } from '@/components/professional/professional-filters';
 import { ProfessionalSearch } from '@/components/professional/professional-search';
-import { useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { ProfessionalCard } from '@/components/professional/professional-card';
 
 const ProfessionalPage: React.FC = () => {
   const professionals = mockProfessionals; // Replace with actual data fetching logic
-  const [filteredProfessionals, setFilteredProfessionals] = useState<Professional[]>(professionals);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
     profession: null as string | null,
@@ -25,7 +23,7 @@ const ProfessionalPage: React.FC = () => {
   const professions = getAllProfessions();
   const approaches = getAllApproaches();
 
-  useEffect(() => {
+  const filteredProfessionals = useMemo(() => {
     let result = professionals;
 
     // Apply search filter
@@ -54,12 +52,10 @@ const ProfessionalPage: React.FC = () => {
 
     // Apply location filter (mock implementation)
     if (filters.useLocation) {
-      // In a real implementation, we would use the browser's geolocation API
-      // and calculate distances to each professional
       result = result.filter((p) => p.address.country === 'Brasil');
     }
 
-    setFilteredProfessionals(result);
+    return result;
   }, [searchQuery, filters, professionals]);
 
   const handleSearch = (query: string) => {

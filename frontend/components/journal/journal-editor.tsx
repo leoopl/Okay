@@ -270,7 +270,7 @@ export function JournalEditor({
 
   useCursorVisibility({
     editor,
-    overlayHeight: toolbarRef.current?.getBoundingClientRect().height ?? 0,
+    toolbarRef,
     virtualKeyboard,
     isMobile: isMobileDevice,
   });

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs -- Vendored: floating-ui ref pattern. Remove if tiptap-ui-primitive upgraded. */
 "use client"
 
 import * as React from "react"

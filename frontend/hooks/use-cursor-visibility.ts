@@ -23,9 +23,13 @@ export interface CursorVisibilityOptions {
    */
   editor: Editor | null;
   /**
-   * Reference to the toolbar element that may obscure the cursor
+   * Static overlay height in pixels (used if toolbarRef is not provided)
    */
   overlayHeight?: number;
+  /**
+   * Reference to the toolbar element — height is read inside effects, not during render
+   */
+  toolbarRef?: React.RefObject<HTMLElement | null>;
   /**
    * Reference to the element to track for cursor visibility
    */
@@ -58,6 +62,7 @@ export type RectState = Pick<DOMRect, 'x' | 'y' | 'width' | 'height'>;
 export function useCursorVisibility({
   editor,
   overlayHeight = 0,
+  toolbarRef,
   elementRef = null,
   virtualKeyboard,
   isMobile = false,
@@ -70,12 +75,12 @@ export function useCursorVisibility({
     height: 0,
   });
 
-  const updateRect = React.useCallback(() => {
+  const updateRect = () => {
     const element = elementRef?.current ?? document.body;
 
     const { x, y, width, height } = element.getBoundingClientRect();
     setRect({ x, y, width, height });
-  }, [elementRef]);
+  };
 
   React.useEffect(() => {
     const element = elementRef?.current ?? document.body;
@@ -93,7 +98,8 @@ export function useCursorVisibility({
       resizeObserver.disconnect();
       window.removeEventListener('scroll', updateRect);
     };
-  }, [elementRef, updateRect]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- updateRect is stable, reads elementRef
+  }, [elementRef]);
 
   React.useEffect(() => {
     const ensureCursorVisibility = () => {
@@ -109,9 +115,13 @@ export function useCursorVisibility({
 
       if (!cursorCoords) return;
 
+      // Calculate effective overlay height from ref or static value
+      const effectiveOverlayHeight =
+        toolbarRef?.current?.getBoundingClientRect().height ?? overlayHeight;
+
       // Calculate available viewport height
       let availableHeight = windowHeight;
-      let bottomOffset = overlayHeight;
+      let bottomOffset = effectiveOverlayHeight;
 
       // Adjust for virtual keyboard on mobile
       if (isMobile && virtualKeyboard?.isOpen) {
@@ -127,7 +137,7 @@ export function useCursorVisibility({
       // Check if cursor is hidden by keyboard or toolbar
       const isHiddenByKeyboard =
         isMobile && virtualKeyboard?.isOpen && cursorFromBottom < bottomOffset;
-      const isHiddenByToolbar = cursorFromTop < overlayHeight;
+      const isHiddenByToolbar = cursorFromTop < effectiveOverlayHeight;
       const isOutOfView = cursorFromTop < 0 || cursorFromBottom < bottomOffset;
 
       if (isHiddenByKeyboard || isHiddenByToolbar || isOutOfView) {
@@ -135,8 +145,8 @@ export function useCursorVisibility({
 
         if (isMobile && virtualKeyboard?.isOpen) {
           // On mobile with keyboard open, position cursor in the upper third of available space
-          const safeArea = availableHeight - bottomOffset - overlayHeight;
-          const targetPosition = overlayHeight + safeArea * 0.33;
+          const safeArea = availableHeight - bottomOffset - effectiveOverlayHeight;
+          const targetPosition = effectiveOverlayHeight + safeArea * 0.33;
           targetScrollY = window.scrollY + (cursorFromTop - targetPosition);
         } else {
           // Desktop or mobile without keyboard - position in middle of viewport
@@ -156,7 +166,7 @@ export function useCursorVisibility({
     };
 
     ensureCursorVisibility();
-  }, [editor, overlayHeight, windowHeight, rect.height, virtualKeyboard, isMobile]);
+  }, [editor, overlayHeight, toolbarRef, windowHeight, rect.height, virtualKeyboard, isMobile]);
 
   return rect;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 interface PushSubscriptionJSON {
@@ -12,17 +12,17 @@ interface PushSubscriptionJSON {
 }
 
 export function usePushNotifications() {
-  const [permission, setPermission] = useState<NotificationPermission>('default');
+  const [permission, setPermission] = useState<NotificationPermission>(() => {
+    if (typeof window === 'undefined') return 'default';
+    if ('Notification' in window) return Notification.permission;
+    return 'default';
+  });
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
-  const [isSupported, setIsSupported] = useState(false);
-
-  useEffect(() => {
-    // Check if push notifications are supported
-    if ('Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window) {
-      setIsSupported(true);
-      setPermission(Notification.permission);
-    }
-  }, []);
+  const isSupported =
+    typeof window !== 'undefined' &&
+    'Notification' in window &&
+    'serviceWorker' in navigator &&
+    'PushManager' in window;
 
   const requestPermission = async () => {
     if (!isSupported) {

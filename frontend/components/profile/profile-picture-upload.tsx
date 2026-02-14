@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect -- Effects respond to useActionState results and profile prop changes. Cannot use useMemo. */
 'use client';
 
 import { useEffect, useRef, useState, startTransition } from 'react';
@@ -108,7 +109,7 @@ export function ProfilePictureUpload({
   const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
   const [uploadStatus, setUploadStatus] = useState<'success' | 'error' | 'uploading' | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [imageTimestamp, setImageTimestamp] = useState<number>(Date.now());
+  const [imageTimestamp, setImageTimestamp] = useState<number>(() => Date.now());
 
   const [uploadState, uploadAction, isUploadPending] = useActionState(
     uploadProfilePicture,

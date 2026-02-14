@@ -217,69 +217,66 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
     [adherenceStats, loadingStates.adherenceStats],
   );
 
-  const DoseSummaryCard = useMemo(
-    () => (
-      <Card className="border-[#CBCFD7] md:col-span-2">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-green-dark text-lg">Resumo do Status de Doses</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loadingStates.adherenceStats ? (
-            <div className="flex h-[150px] items-center justify-center">
-              <Loader2 className="text-green-dark h-8 w-8 animate-spin" />
-            </div>
-          ) : (
-            <div className="flex h-[150px] items-center justify-center gap-8">
-              <div className="flex flex-col items-center">
-                <div
-                  className="text-green-dark text-3xl font-bold"
-                  aria-label={`${adherenceStats?.taken ?? 0} doses tomadas`}
-                >
-                  {adherenceStats?.taken ?? 0}
-                </div>
-                <div className="mt-2 flex items-center">
-                  <div className="bg-green-dark mr-2 h-3 w-3 rounded-full" aria-hidden="true"></div>
-                  <p className="text-beige-dark">Tomados</p>
-                </div>
+  const DoseSummaryCard = (
+    <Card className="border-[#CBCFD7] md:col-span-2">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-green-dark text-lg">Resumo do Status de Doses</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {loadingStates.adherenceStats ? (
+          <div className="flex h-[150px] items-center justify-center">
+            <Loader2 className="text-green-dark h-8 w-8 animate-spin" />
+          </div>
+        ) : (
+          <div className="flex h-[150px] items-center justify-center gap-8">
+            <div className="flex flex-col items-center">
+              <div
+                className="text-green-dark text-3xl font-bold"
+                aria-label={`${adherenceStats?.taken ?? 0} doses tomadas`}
+              >
+                {adherenceStats?.taken ?? 0}
               </div>
+              <div className="mt-2 flex items-center">
+                <div className="bg-green-dark mr-2 h-3 w-3 rounded-full" aria-hidden="true"></div>
+                <p className="text-beige-dark">Tomados</p>
+              </div>
+            </div>
+            <div className="flex flex-col items-center">
+              <div
+                className="text-yellow-dark text-3xl font-bold"
+                aria-label={`${adherenceStats?.skipped ?? 0} doses puladas`}
+              >
+                {adherenceStats?.skipped ?? 0}
+              </div>
+              <div className="mt-2 flex items-center">
+                <div
+                  className="bg-yellow-dark mr-2 h-3 w-3 rounded-full"
+                  aria-hidden="true"
+                ></div>
+                <p className="text-beige-dark">Pulados</p>
+              </div>
+            </div>
+            {isMobile ? null : (
               <div className="flex flex-col items-center">
                 <div
-                  className="text-yellow-dark text-3xl font-bold"
-                  aria-label={`${adherenceStats?.skipped ?? 0} doses puladas`}
+                  className="text-blue-dark text-3xl font-bold"
+                  aria-label={`${adherenceStats?.delayed ?? 0} doses atrasadas`}
                 >
-                  {adherenceStats?.skipped ?? 0}
+                  {adherenceStats?.delayed ?? 0}
                 </div>
                 <div className="mt-2 flex items-center">
                   <div
-                    className="bg-yellow-dark mr-2 h-3 w-3 rounded-full"
+                    className="bg-blue-dark mr-2 h-3 w-3 rounded-full"
                     aria-hidden="true"
                   ></div>
-                  <p className="text-beige-dark">Pulados</p>
+                  <p className="text-beige-dark">Atrasadas</p>
                 </div>
               </div>
-              {isMobile ? null : (
-                <div className="flex flex-col items-center">
-                  <div
-                    className="text-blue-dark text-3xl font-bold"
-                    aria-label={`${adherenceStats?.delayed ?? 0} doses atrasadas`}
-                  >
-                    {adherenceStats?.delayed ?? 0}
-                  </div>
-                  <div className="mt-2 flex items-center">
-                    <div
-                      className="bg-blue-dark mr-2 h-3 w-3 rounded-full"
-                      aria-hidden="true"
-                    ></div>
-                    <p className="text-beige-dark">Atrasadas</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    ),
-    [adherenceStats, loadingStates.adherenceStats],
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 
   // Error boundary fallback
