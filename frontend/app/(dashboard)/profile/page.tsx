@@ -90,7 +90,7 @@ const UserStats = () => (
 
 export default function Profile() {
   const [activeTab, setActiveTab] = useState('profile');
-  const { user, profile, roles, isLoading, signOut } = useAuth();
+  const { user, profile, roles, isLoggingOut, isLoading, signOut } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -137,15 +137,6 @@ export default function Profile() {
       router.push('/signin');
     }
   }, [user, isLoading, router]);
-
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      // Navigation is handled by AuthProvider
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -250,7 +241,7 @@ export default function Profile() {
                   </div>
                   <div className="border-border/50 flex items-center justify-between border-b py-2">
                     <span className="text-muted-foreground">E-mail</span>
-                    <span className="max-w-[150px] truncate font-medium" title={profile.email}>
+                    <span className="max-w-37.5 truncate font-medium" title={profile.email}>
                       {profile.email}
                     </span>
                   </div>
@@ -267,10 +258,11 @@ export default function Profile() {
                 <Button
                   variant="outline"
                   className="border-destructive/50 text-destructive hover:bg-destructive mt-6 w-full transition-all duration-200 hover:text-black"
-                  onClick={handleLogout}
+                  onClick={signOut}
+                  disabled={isLoggingOut}
                 >
                   <LogOut className="mr-2 size-4" />
-                  Sair
+                  {isLoggingOut ? 'Saindo...' : 'Sair'}
                 </Button>
               </div>
             </CardContent>

@@ -25,7 +25,7 @@ import { getUserInitials } from '@/lib/utils';
 import { useAuth } from '@/providers/auth-provider';
 
 export default function UserButton() {
-  const { user, profile, signOut, isLoggingOut } = useAuth();
+  const { profile, signOut, isLoggingOut } = useAuth();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 

@@ -69,7 +69,7 @@ export const metadata: Metadata = {
   creator: 'Okay',
   publisher: 'Okay',
   manifest: '/manifest.json',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://okay.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://okay.app'),
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
