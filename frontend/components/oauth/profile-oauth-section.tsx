@@ -15,13 +15,14 @@ export async function ProfileOAuthSection() {
 }
 
 async function OAuthSectionContent() {
+  let userIdentities;
   try {
-    const userIdentities = await getUserIdentities();
-    return <OAuthAccountManagement userIdentities={userIdentities || []} />;
+    userIdentities = await getUserIdentities();
   } catch (error) {
     console.error('Error loading OAuth status:', error);
     return <OAuthSectionError />;
   }
+  return <OAuthAccountManagement userIdentities={userIdentities || []} />;
 }
 
 function OAuthSectionSkeleton() {

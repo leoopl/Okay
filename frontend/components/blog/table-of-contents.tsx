@@ -36,22 +36,6 @@ export function TableOfContents({ rawContent }: { rawContent?: string }) {
   const [headings, setHeadings] = useState<TOCItem[]>([]);
   const [activeId, setActiveId] = useState<string>('');
 
-  // Try to extract headings from markdown if available
-  useEffect(() => {
-    if (rawContent) {
-      const extractedHeadings = extractHeadingsFromMarkdown(rawContent);
-      if (extractedHeadings.length > 0) {
-        setHeadings(extractedHeadings);
-      } else {
-        // Fallback to DOM detection if markdown parsing fails
-        detectHeadingsFromDOM();
-      }
-    } else {
-      // If no raw content, try DOM detection
-      detectHeadingsFromDOM();
-    }
-  }, [rawContent]);
-
   // Function to detect headings from DOM
   const detectHeadingsFromDOM = () => {
     setTimeout(() => {
@@ -76,6 +60,22 @@ export function TableOfContents({ rawContent }: { rawContent?: string }) {
       }
     }, 500); // Wait for content to render
   };
+
+  // Try to extract headings from markdown if available
+  useEffect(() => {
+    if (rawContent) {
+      const extractedHeadings = extractHeadingsFromMarkdown(rawContent);
+      if (extractedHeadings.length > 0) {
+        setHeadings(extractedHeadings);
+      } else {
+        // Fallback to DOM detection if markdown parsing fails
+        detectHeadingsFromDOM();
+      }
+    } else {
+      // If no raw content, try DOM detection
+      detectHeadingsFromDOM();
+    }
+  }, [rawContent]);
 
   // Set up intersection observer to track active heading
   useEffect(() => {

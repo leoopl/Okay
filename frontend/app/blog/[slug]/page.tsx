@@ -57,75 +57,71 @@ export async function generateMetadata({
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
-  console.log('Accessing blog post with slug:', slug);
-
   if (!slug) {
-    console.error('No slug parameter provided');
     notFound();
   }
 
+  let post;
   try {
-    const post = await getBlogPostBySlug(slug);
-    console.log('Post found:', post ? 'Yes' : 'No');
-
-    if (!post) {
-      console.error(`Post with slug "${slug}" not found`);
-      notFound();
-    }
-
-    return (
-      <Suspense
-        fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}
-      >
-        <section className="container mx-auto max-w-4xl px-4 py-8 shadow-2xl">
-          <ButtonScrollTop />
-          <div className="lg:grid lg:grid-cols-4 lg:gap-8">
-            <div className="hidden lg:col-span-1 lg:block">
-              <div className="sticky top-8">
-                <BackButton />
-                <h2 className="text-green-dark mb-4 text-lg font-bold">Neste artigo</h2>
-                <TableOfContents rawContent={post.rawContent} />
-              </div>
-            </div>
-            <article className="divide-gray-medium mx-auto divide-y lg:col-span-3">
-              <header className="mb-8">
-                <h1 className="font-varela text-green-dark mb-1 text-5xl font-bold">
-                  {post.metadata.title}
-                </h1>
-                <time
-                  dateTime={post.metadata.publishedAt}
-                  className="text-beige-dark text-sm italic"
-                >
-                  {formatDate(post.metadata.publishedAt)}
-                </time>
-                <span className="text-beige-dark"> • </span>
-                <span className="text-beige-dark text-sm italic">
-                  {post.metadata.readingTime} min de leitura.
-                </span>
-              </header>
-
-              <article className="prose prose-headings:mt-8 prose-headings:font-semibold prose-headings:text-green-dark prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-p:text-black max-w-full py-6 leading-snug">
-                {post.content}
-              </article>
-
-              {post.metadata.tags && post.metadata.tags.length > 0 && (
-                <footer className="pt-5">
-                  <div className="flex flex-wrap gap-2">
-                    {post.metadata.tags.map((tag: string, idx: number) => (
-                      <Badge key={idx} variant="outline">
-                        <span className="text-grey-dark text-sm font-semibold italic">{tag}</span>
-                      </Badge>
-                    ))}
-                  </div>
-                </footer>
-              )}
-            </article>
-          </div>
-        </section>
-      </Suspense>
-    );
+    post = await getBlogPostBySlug(slug);
   } catch (error) {
     console.error('Error loading blog post:', error);
     notFound();
   }
+
+  if (!post) {
+    notFound();
+  }
+
+  return (
+    <Suspense
+      fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}
+    >
+      <section className="container mx-auto max-w-4xl px-4 py-8 shadow-2xl">
+        <ButtonScrollTop />
+        <div className="lg:grid lg:grid-cols-4 lg:gap-8">
+          <div className="hidden lg:col-span-1 lg:block">
+            <div className="sticky top-8">
+              <BackButton />
+              <h2 className="text-green-dark mb-4 text-lg font-bold">Neste artigo</h2>
+              <TableOfContents rawContent={post.rawContent} />
+            </div>
+          </div>
+          <article className="divide-gray-medium mx-auto divide-y lg:col-span-3">
+            <header className="mb-8">
+              <h1 className="font-varela text-green-dark mb-1 text-5xl font-bold">
+                {post.metadata.title}
+              </h1>
+              <time
+                dateTime={post.metadata.publishedAt}
+                className="text-beige-dark text-sm italic"
+              >
+                {formatDate(post.metadata.publishedAt)}
+              </time>
+              <span className="text-beige-dark"> • </span>
+              <span className="text-beige-dark text-sm italic">
+                {post.metadata.readingTime} min de leitura.
+              </span>
+            </header>
+
+            <article className="prose prose-headings:mt-8 prose-headings:font-semibold prose-headings:text-green-dark prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-p:text-black max-w-full py-6 leading-snug">
+              {post.content}
+            </article>
+
+            {post.metadata.tags && post.metadata.tags.length > 0 && (
+              <footer className="pt-5">
+                <div className="flex flex-wrap gap-2">
+                  {post.metadata.tags.map((tag: string, idx: number) => (
+                    <Badge key={idx} variant="outline">
+                      <span className="text-grey-dark text-sm font-semibold italic">{tag}</span>
+                    </Badge>
+                  ))}
+                </div>
+              </footer>
+            )}
+          </article>
+        </div>
+      </section>
+    </Suspense>
+  );
 }

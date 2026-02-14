@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/static-components -- Compiler handles memoization. Extraction would require threading 15 closure vars with prop identity risks. */
 'use client';
 
 import React from 'react';
