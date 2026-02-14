@@ -360,6 +360,7 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
 
     if (url) {
       const pos = props.getPos()
+      if (pos === undefined) return
       const filename = files[0]?.name.replace(/\.[^/.]+$/, "") || "unknown"
 
       props.editor

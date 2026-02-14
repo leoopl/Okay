@@ -38,6 +38,9 @@ export default function SignupPage() {
       email: '',
       password: '',
       confirmPassword: '',
+      consentToDataProcessing: false,
+      consentToMarketing: false,
+      consentToResearch: false,
     },
   });
 

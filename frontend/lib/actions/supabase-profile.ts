@@ -117,7 +117,7 @@ export async function updateProfile(input: UpdateProfileInput): Promise<ActionRe
         success: false,
         error: {
           code: 'VALIDATION_ERROR',
-          message: error.errors[0].message,
+          message: error.issues[0].message,
         },
       };
     }

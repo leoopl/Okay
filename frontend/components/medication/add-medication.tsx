@@ -74,12 +74,8 @@ const medicationFormSchema = z
     name: z.string().min(1, { message: 'O nome do medicamento é obrigatório' }),
     dosage: z.string().min(1, { message: 'A dosagem é obrigatória' }),
     form: z.enum(['capsule', 'tablet', 'drops', 'injectable', 'ointment', 'other'] as const),
-    startDate: z.date({ required_error: 'A data de início é obrigatória' }),
-    endDate: z
-      .date()
-      .optional()
-      .nullable()
-      .transform((val) => val || undefined), // Handle null values
+    startDate: z.date({ error: 'A data de início é obrigatória' }),
+    endDate: z.date().optional(),
     schedule: z.array(scheduleItemSchema).min(1, {
       message: 'Pelo menos um horário é obrigatório',
     }),

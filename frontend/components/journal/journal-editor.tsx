@@ -282,7 +282,7 @@ export function JournalEditor({
 
       // Only update if content is actually different to avoid cursor jumps
       if (JSON.stringify(currentContent) !== JSON.stringify(parsedContent)) {
-        editor.commands.setContent(parsedContent, false);
+        editor.commands.setContent(parsedContent, { emitUpdate: false });
       }
     }
   }, [editor, parsedContent]);

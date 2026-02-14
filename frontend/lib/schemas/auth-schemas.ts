@@ -52,9 +52,9 @@ export const SignUpSchema = z
     gender: z
       .enum(['male', 'female', 'non_binary', 'prefer_not_to_say', 'other'] as const)
       .optional(),
-    consentToDataProcessing: z.boolean().default(false),
-    consentToMarketing: z.boolean().default(false),
-    consentToResearch: z.boolean().default(false),
+    consentToDataProcessing: z.boolean(),
+    consentToMarketing: z.boolean(),
+    consentToResearch: z.boolean(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'As senhas não coincidem',

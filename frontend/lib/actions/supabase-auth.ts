@@ -78,7 +78,7 @@ export async function signIn(input: SignInInput): Promise<ActionResult> {
         success: false,
         error: {
           code: 'VALIDATION_ERROR',
-          message: error.errors[0].message,
+          message: error.issues[0].message,
         },
       };
     }
@@ -180,7 +180,7 @@ export async function signUp(input: SignUpInput): Promise<ActionResult> {
         success: false,
         error: {
           code: 'VALIDATION_ERROR',
-          message: error.errors[0].message,
+          message: error.issues[0].message,
         },
       };
     }
@@ -296,7 +296,7 @@ export async function forgotPassword(input: ForgotPasswordInput): Promise<Action
         success: false,
         error: {
           code: 'VALIDATION_ERROR',
-          message: error.errors[0].message,
+          message: error.issues[0].message,
         },
       };
     }

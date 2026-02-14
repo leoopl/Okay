@@ -26,36 +26,6 @@ export function useInventoryOfflineSync() {
     setInitialized: setStoreInitialized,
   } = useInventoryResponsesStore();
 
-  // Initialize offline storage
-  const initializeOfflineStorage = useCallback(async () => {
-    if (isInitialized) return;
-
-    try {
-      // Initialize IndexedDB
-      await offlineStorage.init();
-
-      // Load cached inventory responses
-      const cachedResponses = await offlineStorage.getAllInventoryResponses();
-
-      // If we have cached data and are offline, use it
-      if (!navigator.onLine && cachedResponses.length > 0) {
-        setResponses(cachedResponses);
-      }
-
-      setIsInitialized(true);
-      setStoreInitialized(true);
-
-      // Sync on initialization if online and haven't synced yet
-      if (navigator.onLine && !hasSyncedOnMount.current) {
-        hasSyncedOnMount.current = true;
-        await syncInventoryResponses();
-      }
-    } catch (error) {
-      console.error('Failed to initialize inventory offline storage:', error);
-      toast.error('Failed to initialize offline storage for inventory responses');
-    }
-  }, [isInitialized, setResponses, setStoreInitialized, syncInventoryResponses]);
-
   // Sync inventory responses
   const syncInventoryResponses = useCallback(async () => {
     if (isSyncing || !navigator.onLine) return;
@@ -152,6 +122,36 @@ export function useInventoryOfflineSync() {
     addResponse,
     setResponses,
   ]);
+
+  // Initialize offline storage
+  const initializeOfflineStorage = useCallback(async () => {
+    if (isInitialized) return;
+
+    try {
+      // Initialize IndexedDB
+      await offlineStorage.init();
+
+      // Load cached inventory responses
+      const cachedResponses = await offlineStorage.getAllInventoryResponses();
+
+      // If we have cached data and are offline, use it
+      if (!navigator.onLine && cachedResponses.length > 0) {
+        setResponses(cachedResponses);
+      }
+
+      setIsInitialized(true);
+      setStoreInitialized(true);
+
+      // Sync on initialization if online and haven't synced yet
+      if (navigator.onLine && !hasSyncedOnMount.current) {
+        hasSyncedOnMount.current = true;
+        await syncInventoryResponses();
+      }
+    } catch (error) {
+      console.error('Failed to initialize inventory offline storage:', error);
+      toast.error('Failed to initialize offline storage for inventory responses');
+    }
+  }, [isInitialized, setResponses, setStoreInitialized, syncInventoryResponses]);
 
   // Save responses to offline storage whenever they change
   useEffect(() => {
