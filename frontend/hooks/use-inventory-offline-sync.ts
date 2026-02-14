@@ -6,7 +6,6 @@ import {
   deleteInventoryResponse,
   submitInventoryResponse,
   getUserResponses,
-  type InventoryResponse,
 } from '@/lib/actions/supabase-inventories';
 
 export function useInventoryOfflineSync() {

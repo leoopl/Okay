@@ -54,8 +54,6 @@ import { HighlighterIcon } from '@/components/tiptap-icons/highlighter-icon';
 import { LinkIcon } from '@/components/tiptap-icons/link-icon';
 
 // --- Hooks ---
-import { useMobile } from '@/hooks/use-mobile';
-import { useWindowSize } from '@/hooks/use-window-size';
 import { useCursorVisibility } from '@/hooks/use-cursor-visibility';
 import { useVirtualKeyboard, useIsMobileDevice } from '@/hooks/use-virtual-keyboard';
 
@@ -204,9 +202,7 @@ export function JournalEditor({
   placeholder = "Escreva, digite '/' para comandos…",
   className = '',
 }: JournalEditorProps) {
-  const isMobile = useMobile();
   const isMobileDevice = useIsMobileDevice();
-  const windowSize = useWindowSize();
   const virtualKeyboard = useVirtualKeyboard({ threshold: 150, debounceMs: 100 });
   const [mobileView, setMobileView] = React.useState<'main' | 'highlighter' | 'link'>('main');
   const toolbarRef = React.useRef<HTMLDivElement>(null);
@@ -272,7 +268,7 @@ export function JournalEditor({
     },
   });
 
-  const bodyRect = useCursorVisibility({
+  useCursorVisibility({
     editor,
     overlayHeight: toolbarRef.current?.getBoundingClientRect().height ?? 0,
     virtualKeyboard,

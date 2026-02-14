@@ -11,13 +11,11 @@ import { useJournalStore } from '@/store/journal-store';
 import type { Journal } from '@/store/journal-store';
 import { useOfflineSync } from '@/hooks/use-offline-sync';
 import { SyncStatusIndicator } from '@/components/journal/sync-status';
-import { useMobile } from '@/hooks/use-mobile';
 import { useIsMobileDevice } from '@/hooks/use-virtual-keyboard';
 
 export default function JournalPage() {
   const router = useRouter();
   const [isInitialized, setIsInitialized] = useState(false);
-  const isMobile = useMobile();
   const isMobileDevice = useIsMobileDevice();
 
   // Store state and actions
@@ -156,7 +154,7 @@ export default function JournalPage() {
     try {
       await syncNow();
       toast.success('Sincronização concluída com sucesso');
-    } catch (error) {
+    } catch (_error) {
       toast.error('Sincronização falhou. Tente novamente.');
     }
   };

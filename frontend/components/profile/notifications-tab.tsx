@@ -3,18 +3,15 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import {
   Bell,
   Mail,
   MessageSquare,
   Smartphone,
-  Volume2,
   CheckCircle,
   AlertCircle,
   Loader2,
@@ -182,7 +179,7 @@ export function NotificationsTab() {
       toast.success('Preferências salvas', {
         description: 'Suas configurações de notificação foram atualizadas.',
       });
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro', {
         description: 'Não foi possível salvar as configurações. Tente novamente.',
       });

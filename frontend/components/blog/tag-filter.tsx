@@ -2,7 +2,6 @@
 
 import { useRouter, usePathname } from 'next/navigation';
 import { badgeVariants } from '../ui/badge';
-import { getBlogPosts } from '@/app/blog/util';
 
 interface TagFilterProps {
   selectedTag?: string;

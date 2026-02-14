@@ -8,7 +8,6 @@ import {
 import {
   submitInventoryResponse,
   getUserResponses,
-  type InventoryResponse,
 } from '@/lib/actions/supabase-inventories';
 import { offlineStorage, SyncQueueItem } from '../store/offline-storage';
 

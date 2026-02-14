@@ -71,7 +71,7 @@ export async function decryptData(ciphertext: string, iv: string, key: CryptoKey
   // Parse JSON if the original data was an object
   try {
     return JSON.parse(decodedData);
-  } catch (e) {
+  } catch (_e) {
     // If not valid JSON, return as string
     return decodedData;
   }

@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
@@ -5,9 +6,11 @@ export default function ProfessionalNotFound() {
   return (
     <div className="container mx-auto flex max-w-5xl flex-col items-center justify-center px-4 py-16 text-center">
       <div className="mb-6 rounded-full bg-[#F2DECC]/30 p-6">
-        <img
+        <Image
           src="/placeholder.svg?height=120&width=120&text=Não+encontrado"
           alt="Profissional não encontrado"
+          width={96}
+          height={96}
           className="h-24 w-24 opacity-70"
         />
       </div>

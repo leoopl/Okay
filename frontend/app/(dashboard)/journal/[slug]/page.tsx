@@ -2,7 +2,7 @@
 
 import React, { use, useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Save, Trash2, Tag, Smile, Cloud, CloudOff } from 'lucide-react';
+import { ArrowLeft, Save, Tag, Smile, Cloud, CloudOff } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -30,8 +30,6 @@ import { createDefaultTipTapContent, validateTipTapContent } from '@/lib/tiptap-
 import { useUnsavedChanges } from '@/hooks/use-unsaved-changes';
 import { useOfflineSync } from '@/hooks/use-offline-sync';
 import { JournalEditor } from '@/components/journal/journal-editor';
-import { getClientUser } from '@/lib/supabase/client';
-
 interface JournalEditorPageProps {
   params: Promise<{ slug: string }>;
 }
@@ -58,7 +56,6 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
 
   // Store state and actions
   const {
-    currentEntry,
     isLoading,
     error,
     getJournalById,
@@ -73,8 +70,6 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
   const [tags, setTags] = useState<string[]>([]);
   const [mood, setMood] = useState('');
   const [newTag, setNewTag] = useState('');
-  const [userId, setUserId] = useState<string | null>(null);
-
   // Initial values for unsaved changes detection
   const [initialValues, setInitialValues] = useState({
     title: '',
@@ -88,17 +83,6 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
 
   // Offline sync
   const { isOnline, updateOffline } = useOfflineSync();
-
-  // Get user ID on mount
-  useEffect(() => {
-    const getUserId = async () => {
-      const user = await getClientUser();
-      if (user) {
-        setUserId(user.id);
-      }
-    };
-    getUserId();
-  }, []);
 
   // Helper function to compare tag arrays (order-independent)
   const tagsAreEqual = useCallback((a: string[], b: string[]): boolean => {
@@ -162,7 +146,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
             });
           }
           setIsFirstLoad(false);
-        } catch (error) {
+        } catch (_error) {
           toast.error('Falha ao carregar entrada do diário');
           router.push('/journal');
         }

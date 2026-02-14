@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useMedicationStore, type AdherenceStats, type DoseLog } from '@/store/medication-store';
+import { useMedicationStore } from '@/store/medication-store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
@@ -53,8 +53,6 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
   } = useMedicationStore();
 
   // Computed loading and error states
-  const isLoading =
-    loadingStates.doseLogs || loadingStates.adherenceStats || loadingStates.medications;
   const error =
     errors.medications?.message || errors.doseLogs?.message || errors.adherenceStats?.message;
 
@@ -167,10 +165,6 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
     },
     [medicationMap],
   );
-
-  const formatMedicationForm = useCallback((form: string): string => {
-    return form.charAt(0).toUpperCase() + form.slice(1);
-  }, []);
 
   const getStatusIcon = useCallback((status: DoseStatus) => {
     const iconMap = {

@@ -21,8 +21,6 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
-  ImageIcon,
-  Crop,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getUserInitials, cn } from '@/lib/utils';
@@ -42,13 +40,6 @@ const sizeClasses = {
   md: 'size-16',
   lg: 'size-20',
   xl: 'size-24',
-};
-
-const borderSizes = {
-  sm: 'border-2',
-  md: 'border-2',
-  lg: 'border-3',
-  xl: 'border-4',
 };
 
 // File validation function
@@ -109,7 +100,7 @@ export function ProfilePictureUpload({
   showStatusIndicator = true,
   allowDelete = true,
 }: ProfilePictureUploadProps) {
-  const { user, profile } = useAuth();
+  const { profile } = useAuth();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);

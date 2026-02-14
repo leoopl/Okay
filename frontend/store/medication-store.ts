@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { toast } from 'sonner';
-import { format, isValid } from 'date-fns';
+import { isValid } from 'date-fns';
 import {
   getMedications,
   createMedication as createMedicationAction,
@@ -188,12 +188,6 @@ const validateDate = (date: unknown): Date | null => {
   if (!date) return null;
   const parsed = new Date(date as string);
   return isValid(parsed) ? parsed : null;
-};
-
-const formatDateForApi = (date: Date | string | undefined): string | undefined => {
-  if (!date) return undefined;
-  const parsed = typeof date === 'string' ? new Date(date) : date;
-  return isValid(parsed) ? format(parsed, DATE_FORMAT) : undefined;
 };
 
 const normalizeScheduleTime = (time: string): string => {

@@ -197,7 +197,7 @@ export const useJournalStore = create<JournalState>()(
                   state.isLoading = false;
                 });
               }
-            } catch (cacheError) {
+            } catch (_cacheError) {
               set((state) => {
                 state.error =
                   error instanceof Error ? error.message : 'Falha ao buscar entradas do diário';

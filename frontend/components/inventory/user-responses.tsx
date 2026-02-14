@@ -155,7 +155,7 @@ export default function UserResponses() {
                   <div className="mt-1 flex flex-wrap gap-2">
                     {Object.entries(
                       (response.interpretation_results as any).subscaleInterpretations,
-                    ).map(([key, value]) => (
+                    ).map(([key]) => (
                       <Badge key={key} variant="secondary" className="capitalize">
                         {key}
                       </Badge>

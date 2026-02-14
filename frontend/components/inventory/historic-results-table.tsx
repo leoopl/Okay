@@ -9,7 +9,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Trash2, Calendar, BarChart4, FileText } from 'lucide-react';
 import type { InventoryResponse } from '@/lib/actions/supabase-inventories';
@@ -26,19 +25,6 @@ export function HistoricResultsTable({
   onRowClick,
   onDeleteClick,
 }: HistoricResultsTableProps) {
-  const getSeverityColor = (severity: string) => {
-    switch (severity?.toLowerCase()) {
-      case 'mild':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-      case 'moderate':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-      case 'severe':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
-    }
-  };
-
   return (
     <Card className="overflow-hidden">
       <Table>
@@ -68,7 +54,6 @@ export function HistoricResultsTable({
         <TableBody>
           {responses.map((response) => {
             const inventory = (response as any).inventories;
-            const result = response.interpretation_results as any;
 
             return (
               <TableRow

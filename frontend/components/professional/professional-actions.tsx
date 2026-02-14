@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Share2, Calendar, MessageSquare } from 'lucide-react';
+import { Calendar, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,

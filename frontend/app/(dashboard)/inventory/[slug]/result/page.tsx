@@ -16,13 +16,11 @@ import {
   Info,
   Heart,
   Shield,
-  Icon,
   Wind,
   BookOpen,
   HeadphonesIcon,
   PenTool,
   Users,
-  Router,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Inventory, getInventories } from '@/lib/actions/supabase-inventories';
-import { useInventoryStore } from '@/store/inventory-store';
 import { HistoricResultsTab } from '@/components/inventory/historic-results-tab';
 import { useMobile } from '@/hooks/use-mobile';
 import {
@@ -123,8 +122,7 @@ const InventoryCard = ({
 export default function InventoriesPage() {
   const [inventories, setInventories] = useState<Inventory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const resetState = useInventoryStore((state) => state.resetState);
+  const [error] = useState<string | null>(null);
   const isMobile = useMobile();
 
   // Load inventories on component mount

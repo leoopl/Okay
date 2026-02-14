@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Filter, Calendar, Tag, Smile, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -34,12 +34,11 @@ const MOOD_OPTIONS = [
 ];
 
 interface AdvancedSearchProps {
-  onSearch?: (filters: JournalSearchFilters) => void;
   className?: string;
 }
 
-export function AdvancedJournalSearch({ onSearch, className }: AdvancedSearchProps) {
-  const { searchJournals, setSearchFilters, searchFilters } = useJournalStore();
+export function AdvancedJournalSearch({ className }: AdvancedSearchProps) {
+  const { setSearchFilters, searchFilters } = useJournalStore();
 
   // Local state for form
   const [query, setQuery] = useState(searchFilters.query || '');

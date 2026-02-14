@@ -1,7 +1,6 @@
 'use client';
 
 import Image from 'next/image';
-import { Metadata } from 'next';
 import {
   getAllApproaches,
   getAllProfessions,
@@ -109,9 +108,11 @@ const ProfessionalPage: React.FC = () => {
       <div className="space-y-6 pt-5">
         {filteredProfessionals.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg bg-[#F2DECC]/10 p-8 text-center">
-            <img
+            <Image
               src="/placeholder.svg?height=120&width=120&text=Não+encontrado"
               alt="Nenhum profissional encontrado"
+              width={96}
+              height={96}
               className="mb-4 h-24 w-24 opacity-50"
             />
             <h3 className="font-varela mb-2 text-lg font-medium text-[#797D89]">

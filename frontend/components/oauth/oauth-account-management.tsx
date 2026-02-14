@@ -68,7 +68,7 @@ export function OAuthAccountManagement({
         } else {
           toast.error(result.message || 'Erro ao desvincular conta Google');
         }
-      } catch (error) {
+      } catch (_error) {
         toast.error('Erro ao desvincular conta Google');
       }
     });

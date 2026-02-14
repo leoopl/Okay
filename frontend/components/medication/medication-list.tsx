@@ -15,7 +15,7 @@ import { Pill, PlusCircle, Edit, Trash2, Clock, Search, Loader2, AlertCircle } f
 import { format } from 'date-fns';
 import AddMedicationForm from './add-medication';
 import { Input } from '@/components/ui/input';
-import { type Medication, useMedicationStore, type DoseStatus } from '@/store/medication-store';
+import { type Medication, useMedicationStore } from '@/store/medication-store';
 import { cn } from '@/lib/utils';
 
 interface MedicationListProps {
@@ -26,7 +26,7 @@ const SEARCH_PLACEHOLDER = 'Buscar medicamentos por nome ou dosagem...';
 const SEARCH_DEBOUNCE_MS = 300;
 
 export default function MedicationList({ className }: MedicationListProps) {
-  const { medications, loadingStates, errors, fetchMedications, deleteMedication, logDose } =
+  const { medications, loadingStates, errors, fetchMedications, deleteMedication } =
     useMedicationStore();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -122,22 +122,6 @@ export default function MedicationList({ className }: MedicationListProps) {
       console.error('Failed to delete medication:', error);
     }
   }, [selectedMedication, deleteMedication]);
-
-  const handleLogDose = useCallback(
-    async (medicationId: string, status: DoseStatus) => {
-      try {
-        await logDose({
-          medicationId,
-          status,
-          timestamp: new Date(),
-          notes: `Quick logged as ${status}`,
-        });
-      } catch (error) {
-        console.error('Failed to log dose:', error);
-      }
-    },
-    [logDose],
-  );
 
   // Memoized medication card component
   const MedicationCard = useCallback(

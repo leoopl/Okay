@@ -1,6 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
-import githubicon from '../public/github.svg';
 import Logo from './common/Logo';
 import { Github, Linkedin, Phone } from 'lucide-react';
 

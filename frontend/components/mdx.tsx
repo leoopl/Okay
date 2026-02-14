@@ -27,12 +27,12 @@ function Blockquote(props: any) {
 }
 
 function Code({ children, ...props }: any) {
-  let codeHTML = highlight(children);
+  const codeHTML = highlight(children);
   return <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />;
 }
 
 function CustomLink(props: any) {
-  let href = props.href;
+  const href = props.href;
 
   if (href.startsWith('/')) {
     return (
@@ -74,8 +74,8 @@ function createHeading(level: number) {
 }
 
 function Table({ data }: any) {
-  let headers = data.headers.map((header: any, index: number) => <th key={index}>{header}</th>);
-  let rows = data.rows.map((row: any[], rowIndex: number) => (
+  const headers = data.headers.map((header: any, index: number) => <th key={index}>{header}</th>);
+  const rows = data.rows.map((row: any[], rowIndex: number) => (
     <tr key={rowIndex}>
       {row.map((cell, cellIndex) => (
         <td key={cellIndex}>{cell}</td>

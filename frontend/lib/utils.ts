@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { Tables } from './supabase/database.types';
-import { headers } from 'next/headers';
+
 import { UserProfile } from '@/providers/auth-provider';
 
 export function cn(...inputs: ClassValue[]) {

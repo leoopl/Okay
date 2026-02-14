@@ -7,7 +7,7 @@ interface TestimonialCardProps {
   location?: string;
 }
 
-const TestimonialCard = memo<TestimonialCardProps>(({ message, location }) => {
+const TestimonialCard = memo<TestimonialCardProps>(({ message }) => {
   return (
     <Card className="relative w-full max-w-sm rounded-lg bg-white/40 p-4 shadow-md">
       <Quote

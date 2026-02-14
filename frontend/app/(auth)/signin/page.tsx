@@ -177,7 +177,7 @@ const ForgotPasswordDialog: React.FC = () => {
       } else {
         setError(result.error.message);
       }
-    } catch (err) {
+    } catch {
       setError('Ocorreu um erro inesperado');
     } finally {
       setIsLoading(false);

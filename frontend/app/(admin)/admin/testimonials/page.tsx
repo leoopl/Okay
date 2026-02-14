@@ -12,7 +12,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -39,8 +38,6 @@ export default function AdminTestimonialsPage() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pending');
-  const router = useRouter();
-
   // Fetch testimonials on component mount
   useEffect(() => {
     fetchTestimonials();

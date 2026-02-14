@@ -55,8 +55,8 @@ export async function createJournalEntry(
     }
 
     // Prepare entry data
-    let entryContent = content;
-    let isEncrypted = false;
+    const entryContent = content;
+    const isEncrypted = false;
 
     // TODO: Implement encryption when needed
     if (encrypt) {
@@ -129,7 +129,7 @@ export async function updateJournalEntry(
   content?: any,
   mood?: JournalMood,
   tags?: string[],
-  encrypt: boolean = false,
+  _encrypt: boolean = false,
 ): Promise<JournalActionResponse> {
   const supabase = await createClient();
   const { ipAddress, userAgent } = await getRequestMetadata();
@@ -630,11 +630,11 @@ export async function getJournalStats(): Promise<{
     // Popular tags
     const tagCounts: Record<string, number> = {};
     entries.forEach((entry) => {
-      entry.tags
-        ? entry.tags.forEach((tag: string) => {
-            tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-          })
-        : null;
+      if (entry.tags) {
+        entry.tags.forEach((tag: string) => {
+          tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+        });
+      }
     });
 
     const popularTags = Object.entries(tagCounts)

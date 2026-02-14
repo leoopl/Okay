@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import SearchInput from '@/components/search-input';
 
 interface BlogSearchProps {
@@ -12,8 +12,6 @@ export function BlogSearch({ initialSearch = '' }: BlogSearchProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
-  const currentTag = searchParams.get('tag') || '';
 
   const handleSearch = useCallback(
     (query: string) => {

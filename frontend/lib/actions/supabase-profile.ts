@@ -356,7 +356,7 @@ export async function uploadProfilePicture(
     const fileName = `${session.user.id}/profile.${fileExt}`;
 
     // Upload to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('profile-pictures')
       .upload(fileName, file, {
         upsert: true,
@@ -408,8 +408,8 @@ export async function uploadProfilePicture(
 }
 
 export async function deleteProfilePicture(
-  prevState: ProfilePictureActionResponse | undefined,
-  formData: FormData,
+  _prevState: ProfilePictureActionResponse | undefined,
+  _formData: FormData,
 ): Promise<ProfilePictureActionResponse> {
   const supabase = await createClient();
 
