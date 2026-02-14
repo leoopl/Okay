@@ -95,6 +95,7 @@ export function SecurityTab() {
   });
 
   // Watch new password for strength indicator
+  // eslint-disable-next-line react-hooks/incompatible-library -- React Hook Form's watch() API not memoizable. No functional impact.
   const newPassword = passwordForm.watch('newPassword');
 
   useEffect(() => {

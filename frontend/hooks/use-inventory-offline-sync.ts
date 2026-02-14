@@ -54,7 +54,7 @@ export function useInventoryOfflineSync() {
       console.error('Failed to initialize inventory offline storage:', error);
       toast.error('Failed to initialize offline storage for inventory responses');
     }
-  }, [isInitialized, setResponses, setStoreInitialized]);
+  }, [isInitialized, setResponses, setStoreInitialized, syncInventoryResponses]);
 
   // Sync inventory responses
   const syncInventoryResponses = useCallback(async () => {

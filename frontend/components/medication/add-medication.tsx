@@ -139,6 +139,7 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
     }, [isEditMode, medication]),
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- React Hook Form's watch() API not memoizable. No functional impact.
   const scheduleItems = form.watch('schedule');
 
   // Optimized schedule management

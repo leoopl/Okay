@@ -12,12 +12,14 @@ interface BreathingAnimationState {
   transitionDuration: number;
 }
 
+// Module-level: must remain static strings (not derived from hook scope)
+const BREATHING_PHASES = ['Breath In', 'Hold In', 'Breath Out', 'Hold Out'];
+
 export const useBreathingAnimation = ({
   breathingTime,
   isAnimating,
   countdownStart = 4, // Default to 4 seconds
 }: UseBreathingAnimationProps): BreathingAnimationState => {
-  const phases = ['Breath In', 'Hold In', 'Breath Out', 'Hold Out'];
   const [guideMessage, setGuideMessage] = useState<string>('Ready...😃');
   const [circleScale, setCircleScale] = useState<number>(0.5);
   const [transitionDuration, setTransitionDuration] = useState<number>(0);
@@ -51,8 +53,8 @@ export const useBreathingAnimation = ({
       const runPhase = () => {
         if (!isMountedRef.current) return;
 
-        const currentPhase = phaseIndexRef.current % phases.length;
-        setGuideMessage(phases[currentPhase]);
+        const currentPhase = phaseIndexRef.current % BREATHING_PHASES.length;
+        setGuideMessage(BREATHING_PHASES[currentPhase]);
         setTransitionDuration(breathingTime[currentPhase]);
         setCircleScale(currentPhase < 2 ? 1 : 0.5);
 
