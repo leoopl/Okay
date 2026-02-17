@@ -63,6 +63,11 @@ class SyncService {
     window.addEventListener('online', this.handleOnline);
     window.addEventListener('offline', this.handleOffline);
 
+    // Listen for TRIGGER_SYNC from service worker (when SW background sync fires)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', this.handleSWMessage);
+    }
+
     // Check online status periodically
     setInterval(() => {
       this.updateOnlineStatus();
@@ -72,6 +77,18 @@ class SyncService {
     this.updateOnlineStatus();
     this.isInitialized = true;
   }
+
+  // Handle messages from the service worker
+  private handleSWMessage = (event: MessageEvent) => {
+    if (event.data?.type === 'TRIGGER_SYNC') {
+      // Ack immediately via MessageChannel so SW doesn't time out waiting
+      if (event.ports && event.ports[0]) {
+        event.ports[0].postMessage({ type: 'SYNC_ACK' });
+      }
+      // Trigger sync asynchronously — Web Locks inside syncAll() will serialize multi-tab calls
+      this.syncAll().catch(console.error);
+    }
+  };
 
   private handleOnline = () => {
     this.updateOnlineStatus();
@@ -94,6 +111,33 @@ class SyncService {
     }
   }
 
+  // Refresh auth session before sync — prevents silent queue drops on expired JWTs
+  private async refreshAuth(): Promise<boolean> {
+    if (typeof window === 'undefined') return false;
+    try {
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) return false;
+
+      // Proactively refresh if expiring within 60 seconds
+      if (session.expires_at && session.expires_at * 1000 - Date.now() < 60_000) {
+        const { error } = await supabase.auth.refreshSession();
+        if (error) {
+          console.error('[SyncService] Session refresh failed:', error.message);
+          return false;
+        }
+      }
+      return true;
+    } catch (error) {
+      console.error('[SyncService] Auth check failed:', error);
+      return false;
+    }
+  }
+
   // Set custom conflict resolver
   setConflictResolver(resolver: ConflictResolver) {
     this.conflictResolver = resolver;
@@ -113,21 +157,13 @@ class SyncService {
 
   // Main sync function
   async syncAll(): Promise<SyncResult> {
-    // Ensure we're in browser environment and initialized
     if (typeof window === 'undefined') {
       return {
         success: false,
         synced: 0,
         failed: 0,
         conflicts: [],
-        errors: [
-          {
-            itemId: 'sync',
-            action: 'syncAll',
-            error: 'Not in browser environment',
-            retryable: false,
-          },
-        ],
+        errors: [{ itemId: 'sync', action: 'syncAll', error: 'Not in browser environment', retryable: false }],
       };
     }
 
@@ -135,69 +171,106 @@ class SyncService {
       this.initializeBrowser();
     }
 
-    if (this.isSyncing || !this.status.isOnline) {
-      return {
-        success: false,
-        synced: 0,
-        failed: 0,
-        conflicts: [],
-        errors: [],
-      };
+    if (!this.status.isOnline) {
+      return { success: false, synced: 0, failed: 0, conflicts: [], errors: [] };
     }
 
-    this.isSyncing = true;
-    this.status.isSyncing = true;
-    this.notifyListeners();
-
-    const result: SyncResult = {
-      success: true,
-      synced: 0,
-      failed: 0,
-      conflicts: [],
-      errors: [],
-    };
-
+    // Web Locks: serialize concurrent syncAll() calls across tabs.
+    // AbortSignal.timeout(30_000) prevents starvation if a tab crashes while holding the lock.
     try {
-      // 1. Process sync queue
-      await this.processSyncQueue(result);
+      return await navigator.locks.request(
+        'okay-sync-lock',
+        { signal: AbortSignal.timeout(30_000) },
+        async () => {
+          // Same-tab reentrancy guard (Web Locks handles cross-tab; this handles re-entrancy)
+          if (this.isSyncing) {
+            return { success: false, synced: 0, failed: 0, conflicts: [], errors: [] };
+          }
 
-      // 2. Sync local changes
-      await this.syncLocalChanges(result);
+          this.isSyncing = true;
+          this.status.isSyncing = true;
+          this.notifyListeners();
 
-      // 3. Pull remote changes
-      await this.pullRemoteChanges(result);
+          const result: SyncResult = {
+            success: true,
+            synced: 0,
+            failed: 0,
+            conflicts: [],
+            errors: [],
+          };
 
-      // 4. Sync inventory responses
-      const inventoryResult = await this.syncInventoryResponses();
-      result.synced += inventoryResult.synced;
-      result.failed += inventoryResult.failed;
-      result.errors.push(...inventoryResult.errors);
+          try {
+            // 0. Refresh auth — never silently drop queue on expired JWT
+            const isAuthenticated = await this.refreshAuth();
+            if (!isAuthenticated) {
+              result.success = false;
+              result.errors.push({
+                itemId: 'auth',
+                action: 'refreshAuth',
+                error: 'No active session — sync requires authentication',
+                retryable: false,
+              });
+              return result;
+            }
 
-      // 5. Resolve conflicts
-      if (result.conflicts.length > 0) {
-        await this.resolveConflicts(result);
-      }
+            // 1. Process sync queue
+            await this.processSyncQueue(result);
 
-      this.status.lastSync = new Date();
-      this.status.pendingChanges = await this.getPendingChangesCount();
+            // 2. Sync local changes
+            await this.syncLocalChanges(result);
 
-      result.success = result.failed === 0 && result.errors.length === 0;
+            // 3. Pull remote changes
+            await this.pullRemoteChanges(result);
+
+            // 4. Sync inventory responses
+            const inventoryResult = await this.syncInventoryResponses();
+            result.synced += inventoryResult.synced;
+            result.failed += inventoryResult.failed;
+            result.errors.push(...inventoryResult.errors);
+
+            // 5. Resolve conflicts
+            if (result.conflicts.length > 0) {
+              await this.resolveConflicts(result);
+            }
+
+            this.status.lastSync = new Date();
+            this.status.pendingChanges = await this.getPendingChangesCount();
+            result.success = result.failed === 0 && result.errors.length === 0;
+          } catch (error) {
+            console.error('Sync error:', error);
+            result.success = false;
+            result.errors.push({
+              itemId: 'sync',
+              action: 'syncAll',
+              error: error instanceof Error ? error.message : 'Unknown sync error',
+              retryable: true,
+            });
+          } finally {
+            this.isSyncing = false;
+            this.status.isSyncing = false;
+            this.notifyListeners();
+          }
+
+          return result;
+        },
+      );
     } catch (error) {
-      console.error('Sync error:', error);
-      result.success = false;
-      result.errors.push({
-        itemId: 'sync',
-        action: 'syncAll',
-        error: error instanceof Error ? error.message : 'Unknown sync error',
-        retryable: true,
-      });
-    } finally {
-      this.isSyncing = false;
-      this.status.isSyncing = false;
-      this.notifyListeners();
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        // Lock timed out (another tab crashed/froze while holding the lock)
+        console.warn('[SyncService] Sync lock timed out — skipping this cycle');
+        this.isSyncing = false;
+        this.status.isSyncing = false;
+        this.notifyListeners();
+        return {
+          success: false,
+          synced: 0,
+          failed: 0,
+          conflicts: [],
+          errors: [{ itemId: 'sync', action: 'syncAll', error: 'Lock timeout', retryable: true }],
+        };
+      }
+      throw error;
     }
-
-    return result;
   }
 
   // Process items in sync queue
@@ -241,6 +314,7 @@ class SyncService {
           item.data.mood,
           item.data.tags,
           item.data.is_content_encrypted,
+          item.data.id, // Pass client UUID for idempotent upsert
         );
         break;
 
@@ -271,21 +345,22 @@ class SyncService {
     for (const journal of pendingJournals) {
       try {
         if (journal._optimistic) {
-          // This is a new entry
+          // This is a new entry — pass client UUID for idempotent upsert on server
           const response = await createJournalEntry(
             journal.title,
             journal.content,
             journal.mood as any,
             journal.tags,
             journal.is_content_encrypted,
+            journal.id, // UUID preserved — no ID swap needed after sync
           );
 
           if (response.success && response.entry) {
-            // Update local entry with server ID
-            await offlineStorage.deleteJournal(journal.id);
+            // UUID is the same — just mark as synced (no delete+recreate)
             await offlineStorage.saveJournal({
               ...response.entry,
               _syncStatus: 'synced',
+              _optimistic: false,
             } as Journal);
           }
         } else {
@@ -615,6 +690,9 @@ class SyncService {
     if (typeof window !== 'undefined') {
       window.removeEventListener('online', this.handleOnline);
       window.removeEventListener('offline', this.handleOffline);
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.removeEventListener('message', this.handleSWMessage);
+      }
     }
     this.syncListeners = [];
   }

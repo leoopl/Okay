@@ -10,7 +10,7 @@ interface UserResponseOption {
 }
 
 interface SyncInventoryResponse {
-  id?: string;
+  id?: string; // Client-generated UUID for idempotent upsert
   inventoryId: string;
   responses: UserResponseOption[];
   consentGiven: boolean;
@@ -81,18 +81,22 @@ export async function POST(request: NextRequest) {
         interpretationResults = generateInterpretation(calculatedScores, inventory.scoring as any);
       }
 
-      // Create response record
+      // Upsert: idempotent on conflict(id) when client provides a UUID
       const { data, error } = await supabase
         .from('inventory_responses')
-        .insert({
-          user_id: user.id,
-          inventory_id: response.inventoryId,
-          responses: response.responses as any,
-          calculated_scores: calculatedScores as any,
-          interpretation_results: interpretationResults as any,
-          consent_given: response.consentGiven,
-          completed_at: response.completedAt || new Date().toISOString(),
-        })
+        .upsert(
+          {
+            ...(response.id ? { id: response.id } : {}),
+            user_id: user.id,
+            inventory_id: response.inventoryId,
+            responses: response.responses as any,
+            calculated_scores: calculatedScores as any,
+            interpretation_results: interpretationResults as any,
+            consent_given: response.consentGiven,
+            completed_at: response.completedAt || new Date().toISOString(),
+          },
+          { onConflict: 'id' },
+        )
         .select()
         .single();
 
@@ -156,15 +160,19 @@ export async function POST(request: NextRequest) {
 
           const { error } = await supabase
             .from('inventory_responses')
-            .insert({
-              user_id: user.id,
-              inventory_id: response.inventoryId,
-              responses: response.responses as any,
-              calculated_scores: calculatedScores as any,
-              interpretation_results: interpretationResults as any,
-              consent_given: response.consentGiven,
-              completed_at: response.completedAt || new Date().toISOString(),
-            });
+            .upsert(
+              {
+                ...(response.id ? { id: response.id } : {}),
+                user_id: user.id,
+                inventory_id: response.inventoryId,
+                responses: response.responses as any,
+                calculated_scores: calculatedScores as any,
+                interpretation_results: interpretationResults as any,
+                consent_given: response.consentGiven,
+                completed_at: response.completedAt || new Date().toISOString(),
+              },
+              { onConflict: 'id' },
+            );
 
           if (error) {
             results.failed++;

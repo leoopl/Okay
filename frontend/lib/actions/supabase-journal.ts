@@ -26,6 +26,7 @@ export async function createJournalEntry(
   mood?: JournalMood,
   tags?: string[],
   encrypt: boolean = false,
+  clientId?: string, // Client-generated UUID for idempotent upsert
 ): Promise<JournalActionResponse> {
   const supabase = await createClient();
   const { ipAddress, userAgent } = await getRequestMetadata();
@@ -65,6 +66,8 @@ export async function createJournalEntry(
     }
 
     const entryData: JournalInsert = {
+      // Include client-provided UUID for idempotency when available
+      ...(clientId ? { id: clientId } : {}),
       user_id: user.id,
       title: title.trim(),
       content: entryContent,
@@ -73,10 +76,10 @@ export async function createJournalEntry(
       is_content_encrypted: isEncrypted,
     };
 
-    // Insert journal entry
+    // Upsert: INSERT or UPDATE on conflict(id) — atomic and idempotent when clientId is provided
     const { data, error } = await supabase
       .from('journal_entries')
-      .insert(entryData)
+      .upsert(entryData, { onConflict: 'id' })
       .select()
       .single();
 

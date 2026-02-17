@@ -259,7 +259,7 @@ export const useJournalStore = create<JournalState>()(
 
         // Create a new journal entry with optimistic update
         createJournal: async (data = {}): Promise<Journal> => {
-          const tempId = `temp_${Date.now()}`;
+          const tempId = crypto.randomUUID();
           const tempEntry: Journal = {
             id: tempId,
             user_id: '', // Will be filled by server

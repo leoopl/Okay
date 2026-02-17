@@ -51,11 +51,16 @@ export async function POST(request: NextRequest) {
     // Handle single entry sync (from service worker cache)
     if (body.entry) {
       const entry = body.entry;
-      const operation = body.operation || (entry.id?.startsWith('temp_') ? 'create' : 'update');
+      // Determine operation: explicit > _optimistic flag > legacy temp_ prefix detection
+      const isCreate =
+        body.operation === 'create' || entry._optimistic === true || entry.id?.startsWith('temp_');
+      const operation = body.operation || (isCreate ? 'create' : 'update');
 
-      if (operation === 'create' || entry.id?.startsWith('temp_')) {
-        // Create new entry
+      if (operation === 'create' || isCreate) {
+        // Use UUID provided by client (idempotent upsert) or let server generate one
+        const hasClientUUID = entry.id && !entry.id.startsWith('temp_');
         const insertData: JournalInsert = {
+          ...(hasClientUUID ? { id: entry.id } : {}),
           user_id: user.id,
           title: entry.title,
           content: entry.content,
@@ -64,9 +69,10 @@ export async function POST(request: NextRequest) {
           is_content_encrypted: entry.is_content_encrypted || false,
         };
 
+        // Upsert: idempotent on conflict(id) — safe for retry and multi-tab scenarios
         const { data, error } = await supabase
           .from('journal_entries')
-          .insert(insertData)
+          .upsert(insertData, { onConflict: 'id' })
           .select()
           .single();
 
@@ -150,9 +156,12 @@ export async function POST(request: NextRequest) {
 
       for (const entry of body.entries) {
         try {
-          if (entry.id?.startsWith('temp_') || !entry.id) {
-            // Create new entry
+          const isCreate = entry._optimistic === true || entry.id?.startsWith('temp_') || !entry.id;
+          if (isCreate) {
+            // Upsert: client UUID for idempotency, or let server generate one
+            const hasClientUUID = entry.id && !entry.id.startsWith('temp_');
             const insertData: JournalInsert = {
+              ...(hasClientUUID ? { id: entry.id } : {}),
               user_id: user.id,
               title: entry.title,
               content: entry.content,
@@ -163,7 +172,7 @@ export async function POST(request: NextRequest) {
 
             const { error } = await supabase
               .from('journal_entries')
-              .insert(insertData);
+              .upsert(insertData, { onConflict: 'id' });
 
             if (error) {
               results.failed++;
@@ -185,7 +194,7 @@ export async function POST(request: NextRequest) {
             const { error } = await supabase
               .from('journal_entries')
               .update(updateData)
-              .eq('id', entry.id)
+              .eq('id', entry.id!)
               .eq('user_id', user.id);
 
             if (error) {
