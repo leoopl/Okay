@@ -9,7 +9,9 @@ import {
   submitInventoryResponse,
   getUserResponses,
 } from '@/lib/actions/supabase-inventories';
-import { offlineStorage, SyncQueueItem } from '../store/offline-storage';
+import { logDose } from '@/lib/actions/supabase-dose-logs';
+import { getMedications } from '@/lib/actions/supabase-medications';
+import { offlineStorage, SyncQueueItem, OfflineDoseLog } from '../store/offline-storage';
 
 export interface SyncResult {
   success: boolean;
@@ -228,7 +230,19 @@ class SyncService {
             result.failed += inventoryResult.failed;
             result.errors.push(...inventoryResult.errors);
 
-            // 5. Resolve conflicts
+            // 5. Sync dose logs (before medications so server-side upsert has current med IDs)
+            const doseLogResult = await this.syncDoseLogs();
+            result.synced += doseLogResult.synced;
+            result.failed += doseLogResult.failed;
+            result.errors.push(...doseLogResult.errors);
+
+            // 6. Sync medications (pull remote state)
+            const medicationResult = await this.syncMedications();
+            result.synced += medicationResult.synced;
+            result.failed += medicationResult.failed;
+            result.errors.push(...medicationResult.errors);
+
+            // 7. Resolve conflicts
             if (result.conflicts.length > 0) {
               await this.resolveConflicts(result);
             }
@@ -560,11 +574,19 @@ class SyncService {
 
   // Get count of pending changes
   async getPendingChangesCount(): Promise<number> {
-    const pendingJournals = await offlineStorage.getJournalsBySyncStatus('pending');
-    const pendingInventoryResponses =
-      await offlineStorage.getInventoryResponsesBySyncStatus('pending');
-    const syncQueue = await offlineStorage.getSyncQueue();
-    return pendingJournals.length + pendingInventoryResponses.length + syncQueue.length;
+    const [pendingJournals, pendingInventoryResponses, pendingDoseLogs, syncQueue] =
+      await Promise.all([
+        offlineStorage.getJournalsBySyncStatus('pending'),
+        offlineStorage.getInventoryResponsesBySyncStatus('pending'),
+        offlineStorage.getDoseLogsBySyncStatus('pending'),
+        offlineStorage.getSyncQueue(),
+      ]);
+    return (
+      pendingJournals.length +
+      pendingInventoryResponses.length +
+      pendingDoseLogs.length +
+      syncQueue.length
+    );
   }
 
   // Sync inventory responses
@@ -644,6 +666,123 @@ class SyncService {
       result.errors.push({
         itemId: 'inventory-sync',
         action: 'syncInventoryResponses',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        retryable: true,
+      });
+    }
+
+    return result;
+  }
+
+  // Sync pending dose logs to server
+  async syncDoseLogs(): Promise<SyncResult> {
+    const result: SyncResult = {
+      success: true,
+      synced: 0,
+      failed: 0,
+      conflicts: [],
+      errors: [],
+    };
+
+    try {
+      const pendingLogs = await offlineStorage.getDoseLogsBySyncStatus('pending');
+
+      for (const log of pendingLogs) {
+        try {
+          const response = await logDose({
+            medicationId: log.medication_id,
+            status: log.status as any,
+            timestamp: log.timestamp,
+            scheduledTime: log.scheduled_time || undefined,
+            notes: log.notes || undefined,
+            doseType: log.dose_type as 'scheduled' | 'prn' | undefined,
+            clientId: log.id,
+          });
+
+          if (response.success && response.doseLog) {
+            // Update with server-confirmed record
+            await offlineStorage.deleteDoseLog(log.id);
+            await offlineStorage.saveDoseLog({
+              ...log,
+              id: response.doseLog.id,
+              _syncStatus: 'synced',
+              _optimistic: false,
+            } as OfflineDoseLog);
+            result.synced++;
+          } else {
+            throw new Error(response.error || 'Failed to sync dose log');
+          }
+        } catch (error) {
+          console.error(`[SyncService] Failed to sync dose log ${log.id}:`, error);
+          await offlineStorage.saveDoseLog({ ...log, _syncStatus: 'error' });
+          result.failed++;
+          result.errors.push({
+            itemId: log.id,
+            action: 'create',
+            error: error instanceof Error ? error.message : 'Unknown error',
+            retryable: true,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('[SyncService] Failed to sync dose logs:', error);
+      result.errors.push({
+        itemId: 'dose-logs-sync',
+        action: 'syncDoseLogs',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        retryable: true,
+      });
+    }
+
+    return result;
+  }
+
+  // Sync medications: pull remote state and update local cache
+  async syncMedications(): Promise<SyncResult> {
+    const result: SyncResult = {
+      success: true,
+      synced: 0,
+      failed: 0,
+      conflicts: [],
+      errors: [],
+    };
+
+    try {
+      const response = await getMedications();
+      if (!response.success || !response.medications) {
+        throw new Error(response.error || 'Failed to fetch medications');
+      }
+
+      const localMedications = await offlineStorage.getAllMedications();
+      const localMap = new Map(localMedications.map((m) => [m.id, m]));
+
+      for (const remote of response.medications) {
+        const local = localMap.get(remote.id);
+        if (!local || (remote.updated_at && remote.updated_at > (local.updated_at || ''))) {
+          await offlineStorage.saveMedication({
+            id: remote.id,
+            user_id: remote.user_id,
+            name: remote.name,
+            dosage: remote.dosage,
+            form: remote.form,
+            start_date: remote.start_date,
+            end_date: remote.end_date || null,
+            notes: remote.notes || null,
+            instructions: remote.instructions || null,
+            schedule: (remote as any).schedule || [],
+            created_at: remote.created_at,
+            updated_at: remote.updated_at,
+            _syncStatus: 'synced',
+            _optimistic: false,
+          });
+          result.synced++;
+        }
+      }
+    } catch (error) {
+      console.error('[SyncService] Failed to sync medications:', error);
+      result.errors.push({
+        itemId: 'medications-sync',
+        action: 'syncMedications',
         error: error instanceof Error ? error.message : 'Unknown error',
         retryable: true,
       });

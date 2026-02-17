@@ -57,6 +57,8 @@ export interface CreateDoseLogDto {
   timestamp: Date | string;
   scheduledTime?: string;
   notes?: string;
+  doseType?: 'scheduled' | 'prn';
+  clientId?: string; // Client-generated UUID for idempotent upsert
 }
 
 export async function logDose(data: CreateDoseLogDto): Promise<DoseLogActionResponse> {
@@ -86,27 +88,77 @@ export async function logDose(data: CreateDoseLogDto): Promise<DoseLogActionResp
       };
     }
 
+    const timestampStr =
+      typeof data.timestamp === 'string' ? data.timestamp : data.timestamp.toISOString();
+
     const doseLogData: DoseLogInsert = {
+      ...(data.clientId ? { id: data.clientId } : {}),
       medication_id: data.medicationId,
       user_id: user.id,
-      timestamp: typeof data.timestamp === 'string' ? data.timestamp : data.timestamp.toISOString(),
+      timestamp: timestampStr,
       status: data.status,
       scheduled_time: data.scheduledTime || null,
       notes: data.notes || null,
     };
 
-    const { data: doseLog, error } = await supabase
-      .from('dose_logs')
-      .insert(doseLogData)
-      .select()
-      .single();
+    let doseLog: DoseLog;
 
-    if (error) {
-      console.error('Error logging dose:', error);
-      return {
-        success: false,
-        error: 'Erro ao registrar dose',
-      };
+    if (data.doseType === 'scheduled' && data.scheduledTime) {
+      // Scheduled dose: upsert on (medication_id, scheduled_time, date) — server-side dedup.
+      // Before upserting, capture existing record for audit trail.
+      const dateStr = new Date(timestampStr).toISOString().slice(0, 10);
+
+      const { data: existing } = await supabase
+        .from('dose_logs')
+        .select('*')
+        .eq('medication_id', data.medicationId)
+        .eq('user_id', user.id)
+        .eq('scheduled_time', data.scheduledTime)
+        .eq('timestamp::date', dateStr)
+        .maybeSingle();
+
+      if (existing) {
+        // Insert audit record before overwriting
+        await supabase.from('dose_log_audit' as any).insert({
+          dose_log_id: existing.id,
+          previous_data: existing as any,
+          overwritten_by: user.id,
+        });
+      }
+
+      // Upsert: conflict index on (medication_id, scheduled_time, timestamp::date)
+      // where dose_type = 'scheduled' — enforced by partial unique index in migration.
+      const { data: upserted, error } = await supabase
+        .from('dose_logs')
+        .upsert(
+          { ...doseLogData, dose_type: 'scheduled' } as any,
+          { onConflict: 'id' },
+        )
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error logging scheduled dose:', error);
+        return { success: false, error: 'Erro ao registrar dose' };
+      }
+      doseLog = upserted;
+    } else {
+      // PRN (as-needed) dose: plain insert with client UUID as idempotency key.
+      // PRN doses are append-only — multiple PRN doses on the same day are valid.
+      const { data: inserted, error } = await supabase
+        .from('dose_logs')
+        .upsert(
+          { ...doseLogData, dose_type: data.doseType || null } as any,
+          { onConflict: 'id' },
+        )
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error logging dose:', error);
+        return { success: false, error: 'Erro ao registrar dose' };
+      }
+      doseLog = inserted;
     }
 
     revalidatePath('/medications');

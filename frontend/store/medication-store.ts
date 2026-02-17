@@ -18,6 +18,7 @@ import {
   type CreateDoseLogDto,
 } from '@/lib/actions/supabase-dose-logs';
 import type { Database } from '@/lib/supabase/database.types';
+import { offlineStorage } from '@/store/offline-storage';
 
 // Enums and constants
 export enum DayOfWeek {
@@ -56,6 +57,8 @@ export interface Medication {
   schedule: ScheduleTime[];
   createdAt: Date;
   updatedAt: Date;
+  _optimistic?: boolean;
+  _syncStatus?: 'pending' | 'synced' | 'error';
 }
 
 export interface CreateMedicationDto {
@@ -96,6 +99,8 @@ export interface DoseLogDto {
   timestamp: Date | string;
   scheduledTime?: string;
   notes?: string;
+  doseType?: 'scheduled' | 'prn';
+  clientId?: string; // Client-generated UUID for idempotent upsert
 }
 
 export interface DoseLog {
@@ -105,8 +110,11 @@ export interface DoseLog {
   status: DoseStatus;
   notes?: string;
   scheduledTime?: string;
+  doseType?: 'scheduled' | 'prn';
   createdAt: Date;
   updatedAt: Date;
+  _optimistic?: boolean;
+  _syncStatus?: 'pending' | 'synced' | 'error';
 }
 
 export interface AdherenceStats {
@@ -262,6 +270,29 @@ export const useMedicationStore = create<MedicationStore>()(
           throw new Error(response.error || 'Failed to fetch medications');
         }
       } catch (error: any) {
+        // Try to load from offline storage as fallback
+        try {
+          const cached = await offlineStorage.getAllMedications();
+          if (cached.length > 0) {
+            const medications = cached.map((m) =>
+              processMedicationDates({
+                ...m,
+                start_date: m.start_date,
+                end_date: m.end_date,
+                created_at: m.created_at,
+                updated_at: m.updated_at,
+              }),
+            );
+            set((state) => ({
+              medications,
+              loadingStates: { ...state.loadingStates, medications: false },
+            }));
+            return;
+          }
+        } catch {
+          // IndexedDB unavailable — fall through to error state
+        }
+
         const medicationError = createMedicationError(
           'network',
           error.message || 'Failed to fetch medications',
@@ -380,13 +411,55 @@ export const useMedicationStore = create<MedicationStore>()(
     },
 
     createMedication: async (data: CreateMedicationDto) => {
+      const clientId = crypto.randomUUID();
+      const now = new Date();
+
+      // Optimistic update — immediately reflect in UI
+      const optimisticMedication: Medication = {
+        id: clientId,
+        name: data.name,
+        dosage: data.dosage,
+        form: data.form,
+        startDate: new Date(data.startDate as string),
+        endDate: data.endDate ? new Date(data.endDate as string) : undefined,
+        notes: data.notes,
+        instructions: data.instructions,
+        schedule: data.schedule,
+        createdAt: now,
+        updatedAt: now,
+        _optimistic: true,
+        _syncStatus: 'pending',
+      };
+
       set((state) => ({
+        medications: [optimisticMedication, ...state.medications],
         loadingStates: { ...state.loadingStates, creating: true },
         errors: { ...state.errors, creating: null },
       }));
 
+      // Persist optimistic record to IndexedDB
       try {
-        // Convert to Supabase format with lowercase enum values
+        await offlineStorage.saveMedication({
+          id: clientId,
+          user_id: '',
+          name: data.name,
+          dosage: data.dosage,
+          form: data.form,
+          start_date: new Date(data.startDate as string).toISOString(),
+          end_date: data.endDate ? new Date(data.endDate as string).toISOString() : null,
+          notes: data.notes || null,
+          instructions: data.instructions || null,
+          schedule: data.schedule,
+          created_at: now.toISOString(),
+          updated_at: now.toISOString(),
+          _optimistic: true,
+          _syncStatus: 'pending',
+        });
+      } catch {
+        // IndexedDB unavailable — continue online-only
+      }
+
+      try {
         const supabaseData: SupabaseCreateMedicationDto = {
           name: data.name,
           dosage: data.dosage,
@@ -397,7 +470,7 @@ export const useMedicationStore = create<MedicationStore>()(
           instructions: data.instructions,
           schedule: data.schedule.map((s) => ({
             time: s.time,
-            days: s.days as any, // Database expects lowercase day_of_week enum
+            days: s.days as any,
           })),
         };
 
@@ -406,10 +479,36 @@ export const useMedicationStore = create<MedicationStore>()(
         if (response.success && response.medication) {
           const newMedication = processMedicationDates(response.medication);
 
+          // Replace optimistic record with server-confirmed record
           set((state) => ({
-            medications: [newMedication, ...state.medications],
+            medications: state.medications.map((m) =>
+              m.id === clientId ? { ...newMedication, _optimistic: false, _syncStatus: 'synced' } : m,
+            ),
             loadingStates: { ...state.loadingStates, creating: false },
           }));
+
+          // Update IndexedDB with server ID
+          try {
+            await offlineStorage.deleteMedication(clientId);
+            await offlineStorage.saveMedication({
+              id: newMedication.id,
+              user_id: '',
+              name: newMedication.name,
+              dosage: newMedication.dosage,
+              form: newMedication.form,
+              start_date: newMedication.startDate.toISOString(),
+              end_date: newMedication.endDate?.toISOString() || null,
+              notes: newMedication.notes || null,
+              instructions: newMedication.instructions || null,
+              schedule: newMedication.schedule,
+              created_at: newMedication.createdAt.toISOString(),
+              updated_at: newMedication.updatedAt.toISOString(),
+              _optimistic: false,
+              _syncStatus: 'synced',
+            });
+          } catch {
+            // IndexedDB unavailable — continue
+          }
 
           toast.success('Medication added successfully', { richColors: true });
           return newMedication;
@@ -417,15 +516,25 @@ export const useMedicationStore = create<MedicationStore>()(
           throw new Error(response.error || 'Failed to create medication');
         }
       } catch (error: any) {
-        const createError = createMedicationError(
-          'network',
-          error.message || 'Failed to create medication',
-        );
-
+        // Rollback optimistic update
         set((state) => ({
-          errors: { ...state.errors, creating: createError },
+          medications: state.medications.filter((m) => m.id !== clientId),
           loadingStates: { ...state.loadingStates, creating: false },
+          errors: {
+            ...state.errors,
+            creating: createMedicationError('network', error.message || 'Failed to create medication'),
+          },
         }));
+
+        // Mark as error in IndexedDB
+        try {
+          const cached = await offlineStorage.getMedication(clientId);
+          if (cached) {
+            await offlineStorage.saveMedication({ ...cached, _syncStatus: 'error' });
+          }
+        } catch {
+          // IndexedDB unavailable
+        }
 
         toast.error('Failed to add medication');
         console.error('Error creating medication:', error);
@@ -524,10 +633,51 @@ export const useMedicationStore = create<MedicationStore>()(
     },
 
     logDose: async (data: DoseLogDto) => {
+      const clientId = data.clientId || crypto.randomUUID();
+      const now = new Date();
+      const timestampStr =
+        typeof data.timestamp === 'string' ? data.timestamp : data.timestamp.toISOString();
+
+      // Optimistic update — immediately reflect in UI
+      const optimisticLog: DoseLog = {
+        id: clientId,
+        medicationId: data.medicationId,
+        timestamp: new Date(timestampStr),
+        status: data.status,
+        notes: data.notes,
+        scheduledTime: data.scheduledTime,
+        doseType: data.doseType,
+        createdAt: now,
+        updatedAt: now,
+        _optimistic: true,
+        _syncStatus: 'pending',
+      };
+
       set((state) => ({
+        doseLogs: [optimisticLog, ...state.doseLogs],
         loadingStates: { ...state.loadingStates, logging: true },
         errors: { ...state.errors, logging: null },
       }));
+
+      // Persist to IndexedDB for offline resilience
+      try {
+        await offlineStorage.saveDoseLog({
+          id: clientId,
+          medication_id: data.medicationId,
+          user_id: '',
+          timestamp: timestampStr,
+          status: data.status,
+          scheduled_time: data.scheduledTime || null,
+          notes: data.notes || null,
+          dose_type: data.doseType || null,
+          created_at: now.toISOString(),
+          updated_at: now.toISOString(),
+          _optimistic: true,
+          _syncStatus: 'pending',
+        });
+      } catch {
+        // IndexedDB unavailable — continue online-only
+      }
 
       try {
         const doseData: CreateDoseLogDto = {
@@ -536,6 +686,8 @@ export const useMedicationStore = create<MedicationStore>()(
           timestamp: data.timestamp,
           scheduledTime: data.scheduledTime,
           notes: data.notes,
+          doseType: data.doseType,
+          clientId,
         };
 
         const response = await logDoseAction(doseData);
@@ -543,14 +695,38 @@ export const useMedicationStore = create<MedicationStore>()(
         if (response.success && response.doseLog) {
           const newLog = processDoseLog(response.doseLog);
 
-          // Optimistically update related data
-          const { fetchTodaySchedule, fetchAdherenceStats } = get();
-          await Promise.all([fetchTodaySchedule(), fetchAdherenceStats()]);
-
+          // Replace optimistic record with server-confirmed record
           set((state) => ({
-            doseLogs: [newLog, ...state.doseLogs],
+            doseLogs: state.doseLogs.map((l) =>
+              l.id === clientId ? { ...newLog, _optimistic: false, _syncStatus: 'synced' as const } : l,
+            ),
             loadingStates: { ...state.loadingStates, logging: false },
           }));
+
+          // Update IndexedDB
+          try {
+            await offlineStorage.deleteDoseLog(clientId);
+            await offlineStorage.saveDoseLog({
+              id: newLog.id,
+              medication_id: newLog.medicationId,
+              user_id: '',
+              timestamp: newLog.timestamp.toISOString(),
+              status: newLog.status,
+              scheduled_time: newLog.scheduledTime || null,
+              notes: newLog.notes || null,
+              dose_type: newLog.doseType || null,
+              created_at: newLog.createdAt.toISOString(),
+              updated_at: newLog.updatedAt.toISOString(),
+              _optimistic: false,
+              _syncStatus: 'synced',
+            });
+          } catch {
+            // IndexedDB unavailable
+          }
+
+          // Refresh related data
+          const { fetchTodaySchedule, fetchAdherenceStats } = get();
+          await Promise.all([fetchTodaySchedule(), fetchAdherenceStats()]);
 
           toast.success('Dose logged successfully');
           return newLog;
@@ -558,16 +734,32 @@ export const useMedicationStore = create<MedicationStore>()(
           throw new Error(response.error || 'Failed to log dose');
         }
       } catch (error: any) {
-        const logError = createMedicationError('network', 'Failed to log dose');
-
+        // Keep the optimistic record but mark as pending (will sync later)
         set((state) => ({
-          errors: { ...state.errors, logging: logError },
+          doseLogs: state.doseLogs.map((l) =>
+            l.id === clientId ? { ...l, _syncStatus: 'pending' as const } : l,
+          ),
           loadingStates: { ...state.loadingStates, logging: false },
+          errors: {
+            ...state.errors,
+            logging: createMedicationError('network', 'Failed to log dose'),
+          },
         }));
 
-        toast.error('Failed to log dose');
+        // Mark in IndexedDB as pending for background sync
+        try {
+          const cached = await offlineStorage.getDoseLog(clientId);
+          if (cached) {
+            await offlineStorage.saveDoseLog({ ...cached, _syncStatus: 'pending' });
+          }
+        } catch {
+          // IndexedDB unavailable
+        }
+
+        toast.error('Dose salva localmente. Será sincronizada quando conectado.');
         console.error('Error logging dose:', error);
-        throw error;
+        // Don't rethrow — the optimistic log is preserved for later sync
+        return optimisticLog;
       }
     },
 

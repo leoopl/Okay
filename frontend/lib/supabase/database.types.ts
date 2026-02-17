@@ -91,6 +91,7 @@ export type Database = {
       dose_logs: {
         Row: {
           created_at: string
+          dose_type: Database["public"]["Enums"]["dose_type"] | null
           id: string
           medication_id: string
           notes: string | null
@@ -102,6 +103,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          dose_type?: Database["public"]["Enums"]["dose_type"] | null
           id?: string
           medication_id: string
           notes?: string | null
@@ -113,6 +115,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          dose_type?: Database["public"]["Enums"]["dose_type"] | null
           id?: string
           medication_id?: string
           notes?: string | null
@@ -739,6 +742,7 @@ export type Database = {
         | "saturday"
         | "sunday"
       dose_status: "taken" | "skipped" | "delayed"
+      dose_type: "scheduled" | "prn"
       gender_type:
         | "male"
         | "female"
@@ -933,6 +937,7 @@ export const Constants = {
         "sunday",
       ],
       dose_status: ["taken", "skipped", "delayed"],
+      dose_type: ["scheduled", "prn"],
       gender_type: [
         "male",
         "female",

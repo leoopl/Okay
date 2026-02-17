@@ -6,12 +6,13 @@ type DoseLogInsert = Database['public']['Tables']['dose_logs']['Insert'];
 type DoseStatus = Database['public']['Enums']['dose_status'];
 
 interface SyncDoseLog {
-  id?: string;
+  id?: string; // Client-generated UUID for idempotent upsert
   medicationId: string;
   status: DoseStatus;
   timestamp: string;
   scheduledTime?: string;
   notes?: string;
+  doseType?: 'scheduled' | 'prn';
 }
 
 interface SyncRequest {
@@ -62,6 +63,7 @@ export async function POST(request: NextRequest) {
       }
 
       const doseLogData: DoseLogInsert = {
+        ...(log.id ? { id: log.id } : {}),
         medication_id: log.medicationId,
         user_id: user.id,
         timestamp: log.timestamp,
@@ -72,7 +74,10 @@ export async function POST(request: NextRequest) {
 
       const { data, error } = await supabase
         .from('dose_logs')
-        .insert(doseLogData)
+        .upsert(
+          { ...doseLogData, dose_type: log.doseType || null } as any,
+          { onConflict: 'id' },
+        )
         .select()
         .single();
 
@@ -117,6 +122,7 @@ export async function POST(request: NextRequest) {
           }
 
           const doseLogData: DoseLogInsert = {
+            ...(log.id ? { id: log.id } : {}),
             medication_id: log.medicationId,
             user_id: user.id,
             timestamp: log.timestamp,
@@ -127,7 +133,10 @@ export async function POST(request: NextRequest) {
 
           const { error } = await supabase
             .from('dose_logs')
-            .insert(doseLogData);
+            .upsert(
+              { ...doseLogData, dose_type: log.doseType || null } as any,
+              { onConflict: 'id' },
+            );
 
           if (error) {
             results.failed++;
