@@ -113,6 +113,23 @@ class SyncService {
     }
   }
 
+  /**
+   * Update the reachability-verified online status from NetworkStatusProvider.
+   * This provides a more accurate signal than navigator.onLine alone (handles captive portals).
+   */
+  setReachabilityStatus(isReachable: boolean) {
+    const wasOnline = this.status.isOnline;
+    this.status.isOnline = isReachable;
+
+    if (!wasOnline && isReachable) {
+      this.notifyListeners();
+      // Trigger sync when transitioning from offline to online
+      this.syncAll().catch(console.error);
+    } else if (!isReachable) {
+      this.notifyListeners();
+    }
+  }
+
   // Refresh auth session before sync — prevents silent queue drops on expired JWTs
   private async refreshAuth(): Promise<boolean> {
     if (typeof window === 'undefined') return false;

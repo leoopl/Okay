@@ -8,6 +8,8 @@ import { Toaster } from 'sonner';
 import Script from 'next/script';
 import { getUserWithRolesAndPermissions } from '@/lib/supabase/server';
 import { AuthProvider } from '@/providers/auth-provider';
+import { NetworkStatusProvider } from '@/providers/network-status-provider';
+import { OfflineBanner } from '@/components/offline-banner';
 import { IncompleteProfileDialog } from '@/components/profile/incomplete-profile-dialog';
 import { PWAInstaller } from '@/components/pwa-installer';
 
@@ -233,25 +235,28 @@ export default async function RootLayout({
         <link rel="shortcut icon" href="/favicon/favicon.ico" />
       </head>
       <body className="gradient-background min-h-screen antialiased">
-        <AuthProvider initialData={authData}>
-          <div className="relative flex min-h-screen flex-col bg-gradient-to-b from-transparent to-white/95">
-            <Script
-              src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-core.min.js"
-              strategy="afterInteractive"
-            />
-            <Script
-              src="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/autoloader/prism-autoloader.min.js"
-              strategy="afterInteractive"
-            />
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-            {/* Only show incomplete profile dialog if user is authenticated */}
-            {userData && <IncompleteProfileDialog />}
-            {/* PWA Install Prompt */}
-            <PWAInstaller />
-          </div>
-        </AuthProvider>
+        <NetworkStatusProvider>
+          <AuthProvider initialData={authData}>
+            <OfflineBanner />
+            <div className="relative flex min-h-screen flex-col bg-gradient-to-b from-transparent to-white/95">
+              <Script
+                src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-core.min.js"
+                strategy="afterInteractive"
+              />
+              <Script
+                src="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/autoloader/prism-autoloader.min.js"
+                strategy="afterInteractive"
+              />
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+              {/* Only show incomplete profile dialog if user is authenticated */}
+              {userData && <IncompleteProfileDialog />}
+              {/* PWA Install Prompt */}
+              <PWAInstaller />
+            </div>
+          </AuthProvider>
+        </NetworkStatusProvider>
         <Toaster
           position="top-right"
           richColors
