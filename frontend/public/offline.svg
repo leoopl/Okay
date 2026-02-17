@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
+  <!-- Background circle -->
+  <circle cx="200" cy="200" r="180" fill="#FBE5A8" opacity="0.4"/>
+
+  <!-- Cloud shape -->
+  <ellipse cx="200" cy="170" rx="100" ry="55" fill="#E8D48A"/>
+  <circle cx="145" cy="185" r="40" fill="#E8D48A"/>
+  <circle cx="255" cy="185" r="35" fill="#E8D48A"/>
+
+  <!-- Slash line through cloud (offline indicator) -->
+  <line x1="110" y1="120" x2="290" y2="240" stroke="#C0392B" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- WiFi waves (broken) -->
+  <path d="M155 275 Q200 255 245 275" stroke="#6B7280" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.5"/>
+  <path d="M170 295 Q200 280 230 295" stroke="#6B7280" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.5"/>
+  <circle cx="200" cy="313" r="5" fill="#6B7280" opacity="0.5"/>
+
+  <!-- Text label -->
+  <text x="200" y="360" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" fill="#374151" font-weight="600">Sem conexão</text>
+</svg>
