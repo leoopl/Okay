@@ -38,7 +38,7 @@ export async function signIn(input: SignInInput): Promise<ActionResult> {
     const { ipAddress, userAgent } = await getRequestMetadata();
 
     // Attempt sign in
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data: _signInData, error } = await supabase.auth.signInWithPassword({
       email: validatedData.email,
       password: validatedData.password,
     });

@@ -3,7 +3,6 @@
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import {
   BookHeart,
-  CircleUser,
   Library,
   LogOut,
   LucideIcon,
