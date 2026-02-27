@@ -6,7 +6,7 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#f9d56e",
+  "theme_color": "#fbe5a8",
   "background_color": "#b6cfb8",
   "dir": "ltr",
   "lang": "pt-BR",
@@ -18,7 +18,19 @@
       "src": "/favicon/web-app-manifest-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "/favicon/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/favicon/web-app-manifest-512x512.png",
@@ -32,83 +44,25 @@
       "name": "Técnicas de Respiração",
       "short_name": "Respiração",
       "description": "Pratique exercícios de respiração guiados",
-      "url": "/breathing",
-      "icons": [
-        {
-          "src": "/favicon/shortcuts/breathing-96x96.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
+      "url": "/breathing"
     },
     {
       "name": "Diário Pessoal",
       "short_name": "Diário",
       "description": "Registre seus pensamentos e sentimentos",
-      "url": "/journal",
-      "icons": [
-        {
-          "src": "/favicon/shortcuts/journal-96x96.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
+      "url": "/journal"
     },
     {
       "name": "Medicações",
       "short_name": "Remédios",
       "description": "Acompanhe suas medicações",
-      "url": "/medication",
-      "icons": [
-        {
-          "src": "/favicon/shortcuts/medication-96x96.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
+      "url": "/medication"
     },
     {
       "name": "Questionários",
       "short_name": "Avaliações",
       "description": "Faça autoavaliações de saúde mental",
-      "url": "/inventory",
-      "icons": [
-        {
-          "src": "/favicon/shortcuts/inventory-96x96.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/screenshots/home-mobile.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Página inicial do Okay"
-    },
-    {
-      "src": "/screenshots/breathing-mobile.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Exercícios de respiração"
-    },
-    {
-      "src": "/screenshots/journal-mobile.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Diário pessoal"
-    },
-    {
-      "src": "/screenshots/home-desktop.png",
-      "sizes": "1920x1080",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Okay no desktop"
+      "url": "/inventory"
     }
   ],
   "related_applications": [],
