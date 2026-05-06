@@ -403,3 +403,60 @@ export async function getAdherenceStats(
     };
   }
 }
+
+/**
+ * Provider-side read: returns the patient's dose logs if the calling provider has an
+ * active connection + active grant for 'dose_logs'.
+ *
+ * Two-layer access control: helper for friendly errors, RLS predicate for hard backstop.
+ */
+export async function getDoseLogsForPatient(
+  patientId: string,
+  range?: { startDate?: Date; endDate?: Date; medicationId?: string },
+): Promise<{ success: boolean; logs: any[]; error?: string }> {
+  const { assertProviderCanAccessPatientResource, ConnectionAccessException } = await import(
+    './connection-access'
+  );
+
+  try {
+    await assertProviderCanAccessPatientResource({
+      patientId,
+      resourceType: 'dose_logs',
+    });
+  } catch (e) {
+    if (e instanceof ConnectionAccessException) {
+      const map: Record<string, string> = {
+        NOT_AUTHENTICATED: 'Não autenticado',
+        NOT_PROVIDER: 'Apenas profissionais podem acessar',
+        NO_ACTIVE_CONNECTION: 'Sem conexão ativa com este paciente',
+        NO_GRANT: 'Paciente não compartilhou o histórico de medicação',
+      };
+      return { success: false, logs: [], error: map[e.code] ?? 'Acesso negado' };
+    }
+    throw e;
+  }
+
+  const supabase = await createClient();
+  let query = supabase
+    .from('dose_logs')
+    .select('*, medications(id, name, dosage, form)')
+    .eq('user_id', patientId)
+    .order('timestamp', { ascending: false });
+
+  if (range?.medicationId) {
+    query = query.eq('medication_id', range.medicationId);
+  }
+  if (range?.startDate) {
+    query = query.gte('timestamp', range.startDate.toISOString());
+  }
+  if (range?.endDate) {
+    query = query.lte('timestamp', range.endDate.toISOString());
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    console.error('Provider read of dose_logs failed:', error);
+    return { success: false, logs: [], error: 'Erro ao carregar dados' };
+  }
+  return { success: true, logs: data ?? [] };
+}

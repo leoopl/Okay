@@ -148,19 +148,8 @@ export async function signUp(input: SignUpInput): Promise<ActionResult> {
       // The user can still sign in and complete their profile later
     }
 
-    // Assign default role
-    const { data: defaultRole } = await supabase
-      .from('roles')
-      .select('id')
-      .eq('is_default', true)
-      .single();
-
-    if (defaultRole) {
-      await supabase.from('user_roles').insert({
-        user_id: authData.user.id,
-        role_id: defaultRole.id,
-      });
-    }
+    // Default role is assigned by the assign_default_role_to_new_user trigger
+    // on profiles INSERT (verified — all signup paths fire the trigger).
 
     // Log account creation
     await supabase.from('audit_logs').insert({

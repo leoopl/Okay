@@ -14,6 +14,67 @@ export type Database = {
   }
   public: {
     Tables: {
+      agenda_items: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          connection_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          scheduled_at: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          connection_id: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          scheduled_at?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          connection_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          scheduled_at?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agenda_items_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agenda_items_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "patient_provider_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agenda_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: Database["public"]["Enums"]["audit_action"]
@@ -91,7 +152,6 @@ export type Database = {
       dose_logs: {
         Row: {
           created_at: string
-          dose_type: Database["public"]["Enums"]["dose_type"] | null
           id: string
           medication_id: string
           notes: string | null
@@ -103,7 +163,6 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          dose_type?: Database["public"]["Enums"]["dose_type"] | null
           id?: string
           medication_id: string
           notes?: string | null
@@ -115,7 +174,6 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          dose_type?: Database["public"]["Enums"]["dose_type"] | null
           id?: string
           medication_id?: string
           notes?: string | null
@@ -338,6 +396,80 @@ export type Database = {
           },
         ]
       }
+      patient_provider_connections: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          ended_at: string | null
+          ended_by: string | null
+          id: string
+          initiated_by: string
+          invite_message: string | null
+          patient_id: string
+          provider_id: string
+          rejected_at: string | null
+          status: Database["public"]["Enums"]["connection_status"]
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          ended_at?: string | null
+          ended_by?: string | null
+          id?: string
+          initiated_by: string
+          invite_message?: string | null
+          patient_id: string
+          provider_id: string
+          rejected_at?: string | null
+          status?: Database["public"]["Enums"]["connection_status"]
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          ended_at?: string | null
+          ended_by?: string | null
+          id?: string
+          initiated_by?: string
+          invite_message?: string | null
+          patient_id?: string
+          provider_id?: string
+          rejected_at?: string | null
+          status?: Database["public"]["Enums"]["connection_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_provider_connections_ended_by_fkey"
+            columns: ["ended_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_provider_connections_initiated_by_fkey"
+            columns: ["initiated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_provider_connections_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_provider_connections_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       permissions: {
         Row: {
           action: string
@@ -488,6 +620,75 @@ export type Database = {
         }
         Relationships: []
       }
+      provider_validation_requests: {
+        Row: {
+          bio: string | null
+          council_number: string
+          council_state: string
+          council_type: Database["public"]["Enums"]["council_type"]
+          created_at: string
+          document_path: string | null
+          full_name: string
+          id: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          specialty: string | null
+          status: Database["public"]["Enums"]["provider_validation_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bio?: string | null
+          council_number: string
+          council_state: string
+          council_type: Database["public"]["Enums"]["council_type"]
+          created_at?: string
+          document_path?: string | null
+          full_name: string
+          id?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          specialty?: string | null
+          status?: Database["public"]["Enums"]["provider_validation_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bio?: string | null
+          council_number?: string
+          council_state?: string
+          council_type?: Database["public"]["Enums"]["council_type"]
+          created_at?: string
+          document_path?: string | null
+          full_name?: string
+          id?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          specialty?: string | null
+          status?: Database["public"]["Enums"]["provider_validation_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_validation_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "provider_validation_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_permissions: {
         Row: {
           permission_id: string
@@ -577,6 +778,48 @@ export type Database = {
           },
         ]
       }
+      shared_resource_grants: {
+        Row: {
+          connection_id: string
+          granted_at: string
+          id: string
+          resource_type: Database["public"]["Enums"]["shared_resource_type"]
+          revoked_at: string | null
+          revoked_by: string | null
+        }
+        Insert: {
+          connection_id: string
+          granted_at?: string
+          id?: string
+          resource_type: Database["public"]["Enums"]["shared_resource_type"]
+          revoked_at?: string | null
+          revoked_by?: string | null
+        }
+        Update: {
+          connection_id?: string
+          granted_at?: string
+          id?: string
+          resource_type?: Database["public"]["Enums"]["shared_resource_type"]
+          revoked_at?: string | null
+          revoked_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_resource_grants_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "patient_provider_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_resource_grants_revoked_by_fkey"
+            columns: ["revoked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       testimonials: {
         Row: {
           approved_at: string | null
@@ -618,6 +861,131 @@ export type Database = {
           {
             foreignKeyName: "testimonials_approved_by_id_fkey"
             columns: ["approved_by_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      therapeutic_goals: {
+        Row: {
+          achieved_at: string | null
+          achieved_by: string | null
+          connection_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          target_date: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          achieved_at?: string | null
+          achieved_by?: string | null
+          connection_id: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          target_date?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          achieved_at?: string | null
+          achieved_by?: string | null
+          connection_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          target_date?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "therapeutic_goals_achieved_by_fkey"
+            columns: ["achieved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "therapeutic_goals_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "patient_provider_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "therapeutic_goals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      todo_items: {
+        Row: {
+          connection_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          done_at: string | null
+          done_by: string | null
+          due_date: string | null
+          id: string
+          is_done: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          connection_id: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          done_at?: string | null
+          done_by?: string | null
+          due_date?: string | null
+          id?: string
+          is_done?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          connection_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          done_at?: string | null
+          done_by?: string | null
+          due_date?: string | null
+          id?: string
+          is_done?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "todo_items_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "patient_provider_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "todo_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "todo_items_done_by_fkey"
+            columns: ["done_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -675,6 +1043,29 @@ export type Database = {
       get_user_roles: { Args: never; Returns: string[] }
       is_admin_or_owner: { Args: { owner_id: string }; Returns: boolean }
       is_admin_user: { Args: { user_id?: string }; Returns: boolean }
+      mark_agenda_completed: {
+        Args: { p_agenda_id: string; p_completed?: boolean }
+        Returns: undefined
+      }
+      mark_goal_achieved: {
+        Args: { p_achieved?: boolean; p_goal_id: string }
+        Returns: undefined
+      }
+      mark_todo_done: {
+        Args: { p_done?: boolean; p_item_id: string }
+        Returns: undefined
+      }
+      provider_can_view: {
+        Args: {
+          p_patient_id: string
+          p_resource: Database["public"]["Enums"]["shared_resource_type"]
+        }
+        Returns: boolean
+      }
+      replace_user_role: {
+        Args: { p_new_role_name: string; p_target_user_id: string }
+        Returns: undefined
+      }
       search_journal_entries: {
         Args: {
           p_end_date?: string
@@ -733,6 +1124,17 @@ export type Database = {
         | "settings_updated"
         | "account_merge_requested"
         | "access_denied"
+        | "provider_validation_requested"
+        | "provider_validation_approved"
+        | "provider_validation_rejected"
+        | "connection_invited"
+        | "connection_accepted"
+        | "connection_rejected"
+        | "connection_ended"
+        | "resource_shared"
+        | "resource_share_revoked"
+      connection_status: "pending" | "active" | "rejected" | "ended"
+      council_type: "CRM" | "CRP"
       day_of_week:
         | "monday"
         | "tuesday"
@@ -742,7 +1144,6 @@ export type Database = {
         | "saturday"
         | "sunday"
       dose_status: "taken" | "skipped" | "delayed"
-      dose_type: "scheduled" | "prn"
       gender_type:
         | "male"
         | "female"
@@ -768,6 +1169,13 @@ export type Database = {
         | "injectable"
         | "ointment"
         | "other"
+      provider_validation_status: "pending" | "approved" | "rejected"
+      shared_resource_type:
+        | "inventory_responses"
+        | "dose_logs"
+        | "todo_items"
+        | "therapeutic_goals"
+        | "agenda_items"
       testimonial_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
@@ -926,7 +1334,18 @@ export const Constants = {
         "settings_updated",
         "account_merge_requested",
         "access_denied",
+        "provider_validation_requested",
+        "provider_validation_approved",
+        "provider_validation_rejected",
+        "connection_invited",
+        "connection_accepted",
+        "connection_rejected",
+        "connection_ended",
+        "resource_shared",
+        "resource_share_revoked",
       ],
+      connection_status: ["pending", "active", "rejected", "ended"],
+      council_type: ["CRM", "CRP"],
       day_of_week: [
         "monday",
         "tuesday",
@@ -937,7 +1356,6 @@ export const Constants = {
         "sunday",
       ],
       dose_status: ["taken", "skipped", "delayed"],
-      dose_type: ["scheduled", "prn"],
       gender_type: [
         "male",
         "female",
@@ -965,6 +1383,14 @@ export const Constants = {
         "injectable",
         "ointment",
         "other",
+      ],
+      provider_validation_status: ["pending", "approved", "rejected"],
+      shared_resource_type: [
+        "inventory_responses",
+        "dose_logs",
+        "todo_items",
+        "therapeutic_goals",
+        "agenda_items",
       ],
       testimonial_status: ["pending", "approved", "rejected"],
     },

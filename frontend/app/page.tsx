@@ -24,7 +24,7 @@ const Home: NextPage = () => {
               Lembre-se de que não há problema em pedir ajuda e você merece se sentir melhor. Okay?
             </p>
           </div>
-          <div className="animate-float relative h-[400px] md:h-[500px]">
+          <div className="animate-float relative h-100 md:h-125">
             <Image
               src={tree}
               alt="Ancient tree shaped like a brain, symbolizing growth and resilience"
