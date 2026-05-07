@@ -63,7 +63,7 @@ const FeatureCard = ({
         <p className="text-muted-foreground mb-6 flex-1 text-sm leading-relaxed">{description}</p>
         <Button
           asChild
-          className={`${buttonColor} mt-auto w-full text-black transition-all duration-200 hover:scale-105 focus-visible:scale-105`}
+          className={`${buttonColor} mt-auto w-full transition-all duration-200 hover:scale-105 focus-visible:scale-105`}
         >
           <Link href={href}>Acessar {title}</Link>
         </Button>
@@ -75,13 +75,13 @@ const FeatureCard = ({
 // Stats component for user engagement
 const UserStats = () => (
   <div className="mt-4 grid grid-cols-2 gap-4">
-    <div className="bg-grey-light/40 rounded-lg p-3 text-center">
-      <Activity className="text-blue-dark mx-auto mb-1 size-4" />
+    <div className="bg-muted/40 rounded-lg p-3 text-center">
+      <Activity className="text-primary mx-auto mb-1 size-4" />
       <p className="text-muted-foreground text-xs">Atividade</p>
       <p className="text-sm font-semibold">7 dias</p>
     </div>
-    <div className="bg-grey-light/40 rounded-lg p-3 text-center">
-      <Clock className="text-blue-dark mx-auto mb-1 size-4" />
+    <div className="bg-muted/40 rounded-lg p-3 text-center">
+      <Clock className="text-primary mx-auto mb-1 size-4" />
       <p className="text-muted-foreground text-xs">Última sessão</p>
       <p className="text-sm font-semibold">Hoje</p>
     </div>
@@ -171,8 +171,8 @@ export default function Profile() {
       description: 'Registre seus pensamentos e acompanhe seu humor ao longo do tempo.',
       href: '/journal',
       bgColor: 'border-accent/50 bg-accent/10',
-      iconColor: 'text-green-dark',
-      buttonColor: 'bg-green-dark hover:bg-green-dark/90',
+      iconColor: 'text-accent-strong',
+      buttonColor: 'bg-accent-strong hover:bg-accent-strong/90',
     },
     {
       icon: Pill,
@@ -188,9 +188,9 @@ export default function Profile() {
       title: 'Questionários',
       description: 'Complete avaliações para acompanhar seu progresso em saúde mental.',
       href: '/inventory',
-      bgColor: 'border-blue-medium/50 bg-blue-light/20',
-      iconColor: 'text-blue-dark',
-      buttonColor: 'bg-blue-dark hover:bg-blue-dark/90',
+      bgColor: 'border-secondary/50 bg-secondary/20',
+      iconColor: 'text-secondary',
+      buttonColor: 'bg-secondary hover:bg-secondary/90',
     },
   ];
 
@@ -257,7 +257,7 @@ export default function Profile() {
                 {/* Logout Button */}
                 <Button
                   variant="outline"
-                  className="border-destructive/50 text-destructive hover:bg-destructive mt-6 w-full transition-all duration-200 hover:text-black"
+                  className="border-destructive/50 text-destructive hover:bg-destructive hover:text-destructive-foreground mt-6 w-full transition-all duration-200"
                   onClick={signOut}
                   disabled={isLoggingOut}
                 >
@@ -278,24 +278,24 @@ export default function Profile() {
             >
               <Card className="overflow-hidden">
                 <CardContent className="p-6">
-                  <TabsList className="bg-grey-light/40 mb-8 grid w-full grid-cols-3">
+                  <TabsList className="bg-muted/40 mb-8 grid w-full grid-cols-3">
                     <TabsTrigger
                       value="profile"
-                      className="data-[state=active]:bg-background data-[state=active]:text-blue-dark"
+                      className="data-[state=active]:bg-background data-[state=active]:text-primary"
                     >
                       <User className="mr-2 size-4" />
                       <span className="hidden sm:inline">Perfil</span>
                     </TabsTrigger>
                     <TabsTrigger
                       value="security"
-                      className="data-[state=active]:bg-background data-[state=active]:text-blue-dark"
+                      className="data-[state=active]:bg-background data-[state=active]:text-primary"
                     >
                       <Shield className="mr-2 size-4" />
                       <span className="hidden sm:inline">Segurança</span>
                     </TabsTrigger>
                     <TabsTrigger
                       value="notifications"
-                      className="data-[state=active]:bg-background data-[state=active]:text-blue-dark"
+                      className="data-[state=active]:bg-background data-[state=active]:text-primary"
                     >
                       <Settings className="mr-2 size-4" />
                       <span className="hidden sm:inline">Configurações</span>

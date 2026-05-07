@@ -38,20 +38,20 @@ const STATUS_CONFIG = {
   taken: {
     icon: CheckCircle,
     label: 'Tomado',
-    className: 'border-green-dark text-green-dark hover:bg-green-light/30',
-    color: 'text-green-500',
+    className: 'border-accent-strong text-accent-strong hover:bg-accent-strong/10',
+    color: 'text-accent-strong',
   },
   skipped: {
     icon: XCircle,
     label: 'Pulado',
-    className: 'border-red-500 text-red-500 hover:bg-red-50',
-    color: 'text-red-500',
+    className: 'border-destructive text-destructive hover:bg-destructive/10',
+    color: 'text-destructive',
   },
   delayed: {
     icon: Clock,
     label: 'Atrasado',
-    className: 'border-amber-500 text-amber-500 hover:bg-amber-50',
-    color: 'text-amber-500',
+    className: 'border-primary text-primary hover:bg-primary/10',
+    color: 'text-primary',
   },
 } as const;
 
@@ -222,14 +222,14 @@ export default function MedicationSchedule({ className }: MedicationScheduleProp
   // Error state
   if (error) {
     return (
-      <Card className={cn('bg-white/90', className)}>
+      <Card className={cn('bg-card/90', className)}>
         <CardContent className="p-6">
           <div className="py-8 text-center">
-            <AlertCircle className="mx-auto mb-4 h-12 w-12 text-red-500" />
-            <h3 className="mb-2 text-lg font-medium text-red-800">
+            <AlertCircle className="mx-auto mb-4 h-12 w-12 text-destructive" />
+            <h3 className="mb-2 text-lg font-medium text-destructive">
               Não foi possível carregar a agenda
             </h3>
-            <p className="mb-4 text-red-600">{error}</p>
+            <p className="mb-4 text-destructive">{error}</p>
             <Button onClick={fetchTodaySchedule} variant="outline" disabled={isLoading}>
               {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Tentar Novamente
@@ -242,9 +242,9 @@ export default function MedicationSchedule({ className }: MedicationScheduleProp
 
   return (
     <>
-      <Card className={cn('bg-white/90', className)}>
+      <Card className={cn('bg-card/90', className)}>
         <CardHeader className="pb-3">
-          <CardTitle className="text-green-dark flex items-center gap-2 text-xl">
+          <CardTitle className="text-accent-strong flex items-center gap-2 text-xl">
             <CalendarCheck className="size-5" aria-hidden="true" />
             Agenda de Hoje
             {isLoading && <Loader2 className="ml-auto size-4 animate-spin" />}
@@ -253,12 +253,12 @@ export default function MedicationSchedule({ className }: MedicationScheduleProp
         <CardContent>
           {isLoading && scheduleItems.length === 0 ? (
             <div className="py-8 text-center">
-              <Loader2 className="text-green-dark mx-auto mb-4 h-8 w-8 animate-spin" />
+              <Loader2 className="text-accent-strong mx-auto mb-4 h-8 w-8 animate-spin" />
               <p className="text-muted-foreground">Carregando a agenda de hoje...</p>
             </div>
           ) : scheduleItems.length === 0 ? (
             <div className="text-muted-foreground py-8 text-center">
-              <CalendarCheck className="text-green-dark/50 mx-auto mb-4 h-12 w-12" />
+              <CalendarCheck className="text-accent-strong/50 mx-auto mb-4 h-12 w-12" />
               <p className="font-medium">Nenhum medicamento agendado para hoje!</p>
               <p className="mt-2 text-sm">
                 Todos os medicamentos foram tomados ou você não tem medicamentos ativos agendados
@@ -268,16 +268,16 @@ export default function MedicationSchedule({ className }: MedicationScheduleProp
           ) : (
             <div className="space-y-4">
               {scheduleItems.map((dose) => (
-                <Card key={dose.key} className="border-grey-light">
+                <Card key={dose.key} className="border-border">
                   <CardContent className="p-4">
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                       <div className="space-y-2">
-                        <h3 className="text-green-dark font-medium">{dose.medicationName}</h3>
+                        <h3 className="text-accent-strong font-medium">{dose.medicationName}</h3>
                         <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-blue-dark bg-[#A5DCF6]/20">
+                          <Badge variant="outline" className="text-secondary bg-secondary/20">
                             {dose.dosage}
                           </Badge>
-                          <Badge variant="outline" className="text-beige-dark bg-[#F2DECC]/20">
+                          <Badge variant="outline" className="text-muted-foreground bg-muted/20">
                             <Clock className="mr-1 h-3 w-3" aria-hidden="true" />
                             <time dateTime={dose.time}>{dose.time}</time>
                           </Badge>
@@ -368,7 +368,7 @@ export default function MedicationSchedule({ className }: MedicationScheduleProp
                 <Button
                   onClick={handleManualLog}
                   disabled={loadingStates.logging || !logData.time}
-                  className="bg-green-dark hover:bg-green-medium text-white"
+                  className="bg-accent-strong hover:bg-accent-strong/80 text-accent-strong-foreground"
                 >
                   {loadingStates.logging ? (
                     <>

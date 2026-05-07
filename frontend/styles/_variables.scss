@@ -176,29 +176,30 @@
       Global colors 
   **************************************************/
 
-  /* Global colors - Light mode */
-  --tt-bg-color: var(--white);
-  --tt-border-color: var(--tt-gray-light-a-200);
-  --tt-border-color-tint: var(--tt-gray-light-a-100);
-  --tt-sidebar-bg-color: var(--tt-gray-light-100);
-  --tt-scrollbar-color: var(--tt-gray-light-a-200);
-  --tt-cursor-color: var(--tt-brand-color-500);
-  --tt-selection-color: rgba(157, 138, 255, 0.2);
-  --tt-card-bg-color: var(--white);
-  --tt-card-border-color: var(--tt-gray-light-a-100);
+  /* Global colors - Light mode — aliased to brand semantic tokens */
+  --tt-bg-color: var(--card);
+  --tt-border-color: var(--border);
+  --tt-border-color-tint: var(--border);
+  --tt-sidebar-bg-color: var(--muted);
+  --tt-scrollbar-color: var(--border);
+  --tt-cursor-color: var(--primary);
+  /* primitive-primary-tint-20 defined in globals.css :root — amber tint, no relative-color-syntax */
+  --tt-selection-color: var(--primitive-primary-tint-20);
+  --tt-card-bg-color: var(--card);
+  --tt-card-border-color: var(--border);
 }
 
-/* Global colors - Dark mode */
+/* Global colors - Dark mode — aliased to brand semantic tokens */
 .dark {
-  --tt-bg-color: var(--black);
-  --tt-border-color: var(--tt-gray-dark-a-200);
-  --tt-border-color-tint: var(--tt-gray-dark-a-100);
-  --tt-sidebar-bg-color: var(--tt-gray-dark-100);
-  --tt-scrollbar-color: var(--tt-gray-dark-a-200);
-  --tt-cursor-color: var(--tt-brand-color-400);
-  --tt-selection-color: rgba(122, 82, 255, 0.2);
-  --tt-card-bg-color: var(--tt-gray-dark-50);
-  --tt-card-border-color: var(--tt-gray-dark-a-50);
+  --tt-bg-color: var(--card);
+  --tt-border-color: var(--border);
+  --tt-border-color-tint: var(--border);
+  --tt-sidebar-bg-color: var(--muted);
+  --tt-scrollbar-color: var(--border);
+  --tt-cursor-color: var(--primary);
+  --tt-selection-color: var(--primitive-primary-tint-20);
+  --tt-card-bg-color: var(--card);
+  --tt-card-border-color: var(--border);
 
   --tt-shadow-elevated-md:
     0px 16px 48px 0px rgba(0, 0, 0, 0.5), 0px 12px 24px 0px rgba(0, 0, 0, 0.24),

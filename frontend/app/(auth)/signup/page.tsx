@@ -48,7 +48,7 @@ export default function SignupPage() {
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
       <div className="grid w-full max-w-4xl gap-8 md:grid-cols-2 md:items-center">
         <div className="px-4">
-          <h2 className="small-caps font-varela text-green-dark mb-8 text-center text-4xl font-bold tracking-tight">
+          <h2 className="small-caps font-varela text-accent-strong mb-8 text-center text-4xl font-bold tracking-tight">
             Crie sua conta!
           </h2>
 
@@ -190,28 +190,28 @@ export default function SignupPage() {
               </form>
             </Form>
 
-            <p className="small-caps text-center text-sm text-gray-900">
+            <p className="small-caps text-center text-sm text-foreground">
               Ao criar uma conta, você concorda com nossos{' '}
               <Link
                 href="/terms"
-                className="hover:text-beige-dark leading-6 font-semibold text-black hover:underline"
+                className="hover:text-muted-foreground leading-6 font-semibold text-foreground hover:underline"
               >
                 Termos de Uso
               </Link>{' '}
               e{' '}
               <Link
                 href="/privacy"
-                className="hover:text-beige-dark leading-6 font-semibold text-black hover:underline"
+                className="hover:text-muted-foreground leading-6 font-semibold text-foreground hover:underline"
               >
                 Política de Privacidade
               </Link>
             </p>
 
-            <p className="small-caps text-center text-sm text-gray-900">
+            <p className="small-caps text-center text-sm text-foreground">
               Já tem conta?{' '}
               <Link
                 href="/signin"
-                className="hover:text-beige-dark leading-6 font-semibold text-black hover:underline"
+                className="hover:text-muted-foreground leading-6 font-semibold text-foreground hover:underline"
               >
                 Entrar
               </Link>

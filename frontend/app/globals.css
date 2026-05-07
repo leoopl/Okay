@@ -1,7 +1,64 @@
 @import 'tailwindcss';
-@config "../tailwind.config.ts";
+@config '../tailwind.config.ts';
 @import '../styles/_keyframe-animations.scss';
 @import '../styles/_variables.scss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  /* shadcn-required surfaces */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* project-specific tokens */
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-strong-foreground: var(--accent-strong-foreground);
+  --color-crisis: var(--crisis);
+  --color-crisis-foreground: var(--crisis-foreground);
+  --color-crisis-bg: var(--crisis-bg);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-bg: var(--success-bg);
+
+  /* charts */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* sidebar (kept for shadcn future-proofing) */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* radius — sole source of truth (extend.borderRadius removed from JS config) */
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
 
 /* React Day Picker override */
 .rdp-vhidden {
@@ -14,126 +71,206 @@
     scroll-behavior: smooth;
   }
 
-  /* CSS Variables for Light Theme */
+  /* =====================================================================
+   * LIGHT THEME — Okay! brand color system
+   *
+   * Palette structure: 5 hue families × 3 stops
+   *   Amber  — light #f8e3a3 / mid #f9d56e / dark #f9c22e (Honey Amber CTA)
+   *   Sky    — light #a5dcf6 / mid #78c7ee / dark RETIRED (was #039be5)
+   *   Sage   — light #d1dbc3 / mid #b6cfb8 / dark #7f9463 (heading sage)
+   *   Earth  — light #f2decc / mid #c2b2a3 / dark #91857a
+   *   Slate  — light #cbcfd7 / mid #a3a6b0 / dark #797d89
+   *                                          + Slate-900 #2c2f38 (body text)
+   *
+   * ===================================================================== */
   :root {
-    /* Background colors - warm, calming neutrals */
-    --background: 140 14% 95%; /* #f2f5f3 - Very light sage green */
-    --foreground: 225 8% 24%; /* #3a3c42 - Charcoal gray */
+    /* ── Primitives ────────────────────────────────────────────────────── */
+    --primitive-amber-mid: hsl(41 94% 58%); /* #f9c22e honey amber */
+    --primitive-amber-dark: hsl(39 25% 21%); /* #2d2a1b dark brown (contrast fg) */
+    --primitive-sky-light: hsl(199 84% 81%); /* #a5dcf6 sky light */
+    --primitive-sky-mid: hsl(201 79% 70%); /* #78c7ee sky mid */
+    --primitive-sky-dark: hsl(201 50% 45%); /* darkened sky, new ring value */
+    --primitive-sage-light: hsl(126 23% 76%); /* #b6cfb8 sage light */
+    --primitive-sage-mid-bg: hsl(140 14% 95%); /* #f2f5f3 sage-tinted page bg */
+    --primitive-sage-dark: hsl(86 20% 48%); /* #7f9463 sage dark (headings) */
+    --primitive-sage-lift: hsl(86 30% 62%); /* sage lifted for dark mode */
+    --primitive-earth-light: hsl(26 65% 87%); /* #f2decc earth light (muted bg) */
+    --primitive-earth-dark: hsl(27 10% 45%); /* warm gray, WCAG-corrected muted-fg */
+    --primitive-slate-light: hsl(220 15% 82%); /* #cbcfd7 slate light (border) */
+    --primitive-slate-mid: hsl(228 8% 66%); /* #a3a6b0 slate mid */
+    --primitive-slate-dark: hsl(225 12% 20%); /* #2c2f38 slate-900 (body text) */
+    --primitive-surface-0: hsl(35 8% 10%); /* warm dark bg */
+    --primitive-surface-1: hsl(35 7% 14%); /* warm dark card */
+    --primitive-surface-2: hsl(35 7% 18%); /* warm dark muted */
+    --primitive-canvas-light: hsl(0 0% 100%); /* white card/popover */
+    --primitive-crisis-red: hsl(0 35% 49%); /* #a95151 crisis */
+    --primitive-crisis-bg-light: hsl(0 50% 95%); /* #f9eaea crisis surface */
+    --primitive-emerald-mid: hsl(161 93% 30%); /* #059669 success */
+    --primitive-success-bg: hsl(96 42% 93%); /* #ecf5e6 warm success surface */
+    --primitive-primary-tint-20: hsl(41 94% 58% / 0.2); /* for TipTap selection */
 
-    /* Card colors - clean and accessible */
-    --card: 0 0% 100%; /* #ffffff - Pure white */
-    --card-foreground: 225 8% 24%; /* #3a3c42 - Charcoal gray */
+    /* ── Semantic — light ────────────────────────────────────────────── */
 
-    /* Popover colors */
-    --popover: 0 0% 100%; /* #ffffff - Pure white */
-    --popover-foreground: 225 8% 24%; /* #3a3c42 - Charcoal gray */
+    /* Page background — warm Sage-tinted neutral */
+    --background: hsl(140 14% 95%); /* #f2f5f3 */
+    --foreground: hsl(225 12% 20%); /* #2c2f38 — Slate-900, body text */
 
-    /* Primary - Warm, optimistic yellow (mental health friendly) */
-    --primary: 41 94% 58%; /* #f9c22e - Warm yellow */
-    --primary-foreground: 39 25% 21%; /* #2d2a1b - Dark brown */
+    /* Card surfaces — clean white above the page tint */
+    --card: hsl(0 0% 100%); /* #ffffff */
+    --card-foreground: hsl(225 12% 20%);
 
-    /* Secondary - Calming blue (anxiety-reducing) */
-    --secondary: 199 84% 81%; /* #a5dcf6 - Light blue */
-    --secondary-foreground: 210 22% 26%; /* #2a3642 - Dark blue-gray */
+    /* Popover surfaces */
+    --popover: hsl(0 0% 100%);
+    --popover-foreground: hsl(225 12% 20%);
 
-    /* Muted - Warm neutral (comforting) */
-    --muted: 26 65% 87%; /* #f2decc - Warm beige */
-    --muted-foreground: 27 10% 53%; /* #91857a - Muted brown */
+    /* Primary — Honey Amber CTA */
+    --primary: hsl(41 94% 58%); /* #f9c22e */
+    --primary-foreground: hsl(39 25% 21%); /* #2d2a1b dark brown for AA on yellow */
 
-    /* Accent - Soft green (growth and hope) */
-    --accent: 126 23% 76%; /* #b6cfb8 - Soft sage green */
-    --accent-foreground: 225 8% 24%; /* #3a3c42 - Charcoal gray */
+    /* Secondary — Sky.light (calming) */
+    --secondary: hsl(199 84% 81%); /* #a5dcf6 */
+    --secondary-foreground: hsl(210 22% 26%); /* #2a3642 */
 
-    /* Destructive - Gentle red (non-alarming) */
-    --destructive: 0 67% 73%; /* #e88a8a - Soft red */
-    --destructive-foreground: 0 0% 100%; /* #ffffff - White */
+    /* Muted — Earth.light (warm, comforting surface) */
+    --muted: hsl(26 65% 87%); /* #f2decc */
 
-    /* Border & Input colors - subtle and accessible */
-    --border: 220 15% 82%; /* #cbcfd7 - Light gray */
-    --input: 220 15% 82%; /* #cbcfd7 - Light gray */
-    --ring: 201 79% 70%; /* #78c7ee - Focus blue */
+    --muted-foreground: hsl(27 10% 45%);
 
-    /* Chart colors - consistent with brand palette */
-    --chart-1: 41 94% 58%; /* #f9c22e - Primary yellow */
-    --chart-2: 201 79% 70%; /* #78c7ee - Medium blue */
-    --chart-3: 95 19% 66%; /* #abb899 - Sage green */
-    --chart-4: 26 65% 87%; /* #f2decc - Warm beige */
-    --chart-5: 28 20% 70%; /* #c2b2a3 - Neutral beige */
+    /* Accent — Sage.medium for tinted backgrounds and selection */
+    --accent: hsl(126 23% 76%); /* #b6cfb8 */
+    --accent-foreground: hsl(225 12% 20%);
 
-    /* Sidebar colors - safe and welcoming */
-    --sidebar: 195 20% 95%; /* #eff3f4 - Very light blue-gray */
-    --sidebar-foreground: 225 8% 24%; /* #3a3c42 - Charcoal gray */
-    --sidebar-primary: 41 94% 58%; /* #f9c22e - Primary yellow */
-    --sidebar-primary-foreground: 39 25% 21%; /* #2d2a1b - Dark brown */
-    --sidebar-accent: 126 23% 76%; /* #b6cfb8 - Soft sage green */
-    --sidebar-accent-foreground: 225 8% 24%; /* #3a3c42 - Charcoal gray */
-    --sidebar-border: 220 15% 82%; /* #cbcfd7 - Light gray */
-    --sidebar-ring: 228 8% 66%; /* #a3a6b0 - Medium gray */
+    /* Accent-strong — Sage.dark for H1, H2, page titles */
+    --accent-strong: hsl(86 20% 48%); /* #7f9463 */
+    --accent-strong-foreground: hsl(0 0% 100%); /* white on sage fill */
+
+    --destructive: hsl(0 67% 73%);
+    --destructive-foreground: hsl(39 25% 21%); /* dark brown */
+
+    /* Crisis — urgent affordances (188 widget, panic-button) */
+    --crisis: hsl(0 35% 49%); /* #a95151 */
+    --crisis-foreground: hsl(0 0% 100%);
+    --crisis-bg: hsl(0 50% 95%); /* #f9eaea soft crisis surface */
+
+    /* Success — emerald text/border + warm-tinted surface */
+    --success: hsl(161 93% 30%); /* #059669 emerald-600 */
+    --success-foreground: hsl(0 0% 100%);
+    --success-bg: hsl(96 42% 93%); /* #ecf5e6 warm success surface */
+
+    /* Borders, inputs, focus ring */
+    --border: hsl(220 15% 82%); /* #cbcfd7 Slate.light */
+    --input: hsl(220 15% 82%);
+
+    --ring: hsl(201 79% 70%);
+
+    /* Chart colors — stable, revisit with mood-tracker redesign */
+    --chart-1: hsl(41 94% 58%); /* honey amber */
+    --chart-2: hsl(201 79% 70%); /* sky mid */
+    --chart-3: hsl(95 19% 66%); /* sage variant */
+    --chart-4: hsl(26 65% 87%); /* earth light */
+    --chart-5: hsl(28 20% 70%); /* earth medium */
+
+    /* Sidebar */
+    --sidebar: hsl(195 20% 95%); /* #eff3f4 */
+    --sidebar-foreground: hsl(225 12% 20%);
+    --sidebar-primary: hsl(41 94% 58%);
+    --sidebar-primary-foreground: hsl(39 25% 21%);
+    --sidebar-accent: hsl(126 23% 76%); /* sage medium */
+    --sidebar-accent-foreground: hsl(225 12% 20%);
+    --sidebar-border: hsl(220 15% 82%);
+    --sidebar-ring: hsl(228 8% 66%);
 
     /* Design system tokens */
     --radius: 0.5rem;
     --font-varela-round: 'Varela Round', sans-serif;
   }
 
-  /* Dark Theme Variables */
   .dark {
-    /* Background colors - dark but not harsh */
-    --background: 217 16% 12%; /* #1a1e24 - Dark blue-gray */
-    --foreground: 210 16% 93%; /* #e9ecef - Light gray */
+    /* ── Semantic — dark ──────────────────────────────────────────────
+     * Designed independently per decision (b). Warm-lamplit register
+     * for the 2am canonical user. Mirrors light theme's warm tint
+     * instinct, inverted in lightness.
+     * ──────────────────────────────────────────────────────────────── */
 
-    /* Card colors */
-    --card: 217 15% 17%; /* #242931 - Dark card background */
-    --card-foreground: 210 16% 93%; /* #e9ecef - Light text */
+    /* Page background — warm dark, slight amber tint */
+    --background: hsl(35 8% 10%); /* ~#1d1915 */
+    --foreground: hsl(35 10% 90%); /* ~#e7e2d6 — warm off-white */
 
-    /* Popover colors */
-    --popover: 217 15% 17%; /* #242931 - Dark popover */
-    --popover-foreground: 210 16% 93%; /* #e9ecef - Light text */
+    /* Card — slightly lifted from background */
+    --card: hsl(35 7% 14%); /* ~#252119 */
+    --card-foreground: hsl(35 10% 90%);
 
-    /* Primary - Slightly muted yellow (reduced eye strain) */
-    --primary: 44 81% 54%; /* #e9b829 - Muted yellow */
-    --primary-foreground: 39 25% 21%; /* #2d2a1b - Dark brown */
+    /* Popover — most lifted (floating surfaces) */
+    --popover: hsl(35 7% 17%); /* ~#2c2823 */
+    --popover-foreground: hsl(35 10% 90%);
 
-    /* Secondary - Deeper blue (calming in dark mode) */
-    --secondary: 201 50% 51%; /* #4095c3 - Medium blue */
-    --secondary-foreground: 210 16% 93%; /* #e9ecef - Light text */
+    /* Primary — Honey Amber muted to feel "lit", not "neon".
+       Pure #f9c22e vibrates against dark; this is calmer. */
+    --primary: hsl(43 80% 56%); /* ~#e8b234 — lamplit amber */
+    --primary-foreground: hsl(39 30% 12%); /* ~#231d11 — deep brown for pop */
 
-    /* Muted - Darker neutral tones */
-    --muted: 216 11% 25%; /* #394149 - Dark muted */
-    --muted-foreground: 206 11% 78%; /* #b8c0c7 - Light muted text */
+    /* Secondary — Sky calmed, presence without sharpness */
+    --secondary: hsl(199 55% 55%); /* ~#4a96b8 */
+    --secondary-foreground: hsl(35 10% 90%);
 
-    /* Accent - Deeper green (maintains hope/growth meaning) */
-    --accent: 124.8 20.66% 76.27%; /* #a4c4a7 - Muted sage green */
-    --accent-foreground: 210 16% 93%; /* #e9ecef - Light text */
+    /* Muted — warm dark tinted surface */
+    --muted: hsl(35 7% 18%); /* ~#302b25 */
+    --muted-foreground: hsl(35 8% 65%); /* ~#a8a39b — warm muted text */
 
-    /* Destructive - Muted red (less alarming) */
-    --destructive: 0 35% 49%; /* #a95151 - Darker red */
-    --destructive-foreground: 0 0% 95%; /* #f2f2f2 - Near white */
+    /* Accent — Sage darkened (tinted backgrounds, selection states) */
+    --accent: hsl(120 10% 22%); /* ~#33392f */
+    --accent-foreground: hsl(35 10% 90%);
 
-    /* Border & Input - subtle separation */
-    --border: 216 11% 25%; /* #394149 - Dark border */
-    --input: 216 11% 25%; /* #394149 - Dark input */
-    --ring: 214 8% 40%; /* #5d656c - Dark focus ring */
+    /* Accent-strong — Sage LIFTED for H1, H2, page titles.
+       Matches the design intent of --primitive-sage-lift. */
+    --accent-strong: hsl(86 30% 62%); /* ~#93b07a — sage lift */
+    --accent-strong-foreground: hsl(120 8% 12%); /* dark text on filled sage */
 
-    /* Chart colors - consistent meaning with light theme */
-    --chart-1: 44 81% 54%; /* #e9b829 - Muted yellow */
-    --chart-2: 201 50% 51%; /* #4095c3 - Medium blue */
-    --chart-3: 127 11% 45%; /* #657f68 - Dark green */
-    --chart-4: 23 15% 52%; /* #9a8672 - Dark beige */
-    --chart-5: 271 12% 48%; /* #7d6c8a - Dark purple */
+    /* Destructive — gentle pink-red for form errors. Less saturated
+       than --crisis so the two read as distinct semantic roles even
+       at similar luminance. */
+    --destructive: hsl(0 50% 65%); /* ~#c47878 — soft pink */
+    --destructive-foreground: hsl(0 0% 95%);
 
-    /* Sidebar - consistent with main theme */
-    --sidebar: 218 18% 15%; /* #1f242c - Darker sidebar */
-    --sidebar-foreground: 210 16% 93%; /* #e9ecef - Light text */
-    --sidebar-primary: 44 81% 54%; /* #e9b829 - Muted yellow */
-    --sidebar-primary-foreground: 39 25% 21%; /* #2d2a1b - Dark brown */
-    --sidebar-accent: 127 11% 45%; /* #657f68 - Dark green */
-    --sidebar-accent-foreground: 210 16% 93%; /* #e9ecef - Light text */
-    --sidebar-border: 216 11% 25%; /* #394149 - Dark border */
-    --sidebar-ring: 214 8% 40%; /* #5d656c - Dark ring */
+    /* Crisis — urgent red, more saturated than destructive.
+       Reads as "alarm" not "soft warning". Used for 188 widget. */
+    --crisis: hsl(0 75% 68%); /* ~#e57979 — vivid urgent red */
+    --crisis-foreground: hsl(0 0% 100%);
+    --crisis-bg: hsl(0 25% 18%); /* ~#3a2727 — dark crisis surface */
+
+    /* Success — emerald-400 territory for dark-mode visibility.
+       Text/border only; --success-bg carries the surface tint. */
+    --success: hsl(158 64% 52%); /* ~#34d399 — emerald-400 */
+    --success-foreground: hsl(0 0% 100%);
+    --success-bg: hsl(158 25% 16%); /* ~#1f3329 — dark success surface */
+
+    /* Borders, inputs, focus ring */
+    --border: hsl(35 7% 22%); /* ~#3a342e — warm dark border */
+    --input: hsl(35 7% 22%);
+    --ring: hsl(201 75% 62%); /* ~#56b1d8 — sky lifted for focus */
+
+    /* Chart colors — lifted versions of light-mode equivalents */
+    --chart-1: hsl(43 80% 56%); /* lamplit amber */
+    --chart-2: hsl(199 60% 60%); /* lifted sky */
+    --chart-3: hsl(86 30% 55%); /* lifted sage */
+    --chart-4: hsl(26 30% 55%); /* earth lifted */
+    --chart-5: hsl(28 15% 50%); /* earth muted */
+
+    /* Sidebar — same lift as card (consistent contained-surface logic) */
+    --sidebar: hsl(35 7% 13%); /* ~#231f17 */
+    --sidebar-foreground: hsl(35 10% 90%);
+    --sidebar-primary: hsl(43 80% 56%);
+    --sidebar-primary-foreground: hsl(39 30% 12%);
+    --sidebar-accent: hsl(86 25% 35%); /* sage deeper for sidebar selection */
+    --sidebar-accent-foreground: hsl(35 10% 90%);
+    --sidebar-border: hsl(35 7% 22%);
+    --sidebar-ring: hsl(228 8% 50%);
   }
 }
 
-/* Base element styling */
+/* =====================================================================
+ * Base element styling
+ * ===================================================================== */
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -146,35 +283,46 @@
       'calt' 1;
   }
 
+  h1,
+  h2 {
+    /* After token format migration, var(--accent-strong) holds a full
+       hsl() value — no wrapper needed. */
+    color: var(--accent-strong);
+  }
+
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--foreground);
+  }
+
   /* Enhanced focus styles for accessibility */
   *:focus-visible {
     @apply ring-ring ring-offset-background ring-2 ring-offset-2 outline-none;
   }
 
-  /* Button focus improvements */
   button:focus-visible,
   [role='button']:focus-visible {
     @apply ring-ring ring-2 ring-offset-2;
   }
 
-  /* Form element improvements */
   input:focus-visible,
   textarea:focus-visible,
   select:focus-visible {
     @apply ring-ring ring-2 ring-offset-2;
   }
 
-  /* Link improvements */
   a:focus-visible {
     @apply ring-ring rounded-sm ring-2 ring-offset-2;
   }
 
-  /* Improved selection colors */
+  /* Selection — light: warm amber tint; dark: sky tint for legibility */
   ::selection {
-    @apply bg-primary/20 text-primary-foreground;
+    @apply bg-primary/20 text-primary-foreground dark:bg-secondary/40 dark:text-foreground;
   }
 
-  /* Scrollbar styling */
+  /* Scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -193,9 +341,11 @@
   }
 }
 
-/* Component layer improvements */
+/* =====================================================================
+ * Component layer
+ * ===================================================================== */
 @layer components {
-  /* Enhanced card component */
+  /* Card */
   .card {
     @apply bg-card text-card-foreground overflow-hidden rounded-xl border shadow-sm transition-all duration-200;
   }
@@ -204,7 +354,7 @@
     @apply shadow-lg;
   }
 
-  /* Form component improvements */
+  /* Form sections */
   .form-section {
     @apply border-border bg-card/50 space-y-4 rounded-lg border p-6;
   }
@@ -217,7 +367,7 @@
     @apply text-muted-foreground text-sm;
   }
 
-  /* Button component enhancements */
+  /* Buttons */
   .btn-primary {
     @apply bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-primary/50;
   }
@@ -230,6 +380,11 @@
     @apply bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive/50;
   }
 
+  /* Crisis button — for emergency / 188 affordances ONLY */
+  .btn-crisis {
+    @apply bg-crisis text-crisis-foreground hover:bg-crisis/90 focus-visible:ring-crisis/50;
+  }
+
   /* Loading states */
   .loading-skeleton {
     @apply bg-muted/50 animate-pulse rounded;
@@ -239,30 +394,35 @@
     @apply text-muted-foreground animate-spin;
   }
 
-  /* Status indicators */
   .status-success {
-    @apply border-green-200 bg-green-50 text-green-600;
+    @apply bg-success-bg text-success border-success/30 border;
   }
 
   .status-error {
-    @apply border-red-200 bg-red-50 text-red-600;
+    @apply bg-destructive/12 text-destructive border-destructive/40 border;
+  }
+
+  .status-crisis {
+    @apply bg-crisis-bg text-crisis border-crisis/40 border;
   }
 
   .status-warning {
-    @apply border-yellow-200 bg-yellow-50 text-yellow-600;
+    @apply bg-primary/15 text-accent-strong border-primary/40 border;
   }
 
   .status-info {
-    @apply border-blue-200 bg-blue-50 text-blue-600;
+    @apply bg-secondary/40 text-secondary-foreground border-secondary/60 border;
   }
 
-  /* Typography improvements */
+  /* Typography */
   .heading-1 {
-    @apply text-foreground text-3xl font-bold tracking-tight;
+    @apply text-3xl font-bold tracking-tight;
+    color: var(--accent-strong);
   }
 
   .heading-2 {
-    @apply text-foreground text-2xl font-semibold tracking-tight;
+    @apply text-2xl font-semibold tracking-tight;
+    color: var(--accent-strong);
   }
 
   .heading-3 {
@@ -285,7 +445,7 @@
     @apply text-muted-foreground text-xs;
   }
 
-  /* Interactive element improvements */
+  /* Interactive element */
   .interactive-element {
     @apply cursor-pointer transition-all duration-200;
   }
@@ -303,9 +463,10 @@
   }
 }
 
-/* Utility layer enhancements */
+/* =====================================================================
+ * Utility layer
+ * ===================================================================== */
 @layer utilities {
-  /* Text utilities */
   .text-balance {
     text-wrap: balance;
   }
@@ -314,7 +475,6 @@
     font-variant: small-caps;
   }
 
-  /* Enhanced gradient background */
   .gradient-background {
     @apply from-background via-muted/20 to-accent/10 bg-gradient-to-br;
   }
@@ -323,7 +483,6 @@
     @apply from-background via-card to-muted/10 bg-gradient-to-br;
   }
 
-  /* Focus utilities */
   .focus-ring {
     @apply focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none;
   }
@@ -336,7 +495,10 @@
     @apply focus-visible:ring-destructive/50;
   }
 
-  /* Animation utilities */
+  .focus-ring-crisis {
+    @apply focus-visible:ring-crisis/50;
+  }
+
   .animate-fade-in {
     animation: fade-in 0.5s ease-out;
   }
@@ -349,7 +511,6 @@
     animation: scale-in 0.2s ease-out;
   }
 
-  /* Accessibility utilities */
   .sr-only-focusable {
     @apply focus:bg-background focus:text-foreground sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-2;
   }
@@ -363,7 +524,9 @@
   }
 }
 
-/* Print styles */
+/* =====================================================================
+ * Print styles
+ * ===================================================================== */
 @media print {
   .no-print {
     @apply hidden;
@@ -382,20 +545,21 @@
   }
 }
 
-/* High contrast mode support */
 @media (prefers-contrast: high) {
   :root {
-    --border: 0 0% 20%;
-    --ring: 0 0% 30%;
+    --border: hsl(0 0% 20%);
+    --ring: hsl(0 0% 30%);
   }
 
   .dark {
-    --border: 0 0% 70%;
-    --ring: 0 0% 80%;
+    --border: hsl(0 0% 70%);
+    --ring: hsl(0 0% 80%);
   }
 }
 
-/* Reduced motion support */
+/* =====================================================================
+ * Reduced motion
+ * ===================================================================== */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -407,7 +571,6 @@
   }
 }
 
-/* Custom keyframes for enhanced animations */
 @keyframes fade-in {
   from {
     opacity: 0;

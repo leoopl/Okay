@@ -112,7 +112,7 @@ export default function AdminTestimonialsClient({ initialTestimonials, initialEr
                     <CardTitle className="text-lg">
                       {testimonial.email}
                       {testimonial.newsletter && (
-                        <Badge className="bg-blue-light text-blue-dark ml-2">Newsletter</Badge>
+                        <Badge className="bg-secondary/20 text-secondary ml-2">Newsletter</Badge>
                       )}
                     </CardTitle>
                     <CardDescription>
@@ -126,9 +126,9 @@ export default function AdminTestimonialsClient({ initialTestimonials, initialEr
                   <Badge
                     className={
                       testimonial.status === 'pending'
-                        ? 'bg-yellow-light text-yellow-dark'
+                        ? 'bg-primary/20 text-accent-strong'
                         : testimonial.status === 'approved'
-                          ? 'bg-green-light text-green-dark'
+                          ? 'bg-success-bg text-success'
                           : 'bg-destructive/20 text-destructive'
                     }
                   >
@@ -136,7 +136,7 @@ export default function AdminTestimonialsClient({ initialTestimonials, initialEr
                   </Badge>
                 </CardHeader>
                 <CardContent className="pt-4">
-                  <p className="whitespace-pre-wrap text-gray-700">{testimonial.message}</p>
+                  <p className="whitespace-pre-wrap text-foreground">{testimonial.message}</p>
                 </CardContent>
                 <CardFooter className="bg-muted/20 flex justify-end gap-2 pt-2">
                   {testimonial.status === 'pending' && (
@@ -154,7 +154,7 @@ export default function AdminTestimonialsClient({ initialTestimonials, initialEr
                         variant="outline"
                         size="sm"
                         disabled={isPending}
-                        className="border-green-dark text-green-dark hover:bg-green-light/50"
+                        className="border-accent-strong text-accent-strong hover:bg-accent-strong/10"
                         onClick={() => handleApprove(testimonial.id)}
                       >
                         Aprovar

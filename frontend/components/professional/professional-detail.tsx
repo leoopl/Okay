@@ -22,9 +22,9 @@ interface ProfessionalDetailProps {
 export function ProfessionalDetail({ professional }: ProfessionalDetailProps) {
   return (
     <div className="space-y-6">
-      <div className="bg-yellow-light/10 flex flex-col rounded-lg p-6 sm:flex-row sm:items-center sm:gap-6">
+      <div className="bg-primary/10 flex flex-col rounded-lg p-6 sm:flex-row sm:items-center sm:gap-6">
         <div className="mb-4 flex items-center justify-center sm:mb-0">
-          <div className="bg-yellow-medium/20 ring-yellow-medium/30 flex h-32 w-32 items-center justify-center overflow-hidden rounded-full ring-4">
+          <div className="bg-primary/20 ring-primary/30 flex h-32 w-32 items-center justify-center overflow-hidden rounded-full ring-4">
             <Image
               src={`/${professional.photo}`}
               alt={professional.name}
@@ -37,10 +37,10 @@ export function ProfessionalDetail({ professional }: ProfessionalDetailProps) {
 
         <div className="flex flex-1 flex-col">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <h1 className="font-varela text-green-dark text-3xl font-medium">
+            <h1 className="font-varela text-accent-strong text-3xl font-medium">
               {professional.name}
             </h1>
-            <Badge className="text-yellow-dark border-yellow-medium bg-yellow-light/20 text-lg">
+            <Badge className="text-primary border-primary bg-primary/10 text-lg">
               {professional.specialty.Profession}
             </Badge>
           </div>
@@ -50,28 +50,28 @@ export function ProfessionalDetail({ professional }: ProfessionalDetailProps) {
               <Badge
                 key={approach}
                 variant="outline"
-                className="text-yellow-dark border-yellow-medium/70 bg-yellow-light/20"
+                className="text-primary border-primary/70 bg-primary/10"
               >
                 {approach}
               </Badge>
             ))}
           </div>
 
-          <div className="text-grey-dark grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+          <div className="text-muted-foreground grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
             <div className="flex items-center gap-2">
-              <Mail className="text-blue-dark mt-0.5 size-4" />
+              <Mail className="text-primary mt-0.5 size-4" />
               <span>{professional.email}</span>
             </div>
             <div className="flex items-center gap-2">
-              <Phone className="text-blue-dark mt-0.5 size-4" />
+              <Phone className="text-primary mt-0.5 size-4" />
               <span>{professional.number}</span>
             </div>
             <div className="flex items-center gap-2">
-              <Building className="text-blue-dark mt-0.5 size-4" />
+              <Building className="text-primary mt-0.5 size-4" />
               <span>{professional.address.office}</span>
             </div>
             <div className="flex items-center gap-2">
-              <MapPin className="text-blue-dark mt-0.5 size-4" />
+              <MapPin className="text-primary mt-0.5 size-4" />
               <span>
                 {professional.address.street}, {professional.address.number} -{' '}
                 {professional.address.neighborhood}, {professional.address.city},{' '}
@@ -84,18 +84,18 @@ export function ProfessionalDetail({ professional }: ProfessionalDetailProps) {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <div className="md:col-span-2">
-          <Card className="border-beige-medium/50">
+          <Card className="border-border">
             <CardContent className="p-6">
-              <h2 className="font-varela text-green-dark mb-4 text-xl font-medium">Sobre</h2>
-              <p className="text-grey-dark">{professional.resume}</p>
+              <h2 className="font-varela text-accent-strong mb-4 text-xl font-medium">Sobre</h2>
+              <p className="text-muted-foreground">{professional.resume}</p>
 
-              <Separator className="bg-beige-darkborder-beige-medium/50 my-6" />
+              <Separator className="my-6" />
 
-              <h2 className="font-varela text-green-dark mb-4 text-xl font-medium">Localização</h2>
+              <h2 className="font-varela text-accent-strong mb-4 text-xl font-medium">Localização</h2>
 
-              <div className="aspect-video w-full overflow-hidden rounded-lg bg-[#A5DCF6]/30">
+              <div className="aspect-video w-full overflow-hidden rounded-lg bg-secondary/20">
                 <div className="flex h-full w-full items-center justify-center">
-                  <p className="text-center text-sm text-[#797D89]">
+                  <p className="text-center text-sm text-muted-foreground">
                     Mapa será carregado aqui usando as coordenadas:
                     <br />
                     Latitude: {professional.address.latitude}
@@ -105,7 +105,7 @@ export function ProfessionalDetail({ professional }: ProfessionalDetailProps) {
                 </div>
               </div>
 
-              <div className="text-beige-dark mt-4 text-sm">
+              <div className="text-muted-foreground mt-4 text-sm">
                 <p>
                   <strong>Endereço completo:</strong> {professional.address.street},{' '}
                   {professional.address.number} - {professional.address.neighborhood},{' '}
@@ -118,9 +118,9 @@ export function ProfessionalDetail({ professional }: ProfessionalDetailProps) {
         </div>
 
         <div className="space-y-4">
-          <Card className="border-beige-medium/50">
+          <Card className="border-border">
             <CardContent className="p-6">
-              <h2 className="font-varela text-green-dark mb-4 text-lg font-medium">
+              <h2 className="font-varela text-accent-strong mb-4 text-lg font-medium">
                 Agendar Consulta
               </h2>
 
@@ -131,9 +131,9 @@ export function ProfessionalDetail({ professional }: ProfessionalDetailProps) {
             </CardContent>
           </Card>
 
-          <Card className="border-beige-medium/50">
+          <Card className="border-border">
             <CardContent className="p-6">
-              <h2 className="font-varela text-green-dark mb-4 text-lg font-medium">Compartilhar</h2>
+              <h2 className="font-varela text-accent-strong mb-4 text-lg font-medium">Compartilhar</h2>
 
               <Button variant="outline" className="w-full">
                 <Share2 className="mr-2 h-4 w-4" />
@@ -146,7 +146,7 @@ export function ProfessionalDetail({ professional }: ProfessionalDetailProps) {
                   Salvar
                 </Button>
 
-                <div className="text-beige-dark flex items-center text-xs">
+                <div className="text-muted-foreground flex items-center text-xs">
                   <Clock className="mr-1 h-3 w-3" />
                   Atualizado recentemente
                 </div>
@@ -154,32 +154,32 @@ export function ProfessionalDetail({ professional }: ProfessionalDetailProps) {
             </CardContent>
           </Card>
 
-          <Card className="border-beige-medium/50">
+          <Card className="border-border">
             <CardContent className="p-6">
-              <h2 className="font-varela text-green-dark mb-4 text-lg font-medium">
+              <h2 className="font-varela text-accent-strong mb-4 text-lg font-medium">
                 Horários Disponíveis
               </h2>
 
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-beige-dark">Segunda-feira</span>
-                  <span className="text-beige-dark font-medium">09:00 - 17:00</span>
+                  <span className="text-muted-foreground">Segunda-feira</span>
+                  <span className="text-muted-foreground font-medium">09:00 - 17:00</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-beige-dark">Terça-feira</span>
-                  <span className="text-beige-dark font-medium">09:00 - 17:00</span>
+                  <span className="text-muted-foreground">Terça-feira</span>
+                  <span className="text-muted-foreground font-medium">09:00 - 17:00</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-beige-dark">Quarta-feira</span>
-                  <span className="text-beige-dark font-medium">09:00 - 17:00</span>
+                  <span className="text-muted-foreground">Quarta-feira</span>
+                  <span className="text-muted-foreground font-medium">09:00 - 17:00</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-beige-dark">Quinta-feira</span>
-                  <span className="text-beige-dark font-medium">09:00 - 17:00</span>
+                  <span className="text-muted-foreground">Quinta-feira</span>
+                  <span className="text-muted-foreground font-medium">09:00 - 17:00</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-beige-dark">Sexta-feira</span>
-                  <span className="text-beige-dark font-medium">09:00 - 15:00</span>
+                  <span className="text-muted-foreground">Sexta-feira</span>
+                  <span className="text-muted-foreground font-medium">09:00 - 15:00</span>
                 </div>
               </div>
             </CardContent>

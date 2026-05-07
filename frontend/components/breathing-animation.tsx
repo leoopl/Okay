@@ -29,7 +29,7 @@ const BreathingAnimation: React.FC<BreathingAnimationProps> = ({ onClose, breath
           <X className="size-6" aria-hidden="true" />
         </Button>
         <h2
-          className="text-beige-light mb-6 text-2xl font-bold"
+          className="mb-6 text-2xl font-bold text-white"
           aria-live="assertive"
           aria-atomic="true"
         >
@@ -37,7 +37,7 @@ const BreathingAnimation: React.FC<BreathingAnimationProps> = ({ onClose, breath
         </h2>
         <div className="size-64 content-center justify-items-center rounded-full bg-white/10">
           <div
-            className="bg-blue-medium size-64 rounded-full"
+            className="bg-secondary size-64 rounded-full"
             style={{
               transform: `scale(${circleScale})`,
               transition: `transform ${transitionDuration}s ease-in-out`,

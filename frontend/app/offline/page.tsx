@@ -6,17 +6,17 @@ export default function OfflinePage() {
     <div className="flex min-h-screen flex-col items-center justify-center px-4 py-8">
       <div className="grid gap-8 md:grid-cols-2 md:items-center">
         <div className="text-center">
-          <h1 className="font-varela text-green-dark mb-4 text-3xl font-bold">Você está offline</h1>
-          <p className="mb-6 text-gray-700">
+          <h1 className="font-varela text-accent-strong mb-4 text-3xl font-bold">Você está offline</h1>
+          <p className="mb-6 text-muted-foreground">
             Parece que você perdeu a conexão com a internet. Algumas funcionalidades podem estar
             limitadas até que você se reconecte.
           </p>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             Os conteúdos que você já visitou ainda estão disponíveis.
           </p>
           <Link
             href="/"
-            className="small-caps bg-yellow-medium mt-6 inline-flex rounded-md px-4 py-2 font-semibold text-black shadow-sm"
+            className="small-caps bg-primary mt-6 inline-flex rounded-md px-4 py-2 font-semibold text-primary-foreground shadow-sm"
           >
             Voltar para a página inicial
           </Link>

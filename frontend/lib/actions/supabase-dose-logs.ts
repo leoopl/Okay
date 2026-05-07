@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import type { Database } from '@/lib/supabase/database.types';
 import { startOfDay, endOfDay, subDays, format } from 'date-fns';
+import { ConnectionAccessException } from '@/lib/definitions';
 
 type DoseLog = Database['public']['Tables']['dose_logs']['Row'];
 type DoseLogInsert = Database['public']['Tables']['dose_logs']['Insert'];
@@ -414,9 +415,7 @@ export async function getDoseLogsForPatient(
   patientId: string,
   range?: { startDate?: Date; endDate?: Date; medicationId?: string },
 ): Promise<{ success: boolean; logs: any[]; error?: string }> {
-  const { assertProviderCanAccessPatientResource, ConnectionAccessException } = await import(
-    './connection-access'
-  );
+  const { assertProviderCanAccessPatientResource } = await import('./connection-access');
 
   try {
     await assertProviderCanAccessPatientResource({

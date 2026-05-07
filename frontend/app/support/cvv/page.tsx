@@ -14,10 +14,10 @@ export default function Cvv() {
       <div className="flex flex-col items-center text-center">
         <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2">
           <div className="animate-fade-in flex flex-col gap-8">
-            <h1 className="font-varela text-green-dark text-xl leading-tight font-bold sm:text-2xl md:text-3xl lg:text-4xl">
+            <h1 className="font-varela text-accent-strong text-xl leading-tight font-bold sm:text-2xl md:text-3xl lg:text-4xl">
               Centro de Valorização da Vida (CVV)
             </h1>
-            <p className="text-beige-dark text-lg sm:text-xl">
+            <p className="text-muted-foreground text-lg sm:text-xl">
               Apoio emocional e prevenção do suicídio
             </p>
           </div>
@@ -27,16 +27,16 @@ export default function Cvv() {
             </div>
           </div>
         </div>
-        <div className="bg-yellow-dark mt-6 h-1 w-60 rounded-full"></div>
+        <div className="bg-primary mt-6 h-1 w-60 rounded-full"></div>
       </div>
 
       {/* Quem somos Card */}
       <section className="mt-12">
-        <Card className="border-green-medium overflow-hidden transition-all duration-300 hover:shadow-md">
-          <CardHeader className="border-green-medium border-b bg-[#D1DBC3]/30">
-            <CardTitle className="font-varela text-green-dark flex items-center">
+        <Card className="border-accent-strong/40 overflow-hidden transition-all duration-300 hover:shadow-md">
+          <CardHeader className="border-accent-strong/40 border-b bg-accent-strong/10">
+            <CardTitle className="font-varela text-accent-strong flex items-center">
               <span className="mr-2">
-                <Info className="text-green-dark size-6" />
+                <Info className="text-accent-strong size-6" />
               </span>
               Sobre o CVV
             </CardTitle>
@@ -51,7 +51,7 @@ export default function Cvv() {
               entidade nacional fundada em 1962, financeira e ideologicamente independente. Sem viés
               religioso, político-partidário ou empresarial.
             </p>
-            <div className="text-yellow-dark mt-6 flex place-self-center">
+            <div className="text-primary mt-6 flex place-self-center">
               <Heart className="mr-2 size-5" />
               <span className="font-medium">Estamos aqui para ouvir, sem julgamentos.</span>
             </div>
@@ -60,22 +60,22 @@ export default function Cvv() {
       </section>
 
       <section className="mt-12">
-        <h2 className="text-green-dark font-varela mb-6 text-center text-xl font-semibold sm:text-2xl">
+        <h2 className="text-accent-strong font-varela mb-6 text-center text-xl font-semibold sm:text-2xl">
           Como Podemos Ajudar
         </h2>
 
         <div className="mb-8">
           {/* Online Chat Section */}
           <Card className="shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-            <CardHeader className="bg-green-light/30 rounded-t-lg">
+            <CardHeader className="bg-accent-strong/10 rounded-t-lg">
               {isMobile ? (
                 // Mobile layout: Stack vertically
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="bg-green-light text-grey-dark rounded-full p-3">
+                    <div className="bg-accent-strong/20 text-accent-strong rounded-full p-3">
                       <MessageCircle className="size-6" />
                     </div>
-                    <CardTitle className="text-green-dark text-lg sm:text-xl">
+                    <CardTitle className="text-accent-strong text-lg sm:text-xl">
                       Chat Online
                     </CardTitle>
                   </div>
@@ -96,10 +96,10 @@ export default function Cvv() {
                 // Desktop layout: Side by side
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="bg-green-light text-grey-dark rounded-full p-3">
+                    <div className="bg-accent-strong/20 text-accent-strong rounded-full p-3">
                       <MessageCircle className="size-6" />
                     </div>
-                    <CardTitle className="text-green-dark text-xl">Chat Online</CardTitle>
+                    <CardTitle className="text-accent-strong text-xl">Chat Online</CardTitle>
                   </div>
                   <div>
                     <a
@@ -126,9 +126,9 @@ export default function Cvv() {
                 Nossos voluntários são treinados para conversar com todas as pessoas que procuram
                 ajuda e apoio emocional.
               </p>
-              <div className="bg-green-light/20 mb-4 rounded-lg p-4 text-center">
-                <p className="text-grey-dark text-sm sm:text-base">
-                  <span className="mb-1 block font-semibold text-black">
+              <div className="bg-accent-strong/10 mb-4 rounded-lg p-4 text-center">
+                <p className="text-muted-foreground text-sm sm:text-base">
+                  <span className="mb-1 block font-semibold text-foreground">
                     Horário de atendimento:
                   </span>
                   Domingos: 15h às 01h <br></br> Segundas-feiras: 08h às 01h <br></br>{' '}
@@ -145,12 +145,12 @@ export default function Cvv() {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-1 lg:grid-cols-2">
           {/* Support Number Card */}
           <Card className="shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-            <CardHeader className="bg-blue-light/30 rounded-t-lg">
+            <CardHeader className="bg-secondary/20 rounded-t-lg">
               <div className="flex items-center gap-3">
-                <div className="bg-blue-light text-grey-dark rounded-full p-3">
+                <div className="bg-secondary/30 text-secondary rounded-full p-3">
                   <Phone className="size-6" />
                 </div>
-                <CardTitle className="text-blue-dark text-lg sm:text-xl">Ligue 188</CardTitle>
+                <CardTitle className="text-secondary text-lg sm:text-xl">Ligue 188</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="p-4 pt-6 sm:p-6">
@@ -158,9 +158,9 @@ export default function Cvv() {
                 Converse gratuitamente com um dos nossos voluntários, de qualquer lugar do Brasil,
                 24 horas por dia.
               </p>
-              <div className="bg-blue-light/20 mb-4 rounded-lg p-4 text-center">
-                <span className="text-blue-dark block text-2xl font-bold sm:text-3xl">188</span>
-                <span className="text-grey-dark text-sm sm:text-base">Ligação Gratuita</span>
+              <div className="bg-secondary/10 mb-4 rounded-lg p-4 text-center">
+                <span className="text-secondary block text-2xl font-bold sm:text-3xl">188</span>
+                <span className="text-muted-foreground text-sm sm:text-base">Ligação Gratuita</span>
               </div>
             </CardContent>
             <CardFooter className="p-4 sm:p-6">
@@ -172,12 +172,12 @@ export default function Cvv() {
 
           {/* Website Link Card */}
           <Card className="shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-            <CardHeader className="bg-beige-light/30 rounded-t-lg">
+            <CardHeader className="bg-muted/30 rounded-t-lg">
               <div className="flex items-center gap-3">
-                <div className="bg-beige-light text-grey-dark rounded-full p-3">
+                <div className="bg-muted text-muted-foreground rounded-full p-3">
                   <Globe className="size-6" />
                 </div>
-                <CardTitle className="text-beige-dark text-lg sm:text-xl">Site Oficial</CardTitle>
+                <CardTitle className="text-muted-foreground text-lg sm:text-xl">Site Oficial</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="p-4 pt-6 sm:p-6">
@@ -185,9 +185,9 @@ export default function Cvv() {
                 Acesse o site oficial do CVV para mais recursos, informações e formas de ajudar você
                 nesse momento difícil.
               </p>
-              <div className="bg-beige-light/20 mb-4 rounded-lg p-4 text-center">
-                <p className="text-grey-dark">
-                  <span className="font-varela mb-1 block text-2xl font-semibold text-black sm:text-3xl">
+              <div className="bg-muted/20 mb-4 rounded-lg p-4 text-center">
+                <p className="text-muted-foreground">
+                  <span className="font-varela mb-1 block text-2xl font-semibold text-foreground sm:text-3xl">
                     cvv.org.br
                   </span>
                   <span className="text-sm sm:text-base">

@@ -102,7 +102,7 @@ export function NotificationSettings() {
         <div className="flex items-center justify-between rounded-lg border p-4">
           <div className="flex items-center gap-3">
             {permission === 'granted' ? (
-              <Bell className="h-5 w-5 text-green-600" />
+              <Bell className="h-5 w-5 text-accent-strong" />
             ) : (
               <BellOff className="text-muted-foreground h-5 w-5" />
             )}

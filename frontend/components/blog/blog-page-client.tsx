@@ -26,9 +26,9 @@ export function BlogPageClient({ initialPosts }: BlogPageClientProps) {
 
   if (initialPosts.length === 0) {
     return (
-      <div className="rounded-xl border border-[#CBCFD7] bg-white/50 py-12 text-center">
-        <h3 className="mb-2 text-xl font-bold text-[#7F9463]">Nenhum artigo encontrado</h3>
-        <p className="text-[#91857A]">
+      <div className="rounded-xl border border-border bg-card/50 py-12 text-center">
+        <h3 className="mb-2 text-xl font-bold text-accent-strong">Nenhum artigo encontrado</h3>
+        <p className="text-muted-foreground">
           Tente ajustar sua busca ou filtro para encontrar o que procura.
         </p>
       </div>

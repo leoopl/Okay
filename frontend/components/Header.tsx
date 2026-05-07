@@ -20,6 +20,7 @@ import Logo from './common/Logo';
 import { Button } from './ui/button';
 import { Separator } from './ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { ThemeToggle } from './theme-toggle';
 import { getUserInitials } from '@/lib/utils';
 import { useState } from 'react';
 import { useAuth } from '@/providers/auth-provider';
@@ -92,13 +93,13 @@ const Header: React.FC = () => {
   const isMobile = useMobile();
 
   const handleLogout = async () => {
-    setIsMobileMenuOpen(false); // Close menu on logout
+    setIsMobileMenuOpen(false);
     await signOut();
   };
 
   return (
     <header
-      className={`shadow-soft-xs ${isMobile ? 'sticky top-0 z-50 bg-white/50 backdrop-blur-sm' : ''}`}
+      className={`shadow-soft-xs ${isMobile ? 'bg-background/50 sticky top-0 z-50 backdrop-blur-sm' : ''}`}
     >
       <nav
         aria-label="Global"
@@ -116,19 +117,20 @@ const Header: React.FC = () => {
             <Link
               key={page.name}
               href={page.href}
-              className="hover:text-yellow-dark font-varela text-lg text-gray-900 transition-colors"
+              className="hover:text-primary font-varela text-foreground text-lg transition-colors"
             >
               {page.name}
             </Link>
           ))}
         </div>
-        <div className="hidden lg:flex lg:items-center">
+        <div className="hidden lg:flex lg:items-center lg:gap-2">
+          <ThemeToggle />
           {user ? (
             <UserButton />
           ) : (
             <Link
               href="/signin"
-              className="hover:text-yellow-dark font-varela text-lg font-semibold text-gray-900"
+              className="hover:text-primary font-varela text-foreground text-lg font-semibold"
             >
               Login
             </Link>
@@ -141,13 +143,13 @@ const Header: React.FC = () => {
             <SheetTrigger asChild>
               <Button
                 type="button"
-                className="inline-flex items-center justify-center rounded-md bg-transparent p-2 text-gray-700 focus:ring-2 focus:outline-none focus:ring-inset"
+                className="text-muted-foreground inline-flex items-center justify-center rounded-md bg-transparent p-2 focus:ring-2 focus:outline-none focus:ring-inset"
                 aria-label="Abrir menu principal"
               >
                 <Menu className="size-6 cursor-pointer" aria-hidden="true" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="bg-white p-4">
+            <SheetContent side="right" className="bg-background p-4">
               <SheetTitle>
                 <Link
                   href="/"
@@ -160,61 +162,63 @@ const Header: React.FC = () => {
 
               {user && profile ? (
                 <div className="mt-7 flex items-center gap-3">
-                  <Avatar className="ring-beige-medium/30 size-10 ring-2">
+                  <Avatar className="ring-border/30 size-10 ring-2">
                     <AvatarImage
                       src={profile?.profilePictureUrl ?? undefined}
                       alt={profile.name}
                       className="object-cover"
                     />
-                    <AvatarFallback className="from-yellow-light to-yellow-dark bg-gradient-to-br text-sm font-medium text-white">
+                    <AvatarFallback className="from-primary/30 to-primary text-primary-foreground bg-linear-to-br text-sm font-medium">
                       {getUserInitials(profile as any)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium text-black">{profile.name}</span>
-                    <span className="text-grey-dark text-xs">{profile.email}</span>
+                    <span className="text-foreground text-sm font-medium">{profile.name}</span>
+                    <span className="text-muted-foreground text-xs">{profile.email}</span>
                   </div>
                 </div>
               ) : null}
 
-              <Separator className="bg-grey-medium my-4" />
+              <div className="mt-4 flex items-center justify-between">
+                <ThemeToggle />
+              </div>
+
+              <Separator className="bg-border my-4" />
 
               <nav className="flex flex-col space-y-1">
-                {' '}
                 {pages.map((page) => (
                   <Link
                     key={page.name}
                     href={page.href}
-                    className="hover:bg-yellow-dark/40 flex gap-2 rounded-md px-3 py-2 text-base font-medium text-black"
+                    className="hover:bg-primary/40 text-foreground flex gap-2 rounded-md px-3 py-2 text-base font-medium"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <span>
-                      <page.icon className="text-green-dark mt-1 size-4" />
+                      <page.icon className="text-accent-strong mt-1 size-4" />
                     </span>
                     {page.name}
                   </Link>
                 ))}
-                <Separator className="bg-grey-medium my-4" />
+                <Separator className="bg-border my-4" />
                 {user ? (
                   <>
-                    {' '}
                     {userPages.map((page) => (
                       <Link
                         key={page.name}
                         href={page.href}
-                        className="hover:bg-yellow-dark/40 flex gap-2 rounded-md px-3 py-2 text-base font-medium text-gray-900"
+                        className="hover:bg-primary/40 text-foreground flex gap-2 rounded-md px-3 py-2 text-base font-medium"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         <span>
-                          <page.icon className="text-green-dark mt-1 size-4" />
+                          <page.icon className="text-accent-strong mt-1 size-4" />
                         </span>
                         {page.name}
                       </Link>
                     ))}
-                    <Separator className="bg-grey-medium my-4" />
+                    <Separator className="bg-border my-4" />
                     <Button
                       variant="ghost"
-                      className="hover:bg-destructive/40 w-full cursor-pointer rounded-md px-3 py-2 text-left text-base font-medium text-red-600 transition-colors duration-150"
+                      className="hover:bg-destructive/40 text-destructive w-full cursor-pointer rounded-md px-3 py-2 text-left text-base font-medium transition-colors duration-150"
                       onClick={handleLogout}
                       disabled={isLoggingOut}
                     >
@@ -227,7 +231,7 @@ const Header: React.FC = () => {
                 ) : (
                   <Link
                     href="/signin"
-                    className="hover:bg-yellow-dark/40 block rounded-md px-3 py-2 text-base font-medium text-gray-900"
+                    className="hover:bg-primary/40 text-foreground block rounded-md px-3 py-2 text-base font-medium"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Login

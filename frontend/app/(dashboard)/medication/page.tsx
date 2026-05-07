@@ -106,8 +106,8 @@ export default function MedicationPage() {
       <main className="container mx-auto px-4 py-8 md:py-12">
         <div className="mx-auto max-w-7xl">
           <div className="py-16 text-center">
-            <Loader2 className="text-green-dark mx-auto mb-6 h-12 w-12 animate-spin" />
-            <h2 className="text-green-dark mb-2 text-xl font-semibold sm:text-2xl">
+            <Loader2 className="text-accent-strong mx-auto mb-6 h-12 w-12 animate-spin" />
+            <h2 className="text-accent-strong mb-2 text-xl font-semibold sm:text-2xl">
               Carregando Rastreador de Medicamentos
             </h2>
             <p className="text-muted-foreground text-sm sm:text-base">
@@ -125,11 +125,11 @@ export default function MedicationPage() {
       <main className="container mx-auto px-4 py-8 md:py-12">
         <div className="mx-auto max-w-7xl">
           <div className="py-16 text-center">
-            <AlertCircle className="mx-auto mb-6 h-16 w-16 text-red-500" />
-            <h2 className="mb-2 text-xl font-semibold text-red-800 sm:text-2xl">
+            <AlertCircle className="mx-auto mb-6 h-16 w-16 text-destructive" />
+            <h2 className="mb-2 text-xl font-semibold text-destructive sm:text-2xl">
               Não foi possível carregar o Rastreador de Medicamentos
             </h2>
-            <p className="mx-auto mb-6 max-w-md text-sm text-red-600 sm:text-base">
+            <p className="mx-auto mb-6 max-w-md text-sm text-destructive sm:text-base">
               {errors.medications?.message ||
                 'Ocorreu um erro inesperado ao carregar seus dados de medicamentos.'}
             </p>
@@ -163,7 +163,7 @@ export default function MedicationPage() {
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <div className="text-center sm:text-left">
-            <h1 className="text-green-dark font-varela text-2xl font-bold sm:text-3xl md:text-4xl">
+            <h1 className="text-accent-strong font-varela text-2xl font-bold sm:text-3xl md:text-4xl">
               Rastreador de Medicamentos
             </h1>
             <p className="text-muted-foreground mt-2 text-sm sm:text-base">
@@ -173,7 +173,7 @@ export default function MedicationPage() {
 
           {/* Global loading indicator */}
           {isAnyLoading && (
-            <div className="text-green-dark mt-4 flex items-center justify-center gap-2 sm:justify-start">
+            <div className="text-accent-strong mt-4 flex items-center justify-center gap-2 sm:justify-start">
               <Loader2 className="h-4 w-4 animate-spin sm:h-5 sm:w-5" />
               <span className="text-sm font-medium">Atualizando...</span>
             </div>
@@ -183,14 +183,14 @@ export default function MedicationPage() {
         {/* Main Content */}
         <div className="space-y-2">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="bg-grey-light/40 grid h-auto w-full grid-cols-3">
+            <TabsList className="bg-muted/40 grid h-auto w-full grid-cols-3">
               {Object.entries(TABS_CONFIG).map(([value, config]) => {
                 const IconComponent = config.icon;
                 return (
                   <TabsTrigger
                     key={value}
                     value={value}
-                    className="data-[state=active]:text-blue-dark data-[state=active]:bg-background flex-col gap-1 px-2 py-3 text-xs transition-colors sm:flex-row sm:gap-2 sm:py-2 sm:text-sm"
+                    className="data-[state=active]:text-primary data-[state=active]:bg-background flex-col gap-1 px-2 py-3 text-xs transition-colors sm:flex-row sm:gap-2 sm:py-2 sm:text-sm"
                     aria-label={config.description}
                   >
                     <IconComponent className="h-4 w-4 flex-shrink-0" />
@@ -200,7 +200,7 @@ export default function MedicationPage() {
               })}
             </TabsList>
 
-            <Card className="border-grey-light min-h-[600px] bg-white/80 p-4 sm:p-6">
+            <Card className="border-border min-h-150 bg-card/80 p-4 sm:p-6">
               <TabsContent value="medications" className="mt-0">
                 {TabContent.medications}
               </TabsContent>

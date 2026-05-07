@@ -13,7 +13,7 @@ const Home: NextPage = () => {
             <h1 className="font-varela text-green-dark text-3xl leading-tight font-bold md:text-4xl lg:text-5xl">
               Encontre o seu caminho para se sentir melhor
             </h1>
-            <p className="font-varela text-lg text-gray-800 md:text-xl">
+            <p className="font-varela text-foreground text-lg md:text-xl">
               Bem-vindo ao <span className="">Okay!</span> Um lugar onde você pode encontrar o apoio
               e a orientação de que precisa para administrar seus problemas. Entendemos que lidar
               com essas condições pode ser desafiador, mas você não precisa passar por isso sozinho.

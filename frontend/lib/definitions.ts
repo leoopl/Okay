@@ -46,3 +46,16 @@ export type BlogPost = {
   content: React.ReactNode; // or JSX.Element
   rawContent: string;
 };
+
+export type ConnectionAccessError =
+  | 'NOT_AUTHENTICATED'
+  | 'NOT_PROVIDER'
+  | 'NO_ACTIVE_CONNECTION'
+  | 'NO_GRANT';
+
+export class ConnectionAccessException extends Error {
+  constructor(public code: ConnectionAccessError, message?: string) {
+    super(message ?? code);
+    this.name = 'ConnectionAccessException';
+  }
+}

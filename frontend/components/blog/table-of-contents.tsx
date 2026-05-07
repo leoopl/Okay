@@ -121,7 +121,7 @@ export function TableOfContents({ rawContent }: { rawContent?: string }) {
             key={heading.id}
             className={`${
               heading.level > 2 ? 'ml-' + (heading.level - 2) * 3 : ''
-            } ${activeId === heading.id ? 'text-green-dark font-semibold' : 'text-gray-600 hover:text-gray-900'}`}
+            } ${activeId === heading.id ? 'text-accent-strong font-semibold' : 'text-muted-foreground hover:text-foreground'}`}
           >
             <Link href={`#${heading.id}`} className="block py-1 transition-colors">
               {heading.text}

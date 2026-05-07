@@ -46,3 +46,7 @@ public/swe-worker*
 
 # doc
 /doc
+
+.impeccable
+DESIGN.md
+PRODUCT.md

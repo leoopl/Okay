@@ -41,7 +41,7 @@ const SecuritySection = ({
   <Card className="transition-all duration-200 hover:shadow-md">
     <CardHeader>
       <CardTitle className="font-varela flex items-center gap-2 text-lg">
-        <Icon className="text-blue-dark size-5" />
+        <Icon className="text-primary size-5" />
         {title}
       </CardTitle>
       {description && <CardDescription>{description}</CardDescription>}
@@ -64,7 +64,7 @@ const ConsentSwitch = ({
   defaultChecked?: boolean;
   name: string;
 }) => (
-  <div className="hover:bg-yellow-light/30 flex items-start justify-between rounded-lg border p-4 transition-colors">
+  <div className="hover:bg-primary/10 flex items-start justify-between rounded-lg border p-4 transition-colors">
     <div className="flex-1 space-y-1 pr-4">
       <Label htmlFor={id} className="cursor-pointer text-sm font-medium">
         {title}
@@ -141,7 +141,7 @@ export function SecurityTab() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h2 className="text-green-dark font-varela mb-2 text-2xl font-bold">
+        <h2 className="text-accent-strong font-varela mb-2 text-2xl font-bold">
           Configurações de Segurança
         </h2>
       </div>

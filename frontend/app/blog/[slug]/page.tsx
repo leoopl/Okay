@@ -83,28 +83,28 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           <div className="hidden lg:col-span-1 lg:block">
             <div className="sticky top-8">
               <BackButton />
-              <h2 className="text-green-dark mb-4 text-lg font-bold">Neste artigo</h2>
+              <h2 className="text-accent-strong mb-4 text-lg font-bold">Neste artigo</h2>
               <TableOfContents rawContent={post.rawContent} />
             </div>
           </div>
-          <article className="divide-gray-medium mx-auto divide-y lg:col-span-3">
+          <article className="divide-border mx-auto divide-y lg:col-span-3">
             <header className="mb-8">
-              <h1 className="font-varela text-green-dark mb-1 text-5xl font-bold">
+              <h1 className="font-varela text-accent-strong mb-1 text-5xl font-bold">
                 {post.metadata.title}
               </h1>
               <time
                 dateTime={post.metadata.publishedAt}
-                className="text-beige-dark text-sm italic"
+                className="text-muted-foreground text-sm italic"
               >
                 {formatDate(post.metadata.publishedAt)}
               </time>
-              <span className="text-beige-dark"> • </span>
-              <span className="text-beige-dark text-sm italic">
+              <span className="text-muted-foreground"> • </span>
+              <span className="text-muted-foreground text-sm italic">
                 {post.metadata.readingTime} min de leitura.
               </span>
             </header>
 
-            <article className="prose prose-headings:mt-8 prose-headings:font-semibold prose-headings:text-green-dark prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-p:text-black max-w-full py-6 leading-snug">
+            <article className="prose prose-headings:mt-8 prose-headings:font-semibold prose-headings:text-accent-strong prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-p:text-foreground max-w-full py-6 leading-snug">
               {post.content}
             </article>
 
@@ -113,7 +113,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 <div className="flex flex-wrap gap-2">
                   {post.metadata.tags.map((tag: string, idx: number) => (
                     <Badge key={idx} variant="outline">
-                      <span className="text-grey-dark text-sm font-semibold italic">{tag}</span>
+                      <span className="text-muted-foreground text-sm font-semibold italic">{tag}</span>
                     </Badge>
                   ))}
                 </div>

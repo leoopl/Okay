@@ -2,19 +2,7 @@
 
 import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import type { SharedResourceType } from '@/lib/schemas/provider-schemas';
-
-export type ConnectionAccessError =
-  | 'NOT_AUTHENTICATED'
-  | 'NOT_PROVIDER'
-  | 'NO_ACTIVE_CONNECTION'
-  | 'NO_GRANT';
-
-export class ConnectionAccessException extends Error {
-  constructor(public code: ConnectionAccessError, message?: string) {
-    super(message ?? code);
-    this.name = 'ConnectionAccessException';
-  }
-}
+import { ConnectionAccessException } from '@/lib/definitions';
 
 /**
  * Verify that the calling user (must be healthcare_provider) has an active connection

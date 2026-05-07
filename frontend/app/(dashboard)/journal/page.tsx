@@ -164,8 +164,8 @@ export default function JournalPage() {
       <div className="container mx-auto max-w-3xl px-4 py-8">
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-[#7F9463] border-t-transparent"></div>
-            <p className="text-beige-medium">Inicializando diário...</p>
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-accent-strong border-t-transparent"></div>
+            <p className="text-muted-foreground">Inicializando diário...</p>
           </div>
         </div>
       </div>
@@ -177,7 +177,7 @@ export default function JournalPage() {
       {/* Header with sync status */}
       <div className="mb-8">
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-green-dark font-varela text-3xl font-bold md:text-4xl">Diário</h1>
+          <h1 className="text-accent-strong font-varela text-3xl font-bold md:text-4xl">Diário</h1>
           <div className="flex items-center gap-2">
             <SyncStatusIndicator
               isOnline={isOnline}
@@ -199,14 +199,14 @@ export default function JournalPage() {
 
         {/* Offline indicator */}
         {!isOnline && (
-          <div className="mb-4 flex items-center gap-2 rounded-lg border border-yellow-300 bg-yellow-100 p-3">
-            <WifiOff size={18} className="text-yellow-700" />
-            <span className="text-sm text-yellow-700">
+          <div className="mb-4 flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 p-3">
+            <WifiOff size={18} className="text-accent-strong" />
+            <span className="text-sm text-accent-strong">
               Você está offline. Suas alterações serão sincronizadas quando a conexão for
               restaurada.
             </span>
             {pendingChanges > 0 && (
-              <span className="ml-auto text-sm font-medium text-yellow-700">
+              <span className="ml-auto text-sm font-medium text-accent-strong">
                 {pendingChanges}{' '}
                 {pendingChanges === 1 ? 'alteração pendente' : 'alterações pendentes'}
               </span>
@@ -216,8 +216,8 @@ export default function JournalPage() {
 
         {/* Manual sync button when there are pending changes */}
         {isOnline && pendingChanges > 0 && !isSyncing && (
-          <div className="mb-4 flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 p-3">
-            <span className="text-sm text-blue-700">
+          <div className="mb-4 flex items-center justify-between rounded-lg border border-secondary/30 bg-secondary/10 p-3">
+            <span className="text-sm text-secondary">
               Você tem {pendingChanges}{' '}
               {pendingChanges === 1 ? 'alteração não salva' : 'alterações não salvas'}.
             </span>
@@ -225,7 +225,7 @@ export default function JournalPage() {
               size="sm"
               variant="outline"
               onClick={handleManualSync}
-              className="border-blue-400 text-blue-700 hover:bg-blue-100"
+              className="border-secondary/50 text-secondary hover:bg-secondary/20"
             >
               <RefreshCw size={14} className="mr-2" />
               Sincronizar Agora
@@ -241,8 +241,8 @@ export default function JournalPage() {
       {isLoading && entries.length === 0 && (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-[#7F9463] border-t-transparent"></div>
-            <p className="text-beige-medium">Carregando suas entradas...</p>
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-accent-strong border-t-transparent"></div>
+            <p className="text-muted-foreground">Carregando suas entradas...</p>
           </div>
         </div>
       )}
@@ -250,11 +250,11 @@ export default function JournalPage() {
       {/* Empty State */}
       {!isLoading && sortedEntries.length === 0 && !searchFilters.query && (
         <div className="py-12 text-center">
-          <div className="bg-beige-light/40 mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full">
-            <Plus size={32} className="text-blue-dark" />
+          <div className="bg-muted/40 mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full">
+            <Plus size={32} className="text-primary" />
           </div>
-          <h3 className="text-grey-dark mb-2 text-lg font-medium">Nenhuma entrada ainda</h3>
-          <p className="text-beige-dark mb-4">
+          <h3 className="text-muted-foreground mb-2 text-lg font-medium">Nenhuma entrada ainda</h3>
+          <p className="text-muted-foreground mb-4">
             Comece a documentar seus pensamentos e experiências.
           </p>
           <Button
@@ -273,11 +273,11 @@ export default function JournalPage() {
         sortedEntries.length === 0 &&
         (searchFilters.query || searchFilters.mood || searchFilters.tags) && (
           <div className="py-12 text-center">
-            <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-[#F2DECC]/20">
-              <Search size={32} className="text-[#7F9463]" />
+            <div className="bg-muted/20 mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full">
+              <Search size={32} className="text-accent-strong" />
             </div>
-            <h3 className="mb-2 text-lg font-medium text-[#797D89]">Nenhuma entrada encontrada</h3>
-            <p className="mb-4 text-[#91857A]">
+            <h3 className="mb-2 text-lg font-medium text-muted-foreground">Nenhuma entrada encontrada</h3>
+            <p className="mb-4 text-muted-foreground">
               Nenhuma entrada corresponde aos seus critérios de busca.
             </p>
             <Button
@@ -287,7 +287,7 @@ export default function JournalPage() {
                 store.searchJournals({});
               }}
               variant="outline"
-              className="border-[#7F9463] text-[#7F9463] hover:bg-[#7F9463] hover:text-white"
+              className="border-accent-strong text-accent-strong hover:bg-accent-strong hover:text-accent-strong-foreground"
             >
               Limpar Busca
             </Button>
@@ -308,14 +308,14 @@ export default function JournalPage() {
               {entry._syncStatus === 'pending' && (
                 <div className="absolute top-2 right-2">
                   <div
-                    className="h-2 w-2 animate-pulse rounded-full bg-yellow-500"
+                    className="h-2 w-2 animate-pulse rounded-full bg-primary"
                     title="Sincronização pendente"
                   />
                 </div>
               )}
               {entry._syncStatus === 'error' && (
                 <div className="absolute top-2 right-2">
-                  <div className="h-2 w-2 rounded-full bg-red-500" title="Erro de sincronização" />
+                  <div className="h-2 w-2 rounded-full bg-destructive" title="Erro de sincronização" />
                 </div>
               )}
             </div>
@@ -326,7 +326,7 @@ export default function JournalPage() {
       {/* Search Results Count */}
       {(searchFilters.query || searchFilters.mood || searchFilters.tags) &&
         sortedEntries.length > 0 && (
-          <div className="text-beige-dark mt-6 text-center text-sm">
+          <div className="text-muted-foreground mt-6 text-center text-sm">
             {sortedEntries.length === 1
               ? 'Encontrada 1 entrada'
               : `Encontradas ${sortedEntries.length} entradas`}

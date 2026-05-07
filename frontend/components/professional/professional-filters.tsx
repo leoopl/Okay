@@ -85,12 +85,12 @@ export function ProfessionalFilters({
           <Button
             variant="outline"
             size="sm"
-            className="border-[#CBCFD7] bg-white text-[#797D89] hover:bg-[#F2DECC]/10"
+            className="border-border bg-background text-muted-foreground hover:bg-muted/20"
           >
             <Filter className="mr-2 h-4 w-4" />
             Filtros
             {(selectedProfession || selectedApproaches.length > 0 || useLocation) && (
-              <Badge variant="secondary" className="ml-2 bg-[#F8D77C] text-[#797D89]">
+              <Badge variant="secondary" className="ml-2 bg-primary text-primary-foreground">
                 {[
                   selectedProfession ? 1 : 0,
                   selectedApproaches.length,
@@ -102,16 +102,16 @@ export function ProfessionalFilters({
         </SheetTrigger>
         <SheetContent className="w-[300px] sm:w-[400px]">
           <SheetHeader>
-            <SheetTitle className="font-varela text-[#039BE5]">Filtros</SheetTitle>
-            <SheetDescription className="text-[#797D89]">
+            <SheetTitle className="font-varela text-secondary">Filtros</SheetTitle>
+            <SheetDescription className="text-muted-foreground">
               Refine sua busca por profissionais
             </SheetDescription>
           </SheetHeader>
           <div className="mt-6 flex flex-col gap-6">
             <div className="space-y-2">
-              <h3 className="font-varela text-sm font-medium text-[#797D89]">Profissão</h3>
+              <h3 className="font-varela text-sm font-medium text-muted-foreground">Profissão</h3>
               <Select value={selectedProfession || 'all'} onValueChange={handleProfessionChange}>
-                <SelectTrigger className="border-[#CBCFD7] bg-white">
+                <SelectTrigger className="border-border bg-background">
                   <SelectValue placeholder="Todas as profissões" />
                 </SelectTrigger>
                 <SelectContent>
@@ -125,10 +125,10 @@ export function ProfessionalFilters({
               </Select>
             </div>
 
-            <Separator className="bg-[#CBCFD7]/50" />
+            <Separator className="bg-border/50" />
 
             <div className="space-y-3">
-              <h3 className="font-varela text-sm font-medium text-[#797D89]">Abordagens</h3>
+              <h3 className="font-varela text-sm font-medium text-muted-foreground">Abordagens</h3>
               <div className="flex flex-wrap gap-2">
                 {approaches.map((approach) => (
                   <Badge
@@ -136,8 +136,8 @@ export function ProfessionalFilters({
                     variant={selectedApproaches.includes(approach) ? 'default' : 'outline'}
                     className={`cursor-pointer ${
                       selectedApproaches.includes(approach)
-                        ? 'bg-[#78C7EE] text-white hover:bg-[#039BE5]'
-                        : 'border-[#CBCFD7] bg-white text-[#797D89] hover:bg-[#F2DECC]/10'
+                        ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                        : 'border-border bg-background text-muted-foreground hover:bg-muted/20'
                     }`}
                     onClick={() => handleApproachToggle(approach)}
                   >
@@ -147,18 +147,18 @@ export function ProfessionalFilters({
               </div>
             </div>
 
-            <Separator className="bg-[#CBCFD7]/50" />
+            <Separator className="bg-border/50" />
 
             <div className="flex items-center space-x-2">
               <Switch
                 id="location"
                 checked={useLocation}
                 onCheckedChange={handleLocationToggle}
-                className="data-[state=checked]:bg-[#7F9463]"
+                className="data-[state=checked]:bg-accent-strong"
               />
               <Label
                 htmlFor="location"
-                className="font-varela flex items-center gap-2 text-[#797D89]"
+                className="font-varela flex items-center gap-2 text-muted-foreground"
               >
                 <MapPin className="h-4 w-4" />
                 Usar minha localização
@@ -169,13 +169,13 @@ export function ProfessionalFilters({
             <Button
               variant="outline"
               onClick={handleClearFilters}
-              className="flex-1 border-[#CBCFD7] bg-white text-[#797D89] hover:bg-[#F2DECC]/10"
+              className="flex-1 border-border bg-background text-muted-foreground hover:bg-muted/20"
             >
               Limpar
             </Button>
             <Button
               onClick={handleApplyFilters}
-              className="flex-1 bg-[#039BE5] text-white hover:bg-[#78C7EE]"
+              className="flex-1 bg-secondary text-secondary-foreground hover:bg-secondary/80"
             >
               Aplicar
             </Button>
@@ -186,10 +186,10 @@ export function ProfessionalFilters({
       <Button
         variant="outline"
         size="sm"
-        className={`border-[#CBCFD7] ${
+        className={`border-border ${
           useLocation
-            ? 'bg-[#7F9463]/10 text-[#7F9463]'
-            : 'bg-white text-[#797D89] hover:bg-[#F2DECC]/10'
+            ? 'bg-accent-strong/10 text-accent-strong'
+            : 'bg-background text-muted-foreground hover:bg-muted/20'
         }`}
         onClick={() => {
           const newValue = !useLocation;
@@ -206,10 +206,10 @@ export function ProfessionalFilters({
       </Button>
 
       {selectedProfession && (
-        <Badge variant="secondary" className="bg-[#F8D77C] text-[#797D89]">
+        <Badge variant="secondary" className="bg-primary text-primary-foreground">
           {selectedProfession}
           <button
-            className="ml-1 rounded-full hover:bg-[#F4B400]/20"
+            className="ml-1 rounded-full hover:bg-primary/20"
             onClick={() => {
               setSelectedProfession(null);
               onFilterChange({
@@ -225,10 +225,10 @@ export function ProfessionalFilters({
       )}
 
       {selectedApproaches.map((approach) => (
-        <Badge key={approach} variant="secondary" className="bg-[#78C7EE]/30 text-[#039BE5]">
+        <Badge key={approach} variant="secondary" className="bg-secondary/30 text-secondary">
           {approach}
           <button
-            className="ml-1 rounded-full hover:bg-[#039BE5]/20"
+            className="ml-1 rounded-full hover:bg-secondary/20"
             onClick={() => {
               const newApproaches = selectedApproaches.filter((a) => a !== approach);
               setSelectedApproaches(newApproaches);

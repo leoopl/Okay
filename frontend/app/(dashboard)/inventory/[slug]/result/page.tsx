@@ -140,38 +140,38 @@ const getMessagesConfig = (severity: Severity) => {
 const getColosConfig = (severity: Severity) => {
   const configs = {
     normal: {
-      primaryColor: 'green',
-      headerBg: 'bg-green-50 dark:bg-green-950/20',
-      headerBorder: 'border-green-200 dark:border-green-800',
-      accentColor: 'text-green-600 dark:text-green-400',
+      primaryColor: 'success',
+      headerBg: 'bg-success-bg',
+      headerBorder: 'border-success/30',
+      accentColor: 'text-success',
       buttonVariant: 'default' as const,
     },
     mild: {
-      primaryColor: 'blue',
-      headerBg: 'bg-blue-50 dark:bg-blue-950/20',
-      headerBorder: 'border-blue-200 dark:border-blue-800',
-      accentColor: 'text-blue-600 dark:text-blue-400',
+      primaryColor: 'secondary',
+      headerBg: 'bg-secondary/20',
+      headerBorder: 'border-secondary/30',
+      accentColor: 'text-secondary',
       buttonVariant: 'default' as const,
     },
     moderate: {
-      primaryColor: 'yellow',
-      headerBg: 'bg-yellow-50 dark:bg-yellow-950/20',
-      headerBorder: 'border-yellow-200 dark:border-yellow-800',
-      accentColor: 'text-yellow-600 dark:text-yellow-400',
+      primaryColor: 'primary',
+      headerBg: 'bg-primary/10',
+      headerBorder: 'border-primary/30',
+      accentColor: 'text-accent-strong',
       buttonVariant: 'default' as const,
     },
     severe: {
-      primaryColor: 'orange',
-      headerBg: 'bg-orange-50 dark:bg-orange-950/20',
-      headerBorder: 'border-orange-200 dark:border-orange-800',
-      accentColor: 'text-orange-600 dark:text-orange-400',
+      primaryColor: 'destructive',
+      headerBg: 'bg-destructive/10',
+      headerBorder: 'border-destructive/30',
+      accentColor: 'text-destructive',
       buttonVariant: 'default' as const,
     },
     crisis: {
-      primaryColor: 'red',
-      headerBg: 'bg-red-50 dark:bg-red-950/20',
-      headerBorder: 'border-red-200 dark:border-red-800',
-      accentColor: 'text-red-600 dark:text-red-400',
+      primaryColor: 'crisis',
+      headerBg: 'bg-crisis-bg',
+      headerBorder: 'border-crisis/40',
+      accentColor: 'text-crisis',
       buttonVariant: 'destructive' as const,
     },
   };
@@ -381,16 +381,16 @@ export default function ResultPage({ params }: { params: Promise<{ slug: string 
 
   // Use Dynamic Results Interface for enhanced experience
   return (
-    <div className="from-background via-background to-muted/30 min-h-screen bg-gradient-to-br">
+    <div className="from-background via-background to-muted/30 min-h-screen bg-linear-to-br">
       <div className="container mx-auto max-w-4xl px-4 py-8">
         {/* Header */}
         <div className="mb-8 space-y-4 text-center">
-          <div className="text-yellow-dark inline-flex items-center rounded-full bg-white/80 px-4 py-2 text-sm font-medium shadow-2xl">
+          <div className="text-accent-strong inline-flex items-center rounded-full bg-card/80 px-4 py-2 text-sm font-medium shadow-2xl">
             <Award className="mr-2 size-4" />
             Avaliação Concluída
           </div>
 
-          <h1 className="text-green-dark font-varela text-4xl font-bold">Seus Resultados</h1>
+          <h1 className="text-accent-strong font-varela text-4xl font-bold">Seus Resultados</h1>
 
           <div className="text-muted-foreground flex flex-col items-center justify-center gap-4 text-sm sm:flex-row">
             <div className="flex items-center gap-2">
@@ -408,17 +408,17 @@ export default function ResultPage({ params }: { params: Promise<{ slug: string 
 
         {/* Results Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="bg-grey-light/40 grid w-full grid-cols-2">
+          <TabsList className="bg-muted/40 grid w-full grid-cols-2">
             <TabsTrigger
               value="overview"
-              className="data-[state=active]:text-blue-dark data-[state=active]:bg-background gap-2"
+              className="data-[state=active]:text-primary data-[state=active]:bg-background gap-2"
             >
               <BarChart4 className="h-4 w-4" />
               Visão Geral
             </TabsTrigger>
             <TabsTrigger
               value="details"
-              className="data-[state=active]:text-blue-dark data-[state=active]:bg-background gap-2"
+              className="data-[state=active]:text-primary data-[state=active]:bg-background gap-2"
             >
               <Info className="h-4 w-4" />
               Detalhes
@@ -453,8 +453,8 @@ export default function ResultPage({ params }: { params: Promise<{ slug: string 
             {interpretationResults.subscaleInterpretations &&
               Object.keys(interpretationResults.subscaleInterpretations).length > 0 && (
                 <div className="space-y-4">
-                  <h2 className="text-green-dark font-varela flex items-center gap-2 text-xl font-semibold">
-                    <TrendingUp className="text-blue-dark size-5" />
+                  <h2 className="text-accent-strong font-varela flex items-center gap-2 text-xl font-semibold">
+                    <TrendingUp className="text-primary size-5" />
                     Análise por Categorias
                   </h2>
 
@@ -543,7 +543,7 @@ export default function ResultPage({ params }: { params: Promise<{ slug: string 
                     <p className="text-sm leading-relaxed">{messageConfig.description}</p>
                     <Button
                       variant={colorConfig.buttonVariant}
-                      className="mt-5 w-full text-black sm:w-auto"
+                      className="mt-5 w-full sm:w-auto"
                       onClick={() => {
                         if (messageConfig.isExternal) {
                           window.open(messageConfig.actionUrl, '_self');
@@ -591,8 +591,8 @@ export default function ResultPage({ params }: { params: Promise<{ slug: string 
           <TabsContent value="details" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="font-varela text-green-dark flex items-center gap-2">
-                  <Info className="text-blue-dark size-5" />
+                <CardTitle className="font-varela text-accent-strong flex items-center gap-2">
+                  <Info className="text-primary size-5" />
                   Suas Respostas
                 </CardTitle>
                 <CardDescription>

@@ -31,7 +31,7 @@ import Loading from './loading';
 
 // Enhanced Error Component
 const ErrorState = ({ error, onRetry }: { error: string; onRetry: () => void }) => (
-  <div className="flex min-h-[400px] flex-col items-center justify-center space-y-6 text-center">
+  <div className="flex min-h-100 flex-col items-center justify-center space-y-6 text-center">
     <div className="bg-destructive/10 rounded-full p-4">
       <AlertCircle className="text-destructive h-12 w-12" />
     </div>
@@ -48,7 +48,7 @@ const ErrorState = ({ error, onRetry }: { error: string; onRetry: () => void }) 
 
 // Enhanced Empty State Component
 const EmptyState = () => (
-  <div className="flex min-h-[400px] flex-col items-center justify-center space-y-6 text-center">
+  <div className="flex min-h-100 flex-col items-center justify-center space-y-6 text-center">
     <div className="bg-muted/50 rounded-full p-6">
       <BookOpen className="text-muted-foreground h-16 w-16" />
     </div>
@@ -156,20 +156,20 @@ export default function InventoriesPage() {
   };
 
   return (
-    <div className="from-background via-background to-muted/30 min-h-screen bg-gradient-to-br">
+    <div className="from-background via-background to-muted/30 min-h-screen bg-linear-to-br">
       <div className="container mx-auto px-4 py-6 sm:py-8 lg:py-12">
         <Tabs defaultValue="inventories" className="space-y-6 sm:space-y-8">
-          <TabsList className="bg-grey-light/40 mx-auto grid w-full max-w-md grid-cols-2">
+          <TabsList className="bg-muted/40 mx-auto grid w-full max-w-md grid-cols-2">
             <TabsTrigger
               value="inventories"
-              className="data-[state=active]:text-blue-dark data-[state=active]:bg-background gap-2"
+              className="data-[state=active]:text-primary data-[state=active]:bg-background gap-2"
             >
               <LayoutGrid className="h-4 w-4" />
               <span className={isMobile ? 'text-xs' : ''}>Questionários</span>
             </TabsTrigger>
             <TabsTrigger
               value="history"
-              className="data-[state=active]:text-blue-dark data-[state=active]:bg-background gap-2"
+              className="data-[state=active]:text-primary data-[state=active]:bg-background gap-2"
             >
               <History className="h-4 w-4" />
               <span className={isMobile ? 'text-xs' : ''}>Histórico</span>
@@ -186,7 +186,7 @@ export default function InventoriesPage() {
                 Cuidado Personalizado
               </div> */}
 
-                  <h1 className="text-green-dark font-varela text-2xl leading-tight font-bold sm:text-3xl md:text-4xl">
+                  <h1 className="text-accent-strong font-varela text-2xl leading-tight font-bold sm:text-3xl md:text-4xl">
                     Questionários de Saúde Mental
                   </h1>
 
@@ -198,11 +198,11 @@ export default function InventoriesPage() {
 
                 <div className="flex flex-col gap-3 sm:flex-row sm:justify-center sm:gap-4 lg:justify-start">
                   <div className="text-muted-foreground flex items-center justify-center gap-2 text-sm lg:justify-start">
-                    <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                    <div className="h-2 w-2 rounded-full bg-accent-strong"></div>
                     <span>Seguro e Privado</span>
                   </div>
                   <div className="text-muted-foreground flex items-center justify-center gap-2 text-sm lg:justify-start">
-                    <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                    <div className="h-2 w-2 rounded-full bg-secondary"></div>
                     <span>Cientificamente Validado</span>
                   </div>
                   <div className="text-muted-foreground flex items-center justify-center gap-2 text-sm lg:justify-start">
@@ -213,10 +213,10 @@ export default function InventoriesPage() {
 
                 {/* Info Section */}
                 {!loading && !error && inventories.length > 0 && (
-                  <Card className="from-muted/50 to-accent/10 border-destructive rounded-sm border bg-gradient-to-r backdrop-blur-sm">
+                  <Card className="from-muted/50 to-accent/10 border-destructive rounded-sm border bg-linear-to-r backdrop-blur-sm">
                     <CardContent className="p-4 text-center sm:p-6 lg:p-8">
                       <div className="mx-auto max-w-2xl space-y-3 sm:space-y-4">
-                        <h3 className="text-green-dark font-varela flex items-center justify-center text-lg font-semibold sm:text-xl">
+                        <h3 className="text-accent-strong font-varela flex items-center justify-center text-lg font-semibold sm:text-xl">
                           <TriangleAlert className="text-destructive mr-2 h-5 w-5" />
                           Informações Importantes
                           <TriangleAlert className="text-destructive ml-2 h-5 w-5" />
@@ -237,7 +237,7 @@ export default function InventoriesPage() {
               {/* Illustration */}
               <div className="flex justify-center lg:justify-end">
                 <div className="relative">
-                  <div className="from-primary/20 via-secondary/20 to-accent/20 absolute inset-0 rounded-3xl bg-gradient-to-r blur-3xl"></div>
+                  <div className="from-primary/20 via-secondary/20 to-accent/20 absolute inset-0 rounded-3xl bg-linear-to-r blur-3xl"></div>
                   <Image
                     src="/questionnaire.png"
                     alt="Ilustração representando questionários de saúde mental"
@@ -261,7 +261,7 @@ export default function InventoriesPage() {
             <div className="mt-12 space-y-6 sm:mt-16 sm:space-y-8">
               {/* Section Header */}
               <div className="text-center">
-                <h2 className="text-green-dark font-varela text-xl font-bold sm:text-2xl lg:text-3xl">
+                <h2 className="text-accent-strong font-varela text-xl font-bold sm:text-2xl lg:text-3xl">
                   Escolha uma Avaliação
                 </h2>
                 <p className="text-muted-foreground mt-2 text-sm sm:text-base">

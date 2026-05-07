@@ -74,10 +74,10 @@ const ProfessionalPage: React.FC = () => {
       <div className="container mx-auto">
         <div className="grid grid-cols-1 items-center gap-4 lg:grid-cols-2">
           <div className="animate-fade-in flex flex-col gap-5">
-            <h1 className="font-varela text-green-dark text-3xl leading-tight font-bold md:text-4xl lg:text-5xl">
+            <h1 className="font-varela text-accent-strong text-3xl leading-tight font-bold md:text-4xl lg:text-5xl">
               Profissionais de Saúde
             </h1>
-            <p className="text-beige-dark text-xl">
+            <p className="text-muted-foreground text-xl">
               Quem mais pode ti ajudar pode está mais perto que você imagina
             </p>
             <div className="flex flex-wrap gap-4">

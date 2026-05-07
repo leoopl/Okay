@@ -20,7 +20,7 @@ function slugify(str: string) {
 function Blockquote(props: any) {
   return (
     <blockquote
-      className="dark:bg-opacity-30 bg-opacity-30 blockquote rounded-md bg-blue-200 p-4 dark:bg-blue-950"
+      className="blockquote rounded-md bg-secondary/30 p-4"
       {...props}
     />
   );

@@ -23,18 +23,18 @@ export function SyncStatusIndicator({
 }: SyncStatusIndicatorProps) {
   const getStatusIcon = () => {
     if (!isOnline) {
-      return <CloudOff size={16} className="text-gray-500" />;
+      return <CloudOff size={16} className="text-muted-foreground" />;
     }
 
     if (isSyncing) {
-      return <RefreshCw size={16} className="animate-spin text-blue-500" />;
+      return <RefreshCw size={16} className="animate-spin text-secondary" />;
     }
 
     if (pendingChanges > 0) {
-      return <Cloud size={16} className="text-yellow-500" />;
+      return <Cloud size={16} className="text-primary" />;
     }
 
-    return <Cloud size={16} className="text-green-500" />;
+    return <Cloud size={16} className="text-accent-strong" />;
   };
 
   const getStatusText = () => {
@@ -85,7 +85,7 @@ export function SyncStatusIndicator({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="flex cursor-help items-center justify-center rounded-full p-2 transition-colors hover:bg-gray-100">
+            <div className="flex cursor-help items-center justify-center rounded-full p-2 transition-colors hover:bg-muted">
               {getStatusIcon()}
             </div>
           </TooltipTrigger>
@@ -101,9 +101,9 @@ export function SyncStatusIndicator({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="flex cursor-help items-center gap-2 rounded-full bg-gray-100 px-3 py-1.5 transition-colors hover:bg-gray-200">
+          <div className="flex cursor-help items-center gap-2 rounded-full bg-muted px-3 py-1.5 transition-colors hover:bg-muted/80">
             {getStatusIcon()}
-            <span className="text-sm text-gray-700">{getStatusText()}</span>
+            <span className="text-sm text-foreground">{getStatusText()}</span>
           </div>
         </TooltipTrigger>
         <TooltipContent>

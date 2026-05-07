@@ -29,7 +29,7 @@ export function TagFilter({ selectedTag = '', availableTags = [] }: TagFilterPro
   };
 
   if (availableTags.length === 0) {
-    return <div className="text-beige-dark text-sm">Nenhuma tag disponível</div>;
+    return <div className="text-muted-foreground text-sm">Nenhuma tag disponível</div>;
   }
 
   return (
@@ -39,7 +39,7 @@ export function TagFilter({ selectedTag = '', availableTags = [] }: TagFilterPro
           key={index}
           className={badgeVariants({
             variant: 'outline',
-            className: `hover:bg-yellow-dark cursor-pointer select-none focus:ring-offset-1 ${selectedTag === tag ? 'bg-yellow-dark text-white' : ''} `,
+            className: `hover:bg-primary cursor-pointer select-none focus:ring-offset-1 ${selectedTag === tag ? 'bg-primary text-primary-foreground' : ''} `,
           })}
           onClick={() => handleTagClick(tag)}
         >

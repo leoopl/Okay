@@ -140,7 +140,7 @@ export function ProfileTab() {
     <div className="space-y-8">
       {/* Header Section */}
       <div>
-        <h2 className="text-green-dark font-varela mb-2 text-2xl font-bold">
+        <h2 className="text-accent-strong font-varela mb-2 text-2xl font-bold">
           Informações Pessoais
         </h2>
         <p className="text-muted-foreground">
@@ -257,7 +257,7 @@ export function ProfileTab() {
                             <Button
                               variant="outline"
                               className={cn(
-                                'w-full justify-start bg-white text-left font-normal transition-all duration-200 hover:scale-[1.02]',
+                                'w-full justify-start bg-background text-left font-normal transition-all duration-200 hover:scale-[1.02]',
                                 !field.value && 'text-muted-foreground',
                               )}
                             >

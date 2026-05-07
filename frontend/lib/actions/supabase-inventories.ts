@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import type { Database } from '@/lib/supabase/database.types';
+import { ConnectionAccessException } from '@/lib/definitions';
 
 // Type definitions
 export type Inventory = Database['public']['Tables']['inventories']['Row'];
@@ -462,9 +463,7 @@ export async function getInventoryResponsesForPatient(patientId: string): Promis
   responses: InventoryResponse[];
   error?: string;
 }> {
-  const { assertProviderCanAccessPatientResource, ConnectionAccessException } = await import(
-    './connection-access'
-  );
+  const { assertProviderCanAccessPatientResource } = await import('./connection-access');
 
   try {
     await assertProviderCanAccessPatientResource({

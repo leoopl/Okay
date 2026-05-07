@@ -69,10 +69,10 @@ const NotificationChannel = ({
   onCheckedChange: (checked: boolean) => void;
   disabled?: boolean;
 }) => (
-  <div className="hover:bg-yellow-light/30 flex items-start justify-between rounded-lg border p-4 transition-colors">
+  <div className="hover:bg-primary/10 flex items-start justify-between rounded-lg border p-4 transition-colors">
     <div className="flex flex-1 gap-3">
       <div className="mt-1 flex-shrink-0">
-        <Icon className="text-blue-dark size-5" />
+        <Icon className="text-primary size-5" />
       </div>
       <div className="flex-1 space-y-1">
         <Label className="cursor-pointer text-sm font-medium">{title}</Label>
@@ -104,7 +104,7 @@ const NotificationType = ({
   onCheckedChange: (checked: boolean) => void;
   disabled?: boolean;
 }) => (
-  <div className="hover:bg-yellow-light/30 flex items-start space-x-3 rounded-lg border p-3 transition-colors">
+  <div className="hover:bg-primary/10 flex items-start space-x-3 rounded-lg border p-3 transition-colors">
     <Checkbox
       id={`type-${label}`}
       checked={checked}
@@ -114,7 +114,7 @@ const NotificationType = ({
     />
     <div className="flex-1 space-y-1">
       <div className="flex items-center gap-2">
-        <Icon className="text-blue-dark size-4" />
+        <Icon className="text-primary size-4" />
         <Label htmlFor={`type-${label}`} className="cursor-pointer text-sm font-medium">
           {label}
         </Label>
@@ -139,7 +139,7 @@ const NotificationSection = ({
   <Card className="transition-all duration-200 hover:shadow-md">
     <CardHeader>
       <CardTitle className="flex items-center gap-2 text-lg">
-        <Icon className="text-blue-dark size-5" />
+        <Icon className="text-primary size-5" />
         {title}
       </CardTitle>
       {description && <CardDescription>{description}</CardDescription>}
@@ -256,7 +256,7 @@ export function NotificationsTab() {
 
       {/* Status Alert */}
       {hasChanges && (
-        <Alert className="border-yellow-200 bg-yellow-50 text-yellow-800">
+        <Alert className="border-primary/30 bg-primary/10 text-accent-strong">
           <AlertCircle className="size-4" />
           <AlertDescription>
             Você tem alterações não salvas. Lembre-se de salvar suas preferências.

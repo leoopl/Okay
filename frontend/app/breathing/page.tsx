@@ -61,10 +61,10 @@ const Breathing: React.FC = () => {
         <div className="container mx-auto">
           <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2">
             <div className="animate-fade-in flex flex-col gap-3">
-              <h1 className="font-varela text-green-dark text-2xl leading-tight font-bold sm:text-3xl md:text-4xl lg:text-5xl">
+              <h1 className="font-varela text-accent-strong text-2xl leading-tight font-bold sm:text-3xl md:text-4xl lg:text-5xl">
                 Técnicas de Respiração
               </h1>
-              <p className="text-beige-dark text-sm sm:text-base md:text-lg">
+              <p className="text-muted-foreground text-sm sm:text-base md:text-lg">
                 Pratique técnicas de respiração comuns para reduzir o estresse e manter a calma.
               </p>
               <div className="mt-6 grid grid-cols-1 gap-4 sm:mt-10 sm:grid-cols-2 sm:gap-6">
@@ -75,8 +75,8 @@ const Breathing: React.FC = () => {
                     style={{ backgroundColor: item.bgcolor }}
                     onClick={() => openModal(item)}
                   >
-                    <h3 className="text-base font-medium text-gray-900 sm:text-lg">{item.name}</h3>
-                    <span className="mt-2 text-xs text-gray-700 sm:text-sm">Clique para ver</span>
+                    <h3 className="text-base font-medium text-foreground sm:text-lg">{item.name}</h3>
+                    <span className="mt-2 text-xs text-muted-foreground sm:text-sm">Clique para ver</span>
                   </button>
                 ))}
               </div>
@@ -96,7 +96,7 @@ const Breathing: React.FC = () => {
                 } overflow-hidden p-0`}
                 onInteractOutside={(e) => e.preventDefault()}
               >
-                <div className="relative grid size-full place-content-center overflow-hidden rounded-2xl bg-white p-4 text-left align-middle shadow-xl sm:p-6">
+                <div className="relative grid size-full place-content-center overflow-hidden rounded-2xl bg-card p-4 text-left align-middle shadow-xl sm:p-6">
                   <div className="mt-2 text-center">
                     {selectedTechnique && (
                       <div className="relative mx-auto mb-4 sm:mb-6">
@@ -113,7 +113,7 @@ const Breathing: React.FC = () => {
                         />
                       </div>
                     )}
-                    <DialogTitle className="font-varela mt-4 text-xl leading-6 font-medium text-gray-900 sm:mt-8 sm:text-2xl lg:text-3xl">
+                    <DialogTitle className="font-varela mt-4 text-xl leading-6 font-medium text-foreground sm:mt-8 sm:text-2xl lg:text-3xl">
                       {selectedTechnique?.name}
                     </DialogTitle>
                   </div>
@@ -121,14 +121,14 @@ const Breathing: React.FC = () => {
                     <DialogDescription
                       className={`${
                         isMobile ? 'max-w-full text-sm' : 'max-w-md text-base'
-                      } mx-auto leading-relaxed font-semibold text-gray-600`}
+                      } mx-auto leading-relaxed font-semibold text-muted-foreground`}
                     >
                       {selectedTechnique?.desc}
                     </DialogDescription>
                   </div>
 
                   <div className="mt-4 text-center sm:mt-6">
-                    <p className="mb-4 text-xs text-gray-700 sm:text-sm">
+                    <p className="mb-4 text-xs text-muted-foreground sm:text-sm">
                       Fique confortável e comece a respirar.
                     </p>
                     <Button

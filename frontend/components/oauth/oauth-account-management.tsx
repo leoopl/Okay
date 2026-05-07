@@ -153,7 +153,7 @@ export function OAuthAccountManagement({
         </div>
 
         {/* Security Notice */}
-        <div className="rounded-lg bg-blue-50 p-4 text-blue-800 dark:bg-blue-950 dark:text-blue-200">
+        <div className="rounded-lg bg-secondary/20 p-4 text-secondary">
           <h5 className="mb-1 font-medium">Dica de Segurança</h5>
           <p className="text-sm">
             Recomendamos ter pelo menos dois métodos de login configurados: uma senha forte e uma
@@ -180,7 +180,7 @@ function UnlinkButton({
       size="sm"
       onClick={onClick}
       disabled={!canUnlink || isPending}
-      className="text-red-600 hover:bg-red-50 hover:text-red-700"
+      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
     >
       {isPending ? 'Desvinculando...' : 'Desvincular'}
     </Button>

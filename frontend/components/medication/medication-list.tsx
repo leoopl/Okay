@@ -131,21 +131,21 @@ export default function MedicationList({ className }: MedicationListProps) {
       return (
         <Card
           className={cn(
-            'hover:border-blue-dark border-grey-light overflow-hidden transition-colors',
+            'hover:border-primary border-border overflow-hidden transition-colors',
             !isActive && 'opacity-60',
           )}
         >
           <CardContent className="p-0">
-            <div className="border-grey-light border-b p-4">
+            <div className="border-border border-b p-4">
               <div className="mb-2 flex items-start justify-between">
-                <h3 className="text-green-dark truncate text-lg font-bold" title={medication.name}>
+                <h3 className="text-accent-strong truncate text-lg font-bold" title={medication.name}>
                   {medication.name}
                 </h3>
                 <div className="flex space-x-1">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="hover:text-blue-light size-8 hover:bg-transparent"
+                    className="hover:text-primary size-8 hover:bg-transparent"
                     onClick={() => handleOpenEditDialog(medication)}
                     disabled={isDeleting}
                     aria-label={`Editar ${medication.name}`}
@@ -170,20 +170,20 @@ export default function MedicationList({ className }: MedicationListProps) {
               </div>
 
               <div className="mb-3 flex items-center gap-2">
-                <Badge variant="outline" className="text-beige-dark bg-beige-light/40">
+                <Badge variant="outline" className="text-muted-foreground bg-muted/40">
                   {medication.form.charAt(0).toUpperCase() + medication.form.slice(1)}
                 </Badge>
-                <Badge variant="outline" className="text-blue-dark bg-blue-medium/30">
+                <Badge variant="outline" className="text-secondary bg-secondary/30">
                   {medication.dosage}
                 </Badge>
                 {!isActive && (
-                  <Badge variant="outline" className="bg-gray-100 text-gray-500">
+                  <Badge variant="outline" className="bg-muted text-muted-foreground">
                     Expirado
                   </Badge>
                 )}
               </div>
 
-              <div className="text-beige-dark flex flex-col space-y-1 text-sm">
+              <div className="text-muted-foreground flex flex-col space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span>Data de início:</span>
                   <time dateTime={medication.startDate.toISOString()}>
@@ -208,11 +208,11 @@ export default function MedicationList({ className }: MedicationListProps) {
                 {medication.schedule.map((scheduleItem, index) => (
                   <div
                     key={index}
-                    className="border-grey-light bg-grey-light/10 flex items-center justify-between rounded-md border p-2"
+                    className="border-border bg-muted/10 flex items-center justify-between rounded-md border p-2"
                   >
                     <div className="flex items-center gap-2">
-                      <Clock className="text-beige-dark size-4" aria-hidden="true" />
-                      <time className="text-beige-dark text-sm font-medium">
+                      <Clock className="text-muted-foreground size-4" aria-hidden="true" />
+                      <time className="text-muted-foreground text-sm font-medium">
                         {scheduleItem.time}
                       </time>
                     </div>
@@ -221,7 +221,7 @@ export default function MedicationList({ className }: MedicationListProps) {
                         <Badge
                           key={day}
                           variant="outline"
-                          className="border-blue-light bg-blue-light/10 text-beige-dark px-1.5 py-0.5 text-[10px] font-normal"
+                          className="border-border bg-muted/10 text-muted-foreground px-1.5 py-0.5 text-[10px] font-normal"
                         >
                           {day === 'monday' && 'seg'}
                           {day === 'tuesday' && 'ter'}
@@ -237,8 +237,8 @@ export default function MedicationList({ className }: MedicationListProps) {
                 ))}
               </div>
             ) : (
-              <div className="flex w-full items-center justify-center rounded-md border border-dashed border-gray-300 p-3">
-                <p className="text-sm text-gray-500">
+              <div className="flex w-full items-center justify-center rounded-md border border-dashed border-border p-3">
+                <p className="text-sm text-muted-foreground">
                   Nenhuma agenda definida para este medicamento.
                 </p>
               </div>
@@ -279,11 +279,11 @@ export default function MedicationList({ className }: MedicationListProps) {
     return (
       <div className={cn('space-y-6', className)}>
         <div className="py-12 text-center">
-          <AlertCircle className="mx-auto mb-4 h-16 w-16 text-red-500" />
-          <h3 className="mb-2 text-xl font-medium text-red-800">
+          <AlertCircle className="mx-auto mb-4 h-16 w-16 text-destructive" />
+          <h3 className="mb-2 text-xl font-medium text-destructive">
             Não foi possível carregar os medicamentos
           </h3>
-          <p className="mb-4 text-red-600">{error}</p>
+          <p className="mb-4 text-destructive">{error}</p>
           <Button onClick={fetchMedications} variant="outline" disabled={isLoading}>
             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Tentar Novamente
@@ -297,8 +297,8 @@ export default function MedicationList({ className }: MedicationListProps) {
     <div className={cn('space-y-6', className)}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="text-green-dark font-varela text-2xl font-bold">Seus Medicamentos</h2>
-          {isLoading && <Loader2 className="text-green-dark size-5 animate-spin" />}
+          <h2 className="text-accent-strong font-varela text-2xl font-bold">Seus Medicamentos</h2>
+          {isLoading && <Loader2 className="text-accent-strong size-5 animate-spin" />}
         </div>
         <Button onClick={handleOpenAddDialog} disabled={isLoading} className="gap-2">
           <PlusCircle className="mb-0.5 size-4" />
@@ -329,18 +329,18 @@ export default function MedicationList({ className }: MedicationListProps) {
 
       {isLoading && medications.length === 0 ? (
         <div className="py-12 text-center">
-          <Loader2 className="text-green-dark mx-auto mb-4 h-8 w-8 animate-spin" />
+          <Loader2 className="text-accent-strong mx-auto mb-4 h-8 w-8 animate-spin" />
           <p className="text-muted-foreground">Carregando seus medicamentos...</p>
         </div>
       ) : medications.length === 0 ? (
         <div className="py-12 text-center">
-          <div className="bg-green-light/40 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-            <Pill className="text-green-dark h-8 w-8" />
+          <div className="bg-accent-strong/10 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+            <Pill className="text-accent-strong h-8 w-8" />
           </div>
-          <h3 className="text-green-dark mb-2 text-xl font-medium">
+          <h3 className="text-accent-strong mb-2 text-xl font-medium">
             Nenhum medicamento encontrado
           </h3>
-          <p className="text-beige-dark mb-6">
+          <p className="text-muted-foreground mb-6">
             Comece adicionando seus medicamentos para rastreá-los
           </p>
           <Button onClick={handleOpenAddDialog}>
@@ -369,7 +369,7 @@ export default function MedicationList({ className }: MedicationListProps) {
 
       {/* Add Medication Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[625px]">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-156.25">
           <DialogHeader>
             <DialogTitle>Adicionar Novo Medicamento</DialogTitle>
           </DialogHeader>
@@ -379,7 +379,7 @@ export default function MedicationList({ className }: MedicationListProps) {
 
       {/* Edit Medication Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[625px]">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-156.25">
           <DialogHeader>
             <DialogTitle>Editar Medicamento</DialogTitle>
           </DialogHeader>
@@ -391,7 +391,7 @@ export default function MedicationList({ className }: MedicationListProps) {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-106.25">
           <DialogHeader>
             <DialogTitle>Confirmar Exclusão</DialogTitle>
           </DialogHeader>

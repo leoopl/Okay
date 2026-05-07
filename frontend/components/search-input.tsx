@@ -46,14 +46,14 @@ const SearchInput: React.FC<SearchInputProps> = ({
   return (
     <div className={`relative ${containerClassName || ''}`}>
       <Search
-        className={`absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform ${iconClassName || 'text-grey-dark'}`}
+        className={`absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform ${iconClassName || 'text-muted-foreground'}`}
       />
       <Input
         type="text"
         placeholder={placeholder}
         value={currentValue}
         onChange={handleChange}
-        className={`pl-10 ${className || 'border-grey-light focus-visible:ring-blue-medium bg-white/80'}`}
+        className={`pl-10 ${className || 'border-border focus-visible:ring-ring bg-background/80'}`}
         disabled={disabled}
         autoFocus={autoFocus}
       />

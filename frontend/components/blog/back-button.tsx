@@ -12,7 +12,7 @@ export function BackButton() {
   };
 
   return (
-    <Button variant="ghost" className="hover:bg-yellow-light mb-4" onClick={handleBack}>
+    <Button variant="ghost" className="hover:bg-primary/20 mb-4" onClick={handleBack}>
       <ArrowLeft />
       Volte aos artigos
     </Button>

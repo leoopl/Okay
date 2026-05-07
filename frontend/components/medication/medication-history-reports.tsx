@@ -168,46 +168,46 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
 
   const getStatusIcon = useCallback((status: DoseStatus) => {
     const iconMap = {
-      taken: <CheckCircle className="h-4 w-4 text-green-500" aria-label="Dose tomada" />,
-      skipped: <XCircle className="h-4 w-4 text-red-500" aria-label="Dose pulada" />,
-      delayed: <Clock className="h-4 w-4 text-amber-500" aria-label="Dose atrasada" />,
+      taken: <CheckCircle className="h-4 w-4 text-accent-strong" aria-label="Dose tomada" />,
+      skipped: <XCircle className="h-4 w-4 text-destructive" aria-label="Dose pulada" />,
+      delayed: <Clock className="h-4 w-4 text-primary" aria-label="Dose atrasada" />,
     };
     return (
       iconMap[status] || (
-        <AlertCircle className="h-4 w-4 text-gray-500" aria-label="Status desconhecido" />
+        <AlertCircle className="h-4 w-4 text-muted-foreground" aria-label="Status desconhecido" />
       )
     );
   }, []);
 
   const getStatusClass = useCallback((status: DoseStatus): string => {
     const statusClasses = {
-      taken: 'bg-green-100 text-green-800 border-green-200',
-      skipped: 'bg-red-100 text-red-800 border-red-200',
-      delayed: 'bg-amber-100 text-amber-800 border-amber-200',
+      taken: 'bg-success-bg text-success border-success/30',
+      skipped: 'bg-destructive/10 text-destructive border-destructive/30',
+      delayed: 'bg-primary/10 text-accent-strong border-primary/30',
     };
-    return statusClasses[status] || 'bg-gray-100 text-gray-800 border-gray-200';
+    return statusClasses[status] || 'bg-muted text-muted-foreground border-border';
   }, []);
 
   // Memoized components for better performance
   const AdherenceCard = useMemo(
     () => (
-      <Card className="border-[#CBCFD7]">
+      <Card className="border-border">
         <CardHeader className="pb-2">
-          <CardTitle className="text-green-dark text-lg">Taxa de Adesão</CardTitle>
+          <CardTitle className="text-accent-strong text-lg">Taxa de Adesão</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex h-[150px] flex-col items-center justify-center">
+          <div className="flex h-37.5 flex-col items-center justify-center">
             {loadingStates.adherenceStats ? (
-              <Loader2 className="text-green-dark h-8 w-8 animate-spin" />
+              <Loader2 className="text-accent-strong h-8 w-8 animate-spin" />
             ) : (
               <>
                 <div
-                  className="text-green-dark text-5xl font-bold"
+                  className="text-accent-strong text-5xl font-bold"
                   aria-label={`Taxa de adesão: ${adherenceStats?.adherenceRate ?? 0} por cento`}
                 >
                   {adherenceStats?.adherenceRate ?? 0}%
                 </div>
-                <p className="text-beige-dark mt-2">Doses tomadas conforme prescrito</p>
+                <p className="text-muted-foreground mt-2">Doses tomadas conforme prescrito</p>
               </>
             )}
           </div>
@@ -218,58 +218,58 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
   );
 
   const DoseSummaryCard = (
-    <Card className="border-[#CBCFD7] md:col-span-2">
+    <Card className="border-border md:col-span-2">
       <CardHeader className="pb-2">
-        <CardTitle className="text-green-dark text-lg">Resumo do Status de Doses</CardTitle>
+        <CardTitle className="text-accent-strong text-lg">Resumo do Status de Doses</CardTitle>
       </CardHeader>
       <CardContent>
         {loadingStates.adherenceStats ? (
-          <div className="flex h-[150px] items-center justify-center">
-            <Loader2 className="text-green-dark h-8 w-8 animate-spin" />
+          <div className="flex h-37.5 items-center justify-center">
+            <Loader2 className="text-accent-strong h-8 w-8 animate-spin" />
           </div>
         ) : (
-          <div className="flex h-[150px] items-center justify-center gap-8">
+          <div className="flex h-37.5 items-center justify-center gap-8">
             <div className="flex flex-col items-center">
               <div
-                className="text-green-dark text-3xl font-bold"
+                className="text-accent-strong text-3xl font-bold"
                 aria-label={`${adherenceStats?.taken ?? 0} doses tomadas`}
               >
                 {adherenceStats?.taken ?? 0}
               </div>
               <div className="mt-2 flex items-center">
-                <div className="bg-green-dark mr-2 h-3 w-3 rounded-full" aria-hidden="true"></div>
-                <p className="text-beige-dark">Tomados</p>
+                <div className="bg-accent-strong mr-2 h-3 w-3 rounded-full" aria-hidden="true"></div>
+                <p className="text-muted-foreground">Tomados</p>
               </div>
             </div>
             <div className="flex flex-col items-center">
               <div
-                className="text-yellow-dark text-3xl font-bold"
+                className="text-primary text-3xl font-bold"
                 aria-label={`${adherenceStats?.skipped ?? 0} doses puladas`}
               >
                 {adherenceStats?.skipped ?? 0}
               </div>
               <div className="mt-2 flex items-center">
                 <div
-                  className="bg-yellow-dark mr-2 h-3 w-3 rounded-full"
+                  className="bg-primary mr-2 h-3 w-3 rounded-full"
                   aria-hidden="true"
                 ></div>
-                <p className="text-beige-dark">Pulados</p>
+                <p className="text-muted-foreground">Pulados</p>
               </div>
             </div>
             {isMobile ? null : (
               <div className="flex flex-col items-center">
                 <div
-                  className="text-blue-dark text-3xl font-bold"
+                  className="text-secondary text-3xl font-bold"
                   aria-label={`${adherenceStats?.delayed ?? 0} doses atrasadas`}
                 >
                   {adherenceStats?.delayed ?? 0}
                 </div>
                 <div className="mt-2 flex items-center">
                   <div
-                    className="bg-blue-dark mr-2 h-3 w-3 rounded-full"
+                    className="bg-secondary mr-2 h-3 w-3 rounded-full"
                     aria-hidden="true"
                   ></div>
-                  <p className="text-beige-dark">Atrasadas</p>
+                  <p className="text-muted-foreground">Atrasadas</p>
                 </div>
               </div>
             )}
@@ -284,9 +284,9 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
     return (
       <div className={cn('space-y-6', className)}>
         <div className="py-12 text-center">
-          <AlertCircle className="mx-auto mb-4 h-16 w-16 text-red-500" />
-          <h3 className="mb-2 text-xl font-medium text-red-800">Algo deu errado</h3>
-          <p className="mb-4 text-red-600">{error}</p>
+          <AlertCircle className="mx-auto mb-4 h-16 w-16 text-destructive" />
+          <h3 className="mb-2 text-xl font-medium text-destructive">Algo deu errado</h3>
+          <p className="mb-4 text-destructive">{error}</p>
           <Button onClick={handleFilterChange} variant="outline">
             Tentar Novamente
           </Button>
@@ -298,7 +298,7 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
   return (
     <div className={cn('space-y-6', className)}>
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-        <h2 className="text-green-dark text-2xl font-bold">
+        <h2 className="text-accent-strong text-2xl font-bold">
           Histórico e Relatórios de Medicamentos
         </h2>
 
@@ -308,7 +308,7 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
             onValueChange={setSelectedMedication}
             disabled={loadingStates.medications || loadingStates.doseLogs}
           >
-            <SelectTrigger className="focus:ring-green-dark w-full border-[#CBCFD7] sm:w-[200px]">
+            <SelectTrigger className="focus:ring-accent-strong w-full border-border sm:w-50">
               <SelectValue placeholder="Selecionar medicamento" />
             </SelectTrigger>
             <SelectContent>
@@ -326,7 +326,7 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
             onValueChange={(value: TimeRange) => setTimeRange(value)}
             disabled={loadingStates.doseLogs}
           >
-            <SelectTrigger className="focus:ring-green-dark w-full border-[#CBCFD7] sm:w-[180px]">
+            <SelectTrigger className="focus:ring-accent-strong w-full border-border sm:w-45">
               <SelectValue placeholder="Selecionar período" />
             </SelectTrigger>
             <SelectContent>
@@ -345,7 +345,7 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
                   variant="outline"
                   disabled={loadingStates.doseLogs}
                   className={cn(
-                    'w-full justify-start border-[#CBCFD7] text-left font-normal sm:w-[180px]',
+                    'w-full justify-start border-border text-left font-normal sm:w-45',
                     !selectedDate && 'text-muted-foreground',
                   )}
                 >
@@ -377,20 +377,20 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
         {DoseSummaryCard}
       </div>
 
-      <h3 className="text-green-dark mt-6 text-xl font-medium">Histórico de Medicamentos</h3>
+      <h3 className="text-accent-strong mt-6 text-xl font-medium">Histórico de Medicamentos</h3>
 
       {loadingStates.doseLogs && !doseLogs.length ? (
         <div className="py-12 text-center">
-          <Loader2 className="text-green-dark mx-auto mb-4 h-8 w-8 animate-spin" />
-          <p className="text-beige-dark">Carregando histórico de medicamentos...</p>
+          <Loader2 className="text-accent-strong mx-auto mb-4 h-8 w-8 animate-spin" />
+          <p className="text-muted-foreground">Carregando histórico de medicamentos...</p>
         </div>
       ) : !doseLogs || doseLogs.length === 0 ? (
         <div className="py-12 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#F2DECC]/50">
-            <CalendarIcon className="text-yellow-dark h-8 w-8" />
+          <div className="bg-muted/50 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+            <CalendarIcon className="text-primary h-8 w-8" />
           </div>
-          <h3 className="text-green-dark mb-2 text-xl font-medium">Nenhum histórico encontrado</h3>
-          <p className="text-beige-dark mb-6">
+          <h3 className="text-accent-strong mb-2 text-xl font-medium">Nenhum histórico encontrado</h3>
+          <p className="text-muted-foreground mb-6">
             {selectedMedication !== ALL_MEDICATIONS
               ? 'Tente um medicamento ou período diferente'
               : 'Comece registrando suas doses de medicamentos para ver seu histórico'}
@@ -399,17 +399,17 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
       ) : (
         <div className="space-y-4">
           {doseLogs.map((log, index) => (
-            <Card key={log.id || `log-${index}`} className="border-[#CBCFD7]">
+            <Card key={log.id || `log-${index}`} className="border-border">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <div className="mt-1">{getStatusIcon(log.status)}</div>
                   <div className="flex-1">
                     <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
                       <div>
-                        <h3 className="text-green-dark font-medium">
+                        <h3 className="text-accent-strong font-medium">
                           {getMedicationName(log.medicationId)}
                         </h3>
-                        <p className="text-sm text-[#797D89]">
+                        <p className="text-sm text-muted-foreground">
                           {format(new Date(log.timestamp), 'PPP', { locale: ptBR })} às{' '}
                           {format(new Date(log.timestamp), 'HH:mm')}
                         </p>
@@ -421,7 +421,7 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
                       </Badge>
                     </div>
                     {log.notes && (
-                      <p className="text-beige-dark mt-2 rounded bg-[#CBCFD7]/10 p-2 text-sm">
+                      <p className="text-muted-foreground mt-2 rounded bg-border/10 p-2 text-sm">
                         {log.notes}
                       </p>
                     )}

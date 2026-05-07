@@ -51,14 +51,14 @@ const SigninPage: React.FC = () => {
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
       <div className="grid w-full max-w-4xl gap-8 md:grid-cols-2 md:items-center">
         <div className="px-4">
-          <h2 className="small-caps font-varela text-green-dark mb-8 text-center text-4xl font-bold tracking-tight">
+          <h2 className="small-caps font-varela text-accent-strong mb-8 text-center text-4xl font-bold tracking-tight">
             Espero que esteja tendo um bom dia!
           </h2>
 
           {sessionExpired && (
-            <div className="mb-4 rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-800">
+            <div className="mb-4 rounded-md border border-primary/30 bg-primary/10 p-4 text-accent-strong">
               <div className="flex">
-                <AlertCircle className="h-5 w-5 text-amber-400" />
+                <AlertCircle className="h-5 w-5 text-primary" />
                 <p className="ml-3 text-sm">Sua sessão expirou. Por favor, faça login novamente.</p>
               </div>
             </div>
@@ -112,9 +112,9 @@ const SigninPage: React.FC = () => {
               />
 
               {actionState?.message && (
-                <div className="rounded border border-red-400 bg-red-50 p-4 text-red-700">
+                <div className="rounded border border-destructive/40 bg-destructive/10 p-4 text-destructive">
                   <div className="flex items-center">
-                    <AlertCircle className="h-5 w-5 text-red-400" />
+                    <AlertCircle className="h-5 w-5 text-destructive" />
                     <span className="ml-3">{actionState.message}</span>
                   </div>
                 </div>
@@ -124,9 +124,9 @@ const SigninPage: React.FC = () => {
                 {isPending ? 'Entrando...' : 'Entrar'}
               </Button>
 
-              <p className="small-caps text-center text-sm text-gray-900">
+              <p className="small-caps text-center text-sm text-foreground">
                 Ainda não tem conta?{' '}
-                <Link href="/signup" className="hover:text-beige-dark font-semibold">
+                <Link href="/signup" className="hover:text-muted-foreground font-semibold">
                   Cadastre-se aqui
                 </Link>
               </p>
@@ -199,14 +199,14 @@ const ForgotPasswordDialog: React.FC = () => {
       <DialogTrigger asChild>
         <button
           type="button"
-          className="small-caps hover:text-beige-dark cursor-pointer text-sm font-semibold"
+          className="small-caps hover:text-muted-foreground cursor-pointer text-sm font-semibold"
         >
           Esqueceu sua senha?
         </button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="small-caps text-green-dark">Recuperar Senha</DialogTitle>
+          <DialogTitle className="small-caps text-accent-strong">Recuperar Senha</DialogTitle>
           <DialogDescription>
             Digite seu e-mail para receber um link de recuperação de senha.
           </DialogDescription>
@@ -214,9 +214,9 @@ const ForgotPasswordDialog: React.FC = () => {
 
         {success ? (
           <div className="space-y-4">
-            <div className="rounded-md border border-green-300 bg-green-50 p-4 text-green-800">
+            <div className="rounded-md border border-success/30 bg-success-bg p-4 text-success">
               <div className="flex">
-                <CheckCircle className="h-5 w-5 text-green-400" />
+                <CheckCircle className="h-5 w-5 text-success" />
                 <p className="ml-3 text-sm">
                   E-mail enviado com sucesso! Verifique sua caixa de entrada e siga as instruções
                   para redefinir sua senha.
@@ -254,9 +254,9 @@ const ForgotPasswordDialog: React.FC = () => {
               />
 
               {error && (
-                <div className="rounded border border-red-400 bg-red-50 p-4 text-red-700">
+                <div className="rounded border border-destructive/40 bg-destructive/10 p-4 text-destructive">
                   <div className="flex items-center">
-                    <AlertCircle className="h-5 w-5 text-red-400" />
+                    <AlertCircle className="h-5 w-5 text-destructive" />
                     <span className="ml-3">{error}</span>
                   </div>
                 </div>

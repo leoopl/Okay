@@ -42,16 +42,16 @@ export function ProfessionalScheduleButton({ professional }: ProfessionalActions
           Agendar Consulta
         </Button>
       </DialogTrigger>
-      <DialogContent className="border-[#CBCFD7] bg-white sm:max-w-[425px]">
+      <DialogContent className="border-border bg-background sm:max-w-106.25">
         <DialogHeader>
-          <DialogTitle className="font-varela text-[#039BE5]">Agendar Consulta</DialogTitle>
-          <DialogDescription className="text-[#797D89]">
+          <DialogTitle className="font-varela text-secondary">Agendar Consulta</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
             Preencha os dados abaixo para agendar uma consulta com {professional.name}.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="date" className="text-[#797D89]">
+            <Label htmlFor="date" className="text-muted-foreground">
               Data
             </Label>
             <Input
@@ -59,11 +59,11 @@ export function ProfessionalScheduleButton({ professional }: ProfessionalActions
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="border-[#CBCFD7] bg-white focus-visible:ring-[#78C7EE]"
+              className="border-border bg-background focus-visible:ring-ring"
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="time" className="text-[#797D89]">
+            <Label htmlFor="time" className="text-muted-foreground">
               Horário
             </Label>
             <Input
@@ -71,17 +71,17 @@ export function ProfessionalScheduleButton({ professional }: ProfessionalActions
               type="time"
               value={time}
               onChange={(e) => setTime(e.target.value)}
-              className="border-[#CBCFD7] bg-white focus-visible:ring-[#78C7EE]"
+              className="border-border bg-background focus-visible:ring-ring"
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="notes" className="text-[#797D89]">
+            <Label htmlFor="notes" className="text-muted-foreground">
               Observações (opcional)
             </Label>
             <Textarea
               id="notes"
               placeholder="Informe detalhes adicionais sobre sua consulta..."
-              className="border-[#CBCFD7] bg-white focus-visible:ring-[#78C7EE]"
+              className="border-border bg-background focus-visible:ring-ring"
             />
           </div>
         </div>
@@ -114,16 +114,16 @@ export function ProfessionalMessageButton({ professional }: ProfessionalActionsP
           Enviar Mensagem
         </Button>
       </DialogTrigger>
-      <DialogContent className="border-[#CBCFD7] bg-white sm:max-w-[425px]">
+      <DialogContent className="border-border bg-background sm:max-w-106.25">
         <DialogHeader>
-          <DialogTitle className="font-varela text-[#039BE5]">Enviar Mensagem</DialogTitle>
-          <DialogDescription className="text-[#797D89]">
+          <DialogTitle className="font-varela text-secondary">Enviar Mensagem</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
             Envie uma mensagem para {professional.name}.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="message" className="text-[#797D89]">
+            <Label htmlFor="message" className="text-muted-foreground">
               Mensagem
             </Label>
             <Textarea
@@ -131,7 +131,7 @@ export function ProfessionalMessageButton({ professional }: ProfessionalActionsP
               placeholder="Digite sua mensagem..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="min-h-[120px] border-[#CBCFD7] bg-white focus-visible:ring-[#78C7EE]"
+              className="min-h-30 border-border bg-background focus-visible:ring-ring"
             />
           </div>
         </div>

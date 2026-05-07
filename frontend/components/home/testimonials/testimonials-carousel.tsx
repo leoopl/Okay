@@ -13,8 +13,8 @@ export default async function TestimonialsCarousel() {
 
   if (!testimonials.length) {
     return (
-      <div className="rounded-lg border bg-white/80 p-8 text-center shadow-sm">
-        <p className="text-gray-600">
+      <div className="rounded-lg border bg-card/80 p-8 text-center shadow-sm">
+        <p className="text-muted-foreground">
           Ainda não há depoimentos. Seja o primeiro a compartilhar sua experiência!
         </p>
       </div>

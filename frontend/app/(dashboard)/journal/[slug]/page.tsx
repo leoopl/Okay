@@ -290,8 +290,8 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
       <div className="container mx-auto max-w-3xl px-4 py-8">
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-[#7F9463] border-t-transparent"></div>
-            <p className="text-beige-dark">Carregando entrada...</p>
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-accent-strong border-t-transparent"></div>
+            <p className="text-muted-foreground">Carregando entrada...</p>
           </div>
         </div>
       </div>
@@ -302,7 +302,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
     <div className="container mx-auto max-w-3xl px-4 py-8">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
-        <Button variant="ghost" onClick={handleBack} className="hover:bg-yellow-light">
+        <Button variant="ghost" onClick={handleBack} className="hover:bg-primary/20">
           <ArrowLeft size={18} className="mr-2" />
           Voltar ao Diário
         </Button>
@@ -312,13 +312,13 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
           <div className="flex items-center gap-2 text-sm">
             {isOnline ? (
               <>
-                <div className="flex items-center gap-1 text-green-600">
+                <div className="flex items-center gap-1 text-accent-strong">
                   <Cloud size={16} />
                   <span>Conectado</span>
                 </div>
               </>
             ) : (
-              <div className="flex items-center gap-1 text-yellow-600">
+              <div className="flex items-center gap-1 text-primary">
                 <CloudOff size={16} />
                 <span>Offline</span>
               </div>
@@ -329,7 +329,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
             <Button
               onClick={handleSave}
               disabled={isLoading || !hasUnsavedChanges}
-              className="bg-yellow-dark hover:bg-yellow-medium font-varela text-black disabled:opacity-50"
+              className="bg-primary hover:bg-primary/80 font-varela text-primary-foreground disabled:opacity-50"
             >
               <Save size={18} className="mb-0.5" />
               Salvar
@@ -342,20 +342,20 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
       <Input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className="font-varela !text-green-dark placeholder:!text-green-dark/50 focus-visible:!border-green-dark/30 !h-auto !border-b-2 !border-none !border-transparent !bg-transparent !px-0 !py-4 !text-4xl !leading-tight !font-bold !tracking-tight !shadow-none !transition-colors !duration-200 focus-visible:!ring-0"
+        className="font-varela text-accent-strong! placeholder:text-accent-strong/50! focus-visible:border-accent-strong/30! h-auto! border-b-2! border-none! border-transparent! bg-transparent! px-0! py-4! text-4xl! leading-tight! font-bold! tracking-tight! shadow-none! transition-colors! duration-200! focus-visible:ring-0!"
         placeholder="Dê um título aos seus pensamentos..."
       />
 
       {/* Metadata Section */}
-      <div className="border-grey-light bg-beige-light/20 mb-6 space-y-4 rounded-lg border p-4">
+      <div className="border-border bg-muted/20 mb-6 space-y-4 rounded-lg border p-4">
         {/* Mood Selector */}
         <div className="space-y-2">
-          <Label htmlFor="mood" className="text-green-dark flex items-center text-sm font-medium">
+          <Label htmlFor="mood" className="text-accent-strong flex items-center text-sm font-medium">
             <Smile size={16} className="mr-2" />
             Como você está se sentindo?
           </Label>
           <Select value={mood || undefined} onValueChange={(value) => setMood(value || '')}>
-            <SelectTrigger className="border-grey-light focus:ring-blue-dark w-full">
+            <SelectTrigger className="border-border focus:ring-ring w-full">
               <SelectValue placeholder="Selecione seu humor..." />
             </SelectTrigger>
             <SelectContent>
@@ -370,7 +370,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
 
         {/* Tags Section */}
         <div className="space-y-2">
-          <Label htmlFor="tags" className="text-green-dark flex items-center text-sm font-medium">
+          <Label htmlFor="tags" className="text-accent-strong flex items-center text-sm font-medium">
             <Tag size={16} className="mr-2" />
             Tags
           </Label>
@@ -382,13 +382,13 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
               onChange={(e) => setNewTag(e.target.value)}
               onKeyPress={handleTagKeyPress}
               placeholder="Adicionar tag..."
-              className="border-grey-light focus-visible:ring-blue-medium"
+              className="border-border focus-visible:ring-ring"
             />
             <Button
               type="button"
               onClick={handleAddTag}
               variant="outline"
-              className="border-yellow-dark text-yellow-dark font-varela hover:bg-yellow-dark hover:text-black"
+              className="border-primary text-primary font-varela hover:bg-primary hover:text-primary-foreground"
             >
               Adicionar
             </Button>
@@ -401,7 +401,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
                 <Badge
                   key={tag}
                   variant="secondary"
-                  className="bg-yellow-medium hover:bg-yellow-light cursor-pointer text-black"
+                  className="bg-primary hover:bg-primary/80 cursor-pointer text-primary-foreground"
                   onClick={() => handleRemoveTag(tag)}
                 >
                   {tag} ×
@@ -413,7 +413,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
       </div>
 
       {/* Content Editor */}
-      <div className="border-grey-light min-h-[60vh] rounded-lg border bg-white p-4">
+      <div className="border-border min-h-[60vh] rounded-lg border bg-card p-4">
         <JournalEditor content={content} onUpdate={handleContentChange} />
       </div>
 
@@ -427,12 +427,12 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Alterações Não Salvas</AlertDialogTitle>
-            <AlertDialogDescription className="text-black/80">
+            <AlertDialogDescription className="text-foreground/80">
               Você tem alterações não salvas. Deseja salvá-las antes de sair?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex flex-col gap-2 sm:flex-row">
-            <AlertDialogCancel className="hover:bg-beige-dark text-black" onClick={handleCancel}>
+            <AlertDialogCancel className="hover:bg-muted text-foreground" onClick={handleCancel}>
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
@@ -445,13 +445,13 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
                   toast.error('Falha ao salvar. Por favor, tente novamente.');
                 }
               }}
-              className="bg-yellow-dark hover:bg-yellow-medium text-black"
+              className="bg-primary hover:bg-primary/80 text-primary-foreground"
             >
               Salvar e Continuar
             </AlertDialogAction>
             <AlertDialogAction
               onClick={handleContinue}
-              className="hover:bg-destructive bg-red-200 text-black"
+              className="bg-destructive/20 hover:bg-destructive text-destructive hover:text-destructive-foreground"
             >
               Descartar Alterações
             </AlertDialogAction>

@@ -93,13 +93,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     <div className={cn('animate-fade-in flex flex-col gap-6 lg:gap-8', textAlignmentClasses)}>
       <h1
         className={cn(
-          'font-varela text-green-dark text-3xl leading-tight font-bold md:text-4xl lg:text-5xl',
+          'font-varela text-accent-strong text-3xl leading-tight font-bold md:text-4xl lg:text-5xl',
           titleClassName,
         )}
       >
         {title}
       </h1>
-      <p className={cn('font-varela text-lg text-gray-800 md:text-xl', descriptionClassName)}>
+      <p className={cn('font-varela text-lg text-foreground md:text-xl', descriptionClassName)}>
         {description}
       </p>
       {children && <div className="flex flex-col gap-4">{children}</div>}

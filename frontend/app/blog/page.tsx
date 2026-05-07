@@ -34,10 +34,10 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
       <div className="container mx-auto">
         <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2">
           <div className="animate-fade-in flex flex-col gap-5">
-            <h1 className="font-varela text-green-dark text-3xl leading-tight font-bold md:text-4xl lg:text-5xl">
+            <h1 className="font-varela text-accent-strong text-3xl leading-tight font-bold md:text-4xl lg:text-5xl">
               Recursos e informações
             </h1>
-            <p className="text-beige-dark text-base md:text-lg">
+            <p className="text-muted-foreground text-base md:text-lg">
               Encontre informações sobre diversas condições de saúde mental.
             </p>
             <nav className="flex flex-col gap-4">
