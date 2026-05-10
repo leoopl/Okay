@@ -71,13 +71,13 @@ export default function UserButton() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="hover:bg-primary/20 relative h-10 w-auto px-3 py-2">
           <div className="flex items-center gap-2">
-            <Avatar className="h-8 w-8 ring-2 ring-primary/30">
+            <Avatar className="ring-primary/30 h-8 w-8 ring-2">
               <AvatarImage
                 src={profile?.profilePictureUrl ?? undefined}
                 alt={profile?.name}
                 className="object-cover"
               />
-              <AvatarFallback className="from-primary/30 to-primary bg-linear-to-br text-sm font-medium text-primary-foreground">
+              <AvatarFallback className="from-primary/30 to-primary text-primary-foreground bg-linear-to-br text-sm font-medium">
                 {profile ? getUserInitials(profile) : <CircleUser />}
               </AvatarFallback>
             </Avatar>
@@ -92,7 +92,7 @@ export default function UserButton() {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
-        className="border-border/30 w-64 border bg-popover p-2 shadow-lg"
+        className="border-border/30 bg-popover w-64 border p-2 shadow-lg"
         align="end"
         sideOffset={8}
       >
@@ -105,7 +105,7 @@ export default function UserButton() {
                 alt={profile?.name}
                 className="object-cover"
               />
-              <AvatarFallback className="from-primary/30 to-primary bg-linear-to-br text-sm font-medium text-primary-foreground">
+              <AvatarFallback className="from-primary/30 to-primary text-primary-foreground bg-linear-to-br text-sm font-medium">
                 {profile ? getUserInitials(profile) : <CircleUser />}
               </AvatarFallback>
             </Avatar>
@@ -146,7 +146,7 @@ export default function UserButton() {
           <DropdownMenuItem
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="hover:bg-destructive/40 focus:bg-destructive/40 cursor-pointer rounded-md px-3 py-2 text-destructive transition-colors duration-150"
+            className="hover:bg-destructive/40 focus:bg-destructive/40 text-destructive cursor-pointer rounded-md px-3 py-2 transition-colors duration-150"
           >
             <div className="flex w-full items-center gap-3">
               <LogOut className="size-4" />

@@ -108,7 +108,10 @@ export function AdvancedJournalSearch({ className }: AdvancedSearchProps) {
       {/* Main search bar */}
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2" size={18} />
+          <Search
+            className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2"
+            size={18}
+          />
           <Input
             type="text"
             placeholder="Buscar por conteúdo, título ou tags..."
@@ -134,7 +137,7 @@ export function AdvancedJournalSearch({ className }: AdvancedSearchProps) {
 
       {/* Advanced filters */}
       {showFilters && (
-        <div className="border-border space-y-4 rounded-lg border bg-card p-4">
+        <div className="border-border bg-card space-y-4 rounded-lg border p-4">
           {/* Mood filter */}
           <div className="space-y-2">
             <Label className="flex items-center gap-2 text-sm font-medium">

@@ -90,7 +90,7 @@ export function ProfessionalFilters({
             <Filter className="mr-2 h-4 w-4" />
             Filtros
             {(selectedProfession || selectedApproaches.length > 0 || useLocation) && (
-              <Badge variant="secondary" className="ml-2 bg-primary text-primary-foreground">
+              <Badge variant="secondary" className="bg-primary text-primary-foreground ml-2">
                 {[
                   selectedProfession ? 1 : 0,
                   selectedApproaches.length,
@@ -109,7 +109,7 @@ export function ProfessionalFilters({
           </SheetHeader>
           <div className="mt-6 flex flex-col gap-6">
             <div className="space-y-2">
-              <h3 className="font-varela text-sm font-medium text-muted-foreground">Profissão</h3>
+              <h3 className="font-varela text-muted-foreground text-sm font-medium">Profissão</h3>
               <Select value={selectedProfession || 'all'} onValueChange={handleProfessionChange}>
                 <SelectTrigger className="border-border bg-background">
                   <SelectValue placeholder="Todas as profissões" />
@@ -128,7 +128,7 @@ export function ProfessionalFilters({
             <Separator className="bg-border/50" />
 
             <div className="space-y-3">
-              <h3 className="font-varela text-sm font-medium text-muted-foreground">Abordagens</h3>
+              <h3 className="font-varela text-muted-foreground text-sm font-medium">Abordagens</h3>
               <div className="flex flex-wrap gap-2">
                 {approaches.map((approach) => (
                   <Badge
@@ -158,7 +158,7 @@ export function ProfessionalFilters({
               />
               <Label
                 htmlFor="location"
-                className="font-varela flex items-center gap-2 text-muted-foreground"
+                className="font-varela text-muted-foreground flex items-center gap-2"
               >
                 <MapPin className="h-4 w-4" />
                 Usar minha localização
@@ -169,13 +169,13 @@ export function ProfessionalFilters({
             <Button
               variant="outline"
               onClick={handleClearFilters}
-              className="flex-1 border-border bg-background text-muted-foreground hover:bg-muted/20"
+              className="border-border bg-background text-muted-foreground hover:bg-muted/20 flex-1"
             >
               Limpar
             </Button>
             <Button
               onClick={handleApplyFilters}
-              className="flex-1 bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              className="bg-secondary text-secondary-foreground hover:bg-secondary/80 flex-1"
             >
               Aplicar
             </Button>
@@ -209,7 +209,7 @@ export function ProfessionalFilters({
         <Badge variant="secondary" className="bg-primary text-primary-foreground">
           {selectedProfession}
           <button
-            className="ml-1 rounded-full hover:bg-primary/20"
+            className="hover:bg-primary/20 ml-1 rounded-full"
             onClick={() => {
               setSelectedProfession(null);
               onFilterChange({
@@ -228,7 +228,7 @@ export function ProfessionalFilters({
         <Badge key={approach} variant="secondary" className="bg-secondary/30 text-secondary">
           {approach}
           <button
-            className="ml-1 rounded-full hover:bg-secondary/20"
+            className="hover:bg-secondary/20 ml-1 rounded-full"
             onClick={() => {
               const newApproaches = selectedApproaches.filter((a) => a !== approach);
               setSelectedApproaches(newApproaches);

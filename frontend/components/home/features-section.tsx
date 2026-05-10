@@ -63,8 +63,8 @@ const FeaturesSection: React.FC = () => {
     <section className="py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 text-center">
-          <h2 className="text-accent-strong font-varela mb-4 text-3xl font-bold">Nossos Recursos</h2>
-          <p className="mx-auto max-w-3xl text-lg text-foreground">
+          <h2 className="text-accent-strong font-varela mb-4 text-3xl">Nossos Recursos</h2>
+          <p className="text-foreground mx-auto max-w-3xl text-lg">
             Oferecemos uma variedade de ferramentas e recursos para apoiar sua jornada de saúde
             mental, desde técnicas de autocuidado até acesso a ajuda profissional.
           </p>

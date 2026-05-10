@@ -50,7 +50,7 @@ export function SecureContent({
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h3 className="text-lg font-medium">{title}</h3>
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="text-muted-foreground text-sm">{description}</p>
         </div>
         <Button
           variant="outline"

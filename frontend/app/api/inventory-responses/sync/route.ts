@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { calculateScores, generateInterpretation, type UserResponseOption } from '@/lib/scoring-utils';
+import {
+  calculateScores,
+  generateInterpretation,
+  type UserResponseOption,
+} from '@/lib/scoring-utils';
 
 interface SyncInventoryResponse {
   id?: string; // Client-generated UUID for idempotent upsert
@@ -32,10 +36,7 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     const body: SyncRequest = await request.json();
@@ -46,10 +47,7 @@ export async function POST(request: NextRequest) {
 
       // Validate consent
       if (!response.consentGiven) {
-        return NextResponse.json(
-          { success: false, error: 'Consent is required' },
-          { status: 400 }
-        );
+        return NextResponse.json({ success: false, error: 'Consent is required' }, { status: 400 });
       }
 
       // Get inventory to calculate scores if not already calculated
@@ -66,7 +64,7 @@ export async function POST(request: NextRequest) {
         if (inventoryError || !inventory) {
           return NextResponse.json(
             { success: false, error: 'Inventory not found' },
-            { status: 404 }
+            { status: 404 },
           );
         }
 
@@ -95,10 +93,7 @@ export async function POST(request: NextRequest) {
 
       if (error) {
         console.error('Error syncing inventory response:', error);
-        return NextResponse.json(
-          { success: false, error: error.message },
-          { status: 500 }
-        );
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
       }
 
       // Log audit trail
@@ -146,26 +141,26 @@ export async function POST(request: NextRequest) {
             continue;
           }
 
-          const calculatedScores = response.calculatedScores ||
+          const calculatedScores =
+            response.calculatedScores ||
             calculateScores(response.responses, inventory.scoring as any);
-          const interpretationResults = response.interpretationResults ||
+          const interpretationResults =
+            response.interpretationResults ||
             generateInterpretation(calculatedScores, inventory.scoring as any);
 
-          const { error } = await supabase
-            .from('inventory_responses')
-            .upsert(
-              {
-                ...(response.id ? { id: response.id } : {}),
-                user_id: user.id,
-                inventory_id: response.inventoryId,
-                responses: response.responses as any,
-                calculated_scores: calculatedScores as any,
-                interpretation_results: interpretationResults as any,
-                consent_given: response.consentGiven,
-                completed_at: response.completedAt || new Date().toISOString(),
-              },
-              { onConflict: 'id' },
-            );
+          const { error } = await supabase.from('inventory_responses').upsert(
+            {
+              ...(response.id ? { id: response.id } : {}),
+              user_id: user.id,
+              inventory_id: response.inventoryId,
+              responses: response.responses as any,
+              calculated_scores: calculatedScores as any,
+              interpretation_results: interpretationResults as any,
+              consent_given: response.consentGiven,
+              completed_at: response.completedAt || new Date().toISOString(),
+            },
+            { onConflict: 'id' },
+          );
 
           if (error) {
             results.failed++;
@@ -175,7 +170,9 @@ export async function POST(request: NextRequest) {
           }
         } catch (err) {
           results.failed++;
-          results.errors.push(`Unexpected error: ${err instanceof Error ? err.message : 'Unknown'}`);
+          results.errors.push(
+            `Unexpected error: ${err instanceof Error ? err.message : 'Unknown'}`,
+          );
         }
       }
 
@@ -188,13 +185,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       { success: false, error: 'No responses provided for sync' },
-      { status: 400 }
+      { status: 400 },
     );
   } catch (error) {
     console.error('Inventory sync error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }

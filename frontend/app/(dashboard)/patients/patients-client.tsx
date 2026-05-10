@@ -5,14 +5,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import {
-  endConnection,
-  inviteConnection,
-} from '@/lib/actions/supabase-connections';
-import {
-  ConnectionInviteSchema,
-  type ConnectionInviteInput,
-} from '@/lib/schemas/provider-schemas';
+import { endConnection, inviteConnection } from '@/lib/actions/supabase-connections';
+import { ConnectionInviteSchema, type ConnectionInviteInput } from '@/lib/schemas/provider-schemas';
 import type { Tables } from '@/lib/supabase/database.types';
 
 type Connection = Tables<'patient_provider_connections'> & {

@@ -18,10 +18,7 @@ interface Props {
   initialError?: string;
 }
 
-export default function AdminProviderValidationsClient({
-  initialRequests,
-  initialError,
-}: Props) {
+export default function AdminProviderValidationsClient({ initialRequests, initialError }: Props) {
   const [requests, setRequests] = useState<ValidationRequest[]>(initialRequests);
   const [activeTab, setActiveTab] = useState<StatusFilter>('pending');
   const [isPending, startTransition] = useTransition();
@@ -54,7 +51,11 @@ export default function AdminProviderValidationsClient({
   }
 
   function handleApprove(id: string) {
-    if (!confirm('Aprovar este profissional? A função do usuário será alterada para healthcare_provider.')) {
+    if (
+      !confirm(
+        'Aprovar este profissional? A função do usuário será alterada para healthcare_provider.',
+      )
+    ) {
       return;
     }
     startTransition(async () => {

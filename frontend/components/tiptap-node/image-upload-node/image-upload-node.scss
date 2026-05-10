@@ -37,7 +37,7 @@
 .tiptap-image-upload {
   margin: 2rem 0;
 
-  input[type="file"] {
+  input[type='file'] {
     display: none;
   }
 
@@ -187,10 +187,7 @@
 
     &-active {
       border-color: var(--tiptap-image-upload-border-active);
-      background-color: rgba(
-        var(--tiptap-image-upload-active-rgb, 0, 0, 255),
-        0.05
-      );
+      background-color: rgba(var(--tiptap-image-upload-active-rgb, 0, 0, 255), 0.05);
     }
   }
 

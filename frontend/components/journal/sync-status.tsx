@@ -27,7 +27,7 @@ export function SyncStatusIndicator({
     }
 
     if (isSyncing) {
-      return <RefreshCw size={16} className="animate-spin text-secondary" />;
+      return <RefreshCw size={16} className="text-secondary animate-spin" />;
     }
 
     if (pendingChanges > 0) {
@@ -85,7 +85,7 @@ export function SyncStatusIndicator({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="flex cursor-help items-center justify-center rounded-full p-2 transition-colors hover:bg-muted">
+            <div className="hover:bg-muted flex cursor-help items-center justify-center rounded-full p-2 transition-colors">
               {getStatusIcon()}
             </div>
           </TooltipTrigger>
@@ -101,9 +101,9 @@ export function SyncStatusIndicator({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="flex cursor-help items-center gap-2 rounded-full bg-muted px-3 py-1.5 transition-colors hover:bg-muted/80">
+          <div className="bg-muted hover:bg-muted/80 flex cursor-help items-center gap-2 rounded-full px-3 py-1.5 transition-colors">
             {getStatusIcon()}
-            <span className="text-sm text-foreground">{getStatusText()}</span>
+            <span className="text-foreground text-sm">{getStatusText()}</span>
           </div>
         </TooltipTrigger>
         <TooltipContent>

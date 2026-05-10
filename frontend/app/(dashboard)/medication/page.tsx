@@ -125,11 +125,11 @@ export default function MedicationPage() {
       <main className="container mx-auto px-4 py-8 md:py-12">
         <div className="mx-auto max-w-7xl">
           <div className="py-16 text-center">
-            <AlertCircle className="mx-auto mb-6 h-16 w-16 text-destructive" />
-            <h2 className="mb-2 text-xl font-semibold text-destructive sm:text-2xl">
+            <AlertCircle className="text-destructive mx-auto mb-6 h-16 w-16" />
+            <h2 className="text-destructive mb-2 text-xl font-semibold sm:text-2xl">
               Não foi possível carregar o Rastreador de Medicamentos
             </h2>
-            <p className="mx-auto mb-6 max-w-md text-sm text-destructive sm:text-base">
+            <p className="text-destructive mx-auto mb-6 max-w-md text-sm sm:text-base">
               {errors.medications?.message ||
                 'Ocorreu um erro inesperado ao carregar seus dados de medicamentos.'}
             </p>
@@ -200,7 +200,7 @@ export default function MedicationPage() {
               })}
             </TabsList>
 
-            <Card className="border-border min-h-150 bg-card/80 p-4 sm:p-6">
+            <Card className="border-border bg-card/80 min-h-150 p-4 sm:p-6">
               <TabsContent value="medications" className="mt-0">
                 {TabContent.medications}
               </TabsContent>

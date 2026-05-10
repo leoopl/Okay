@@ -138,7 +138,10 @@ export default function MedicationList({ className }: MedicationListProps) {
           <CardContent className="p-0">
             <div className="border-border border-b p-4">
               <div className="mb-2 flex items-start justify-between">
-                <h3 className="text-accent-strong truncate text-lg font-bold" title={medication.name}>
+                <h3
+                  className="text-accent-strong truncate text-lg font-bold"
+                  title={medication.name}
+                >
                   {medication.name}
                 </h3>
                 <div className="flex space-x-1">
@@ -237,8 +240,8 @@ export default function MedicationList({ className }: MedicationListProps) {
                 ))}
               </div>
             ) : (
-              <div className="flex w-full items-center justify-center rounded-md border border-dashed border-border p-3">
-                <p className="text-sm text-muted-foreground">
+              <div className="border-border flex w-full items-center justify-center rounded-md border border-dashed p-3">
+                <p className="text-muted-foreground text-sm">
                   Nenhuma agenda definida para este medicamento.
                 </p>
               </div>
@@ -279,11 +282,11 @@ export default function MedicationList({ className }: MedicationListProps) {
     return (
       <div className={cn('space-y-6', className)}>
         <div className="py-12 text-center">
-          <AlertCircle className="mx-auto mb-4 h-16 w-16 text-destructive" />
-          <h3 className="mb-2 text-xl font-medium text-destructive">
+          <AlertCircle className="text-destructive mx-auto mb-4 h-16 w-16" />
+          <h3 className="text-destructive mb-2 text-xl font-medium">
             Não foi possível carregar os medicamentos
           </h3>
-          <p className="mb-4 text-destructive">{error}</p>
+          <p className="text-destructive mb-4">{error}</p>
           <Button onClick={fetchMedications} variant="outline" disabled={isLoading}>
             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Tentar Novamente

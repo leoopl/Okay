@@ -1,11 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import {
-  createClient,
-  getUserWithRolesAndPermissions,
-  logAuditTrail,
-} from '@/lib/supabase/server';
+import { createClient, getUserWithRolesAndPermissions, logAuditTrail } from '@/lib/supabase/server';
 import type { Database, Tables } from '@/lib/supabase/database.types';
 
 type Testimonial = Tables<'testimonials'>;
@@ -31,10 +27,7 @@ export async function listTestimonialsByStatus(
   if (!auth.ok) return { data: [], error: auth.message };
 
   const supabase = await createClient();
-  let query = supabase
-    .from('testimonials')
-    .select('*')
-    .order('created_at', { ascending: false });
+  let query = supabase.from('testimonials').select('*').order('created_at', { ascending: false });
 
   if (status !== 'all') {
     query = query.eq('status', status);
@@ -84,10 +77,7 @@ export async function rejectTestimonial(id: string): Promise<AdminActionResult> 
   if (!auth.ok) return { success: false, message: auth.message };
 
   const supabase = await createClient();
-  const { error } = await supabase
-    .from('testimonials')
-    .update({ status: 'rejected' })
-    .eq('id', id);
+  const { error } = await supabase.from('testimonials').update({ status: 'rejected' }).eq('id', id);
 
   if (error) {
     console.error('Error rejecting testimonial:', error);

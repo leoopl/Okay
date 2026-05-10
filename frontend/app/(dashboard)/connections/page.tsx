@@ -23,10 +23,5 @@ export default async function ConnectionsPage() {
       }),
   );
 
-  return (
-    <ConnectionsClient
-      connections={asPatient}
-      grantsByConnection={grantsByConnection}
-    />
-  );
+  return <ConnectionsClient connections={asPatient} grantsByConnection={grantsByConnection} />;
 }

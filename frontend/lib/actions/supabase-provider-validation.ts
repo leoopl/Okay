@@ -8,7 +8,10 @@ import {
   logAuditTrail,
 } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { ValidationRequestSchema, type ValidationRequestInput } from '@/lib/schemas/provider-schemas';
+import {
+  ValidationRequestSchema,
+  type ValidationRequestInput,
+} from '@/lib/schemas/provider-schemas';
 import type { Tables } from '@/lib/supabase/database.types';
 
 type ValidationRequest = Tables<'provider_validation_requests'>;
@@ -120,9 +123,7 @@ export async function listValidationRequests(
   return { data: data ?? [] };
 }
 
-export async function approveRequest(
-  requestId: string,
-): Promise<ProviderValidationResponse> {
+export async function approveRequest(requestId: string): Promise<ProviderValidationResponse> {
   const userData = await getUserWithRolesAndPermissions();
   if (!userData || !userData.hasRole('admin')) {
     return { success: false, message: 'Acesso negado' };

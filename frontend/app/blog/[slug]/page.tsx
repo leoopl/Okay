@@ -75,21 +75,29 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   return (
     <Suspense
-      fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}
+      fallback={
+        <div
+          role="status"
+          aria-live="polite"
+          className="text-muted-foreground flex min-h-screen items-center justify-center"
+        >
+          Carregando...
+        </div>
+      }
     >
-      <section className="container mx-auto max-w-4xl px-4 py-8 shadow-2xl">
+      <section className="container mx-auto max-w-4xl px-4 py-8">
         <ButtonScrollTop />
         <div className="lg:grid lg:grid-cols-4 lg:gap-8">
           <div className="hidden lg:col-span-1 lg:block">
             <div className="sticky top-8">
               <BackButton />
-              <h2 className="text-accent-strong mb-4 text-lg font-bold">Neste artigo</h2>
+              <h2 className="font-varela text-accent-strong mb-4 text-lg">Neste artigo</h2>
               <TableOfContents rawContent={post.rawContent} />
             </div>
           </div>
           <article className="divide-border mx-auto divide-y lg:col-span-3">
             <header className="mb-8">
-              <h1 className="font-varela text-accent-strong mb-1 text-5xl font-bold">
+              <h1 className="font-varela text-accent-strong mb-1 text-[clamp(1.875rem,5vw,3rem)] leading-[1.2] tracking-[-0.01em] wrap-break-word">
                 {post.metadata.title}
               </h1>
               <time
@@ -100,20 +108,22 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               </time>
               <span className="text-muted-foreground"> • </span>
               <span className="text-muted-foreground text-sm italic">
-                {post.metadata.readingTime} min de leitura.
+                {post.metadata.readingTime ?? '?'} min de leitura.
               </span>
             </header>
 
-            <article className="prose prose-headings:mt-8 prose-headings:font-semibold prose-headings:text-accent-strong prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-p:text-foreground max-w-full py-6 leading-snug">
+            <div className="prose prose-headings:mt-8 prose-headings:font-varela prose-headings:text-accent-strong prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-p:text-foreground max-w-full py-6">
               {post.content}
-            </article>
+            </div>
 
             {post.metadata.tags && post.metadata.tags.length > 0 && (
               <footer className="pt-5">
                 <div className="flex flex-wrap gap-2">
                   {post.metadata.tags.map((tag: string, idx: number) => (
                     <Badge key={idx} variant="outline">
-                      <span className="text-muted-foreground text-sm font-semibold italic">{tag}</span>
+                      <span className="text-muted-foreground text-sm font-semibold italic">
+                        {tag}
+                      </span>
                     </Badge>
                   ))}
                 </div>

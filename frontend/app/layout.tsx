@@ -234,11 +234,16 @@ export default async function RootLayout({
         <link rel="shortcut icon" href="/favicon/favicon.ico" />
       </head>
       <body className="gradient-background min-h-screen antialiased">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
           <NetworkStatusProvider>
             <AuthProvider initialData={authData}>
               <OfflineBanner />
-              <div className="relative flex min-h-screen flex-col bg-linear-to-b from-transparent to-white/95 dark:to-card/95">
+              <div className="dark:to-card/95 relative flex min-h-screen flex-col bg-linear-to-b from-transparent to-white/95">
                 <Script
                   src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-core.min.js"
                   strategy="afterInteractive"

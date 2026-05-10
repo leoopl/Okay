@@ -23,20 +23,20 @@ const Testimonials: React.FC = () => {
       <div className="container mx-auto px-4 lg:max-w-6xl">
         {/* Header */}
         <header className="mb-16 text-center">
-          <h2 className="text-green-dark font-varela mb-4 text-4xl font-bold">
+          <h2 className="text-accent-strong font-varela mb-4 text-4xl">
             Você não precisa sentir isso sozinho.
           </h2>
           <p className="text-foreground mx-auto max-w-3xl text-lg">
             Compartilhe o que te ajudou com seus momentos dificeis. Quaisquer links para recursos,
             mecanismos de enfrentamento e conselhos podem ajudar outra pessoa.
           </p>
-          <p className="text-destructive mt-1 text-sm">Seu e-mail não será divulgado.</p>
-          <p className="text-destructive text-sm">Prezamos por sua privacidade.</p>
+          <p className="text-crisis mt-1 text-sm">Seu e-mail não será divulgado.</p>
+          <p className="text-crisis text-sm">Prezamos por sua privacidade.</p>
           <TestimonialForm />
         </header>
         {/* Testimonials Display */}
         <div className="mt-16">
-          <h3 className="text-accent-strong font-varela mb-8 text-center text-2xl font-semibold">
+          <h3 className="text-accent-strong font-varela mb-8 text-center text-2xl">
             Depoimentos da Nossa Comunidade
           </h3>
 

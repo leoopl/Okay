@@ -1,11 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import {
-  createClient,
-  getUserWithRolesAndPermissions,
-  logAuditTrail,
-} from '@/lib/supabase/server';
+import { createClient, getUserWithRolesAndPermissions, logAuditTrail } from '@/lib/supabase/server';
 import { ConnectionInviteSchema, MAX_DOCTORS_PER_PATIENT } from '@/lib/schemas/provider-schemas';
 import type { Tables } from '@/lib/supabase/database.types';
 
@@ -18,8 +14,18 @@ export type ConnectionResult = {
 };
 
 type ConnectionRow = Connection & {
-  patient_profile?: { id: string; name: string | null; surname: string | null; email: string } | null;
-  provider_profile?: { id: string; name: string | null; surname: string | null; email: string } | null;
+  patient_profile?: {
+    id: string;
+    name: string | null;
+    surname: string | null;
+    email: string;
+  } | null;
+  provider_profile?: {
+    id: string;
+    name: string | null;
+    surname: string | null;
+    email: string;
+  } | null;
 };
 
 /**
@@ -57,7 +63,10 @@ export async function inviteConnection(input: {
     return { success: false, message: 'Erro ao buscar paciente' };
   }
   if (!patient) {
-    return { success: false, message: 'Paciente não encontrado. Peça para que ele se cadastre primeiro.' };
+    return {
+      success: false,
+      message: 'Paciente não encontrado. Peça para que ele se cadastre primeiro.',
+    };
   }
 
   // Verify invitee is a patient (S6: reject if no role or wrong role)
@@ -77,7 +86,10 @@ export async function inviteConnection(input: {
   });
 
   if (roleNames.length === 0) {
-    return { success: false, message: 'Paciente não encontrado. Peça para que ele se cadastre primeiro.' };
+    return {
+      success: false,
+      message: 'Paciente não encontrado. Peça para que ele se cadastre primeiro.',
+    };
   }
   if (!roleNames.includes('patient')) {
     return { success: false, message: 'Este usuário não é um paciente' };
@@ -94,7 +106,10 @@ export async function inviteConnection(input: {
     return { success: false, message: 'Erro ao verificar conexões existentes' };
   }
   if ((count ?? 0) >= MAX_DOCTORS_PER_PATIENT) {
-    return { success: false, message: `O paciente já possui o máximo de ${MAX_DOCTORS_PER_PATIENT} conexões` };
+    return {
+      success: false,
+      message: `O paciente já possui o máximo de ${MAX_DOCTORS_PER_PATIENT} conexões`,
+    };
   }
 
   // Insert (DB triggers verify role invariants and limit)
@@ -112,7 +127,10 @@ export async function inviteConnection(input: {
   if (insertErr) {
     console.error('Connection insert failed:', insertErr);
     if (insertErr.message?.includes('PATIENT_PROVIDER_LIMIT_EXCEEDED')) {
-      return { success: false, message: `O paciente já possui o máximo de ${MAX_DOCTORS_PER_PATIENT} conexões` };
+      return {
+        success: false,
+        message: `O paciente já possui o máximo de ${MAX_DOCTORS_PER_PATIENT} conexões`,
+      };
     }
     if (insertErr.message?.includes('INVITEE_NOT_PATIENT')) {
       return { success: false, message: 'Este usuário não é um paciente' };
@@ -121,7 +139,10 @@ export async function inviteConnection(input: {
       return { success: false, message: 'Apenas profissionais validados podem convidar pacientes' };
     }
     if (insertErr.code === '23505') {
-      return { success: false, message: 'Você já possui uma conexão pendente ou ativa com este paciente' };
+      return {
+        success: false,
+        message: 'Você já possui uma conexão pendente ou ativa com este paciente',
+      };
     }
     return { success: false, message: 'Erro ao enviar convite' };
   }
@@ -154,18 +175,24 @@ export async function getMyConnections(): Promise<{
   const [patientSide, providerSide] = await Promise.all([
     supabase
       .from('patient_provider_connections')
-      .select('*, provider_profile:profiles!patient_provider_connections_provider_id_fkey(id, name, surname, email)')
+      .select(
+        '*, provider_profile:profiles!patient_provider_connections_provider_id_fkey(id, name, surname, email)',
+      )
       .eq('patient_id', userData.user.id)
       .order('created_at', { ascending: false }),
     supabase
       .from('patient_provider_connections')
-      .select('*, patient_profile:profiles!patient_provider_connections_patient_id_fkey(id, name, surname, email)')
+      .select(
+        '*, patient_profile:profiles!patient_provider_connections_patient_id_fkey(id, name, surname, email)',
+      )
       .eq('provider_id', userData.user.id)
       .order('created_at', { ascending: false }),
   ]);
 
-  if (patientSide.error) console.error('Failed to load patient-side connections:', patientSide.error);
-  if (providerSide.error) console.error('Failed to load provider-side connections:', providerSide.error);
+  if (patientSide.error)
+    console.error('Failed to load patient-side connections:', patientSide.error);
+  if (providerSide.error)
+    console.error('Failed to load provider-side connections:', providerSide.error);
 
   return {
     asPatient: (patientSide.data ?? []) as ConnectionRow[],

@@ -601,5 +601,5 @@ export const useJournalSync = () =>
       isSyncing: state.isSyncing,
       lastSync: state.lastSync,
       syncPendingChanges: state.syncPendingChanges,
-    }))
+    })),
   );

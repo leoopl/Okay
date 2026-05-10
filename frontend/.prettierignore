@@ -5,3 +5,9 @@ node_modules
 docs
 README.MD
 CHANGELOG.md
+.claude
+.impeccable
+.vscode
+CLAUDE.md
+DESIGN.md
+PRODUCT.md

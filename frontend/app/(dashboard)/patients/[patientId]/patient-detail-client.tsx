@@ -2,10 +2,7 @@
 
 import { useState } from 'react';
 import type { Tables } from '@/lib/supabase/database.types';
-import {
-  SHARED_RESOURCE_LABELS,
-  type SharedResourceType,
-} from '@/lib/schemas/provider-schemas';
+import { SHARED_RESOURCE_LABELS, type SharedResourceType } from '@/lib/schemas/provider-schemas';
 
 type ConnectionWithProfile = {
   id: string;

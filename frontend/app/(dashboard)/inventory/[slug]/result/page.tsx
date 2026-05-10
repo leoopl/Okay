@@ -385,7 +385,7 @@ export default function ResultPage({ params }: { params: Promise<{ slug: string 
       <div className="container mx-auto max-w-4xl px-4 py-8">
         {/* Header */}
         <div className="mb-8 space-y-4 text-center">
-          <div className="text-accent-strong inline-flex items-center rounded-full bg-card/80 px-4 py-2 text-sm font-medium shadow-2xl">
+          <div className="text-accent-strong bg-card/80 inline-flex items-center rounded-full px-4 py-2 text-sm font-medium shadow-2xl">
             <Award className="mr-2 size-4" />
             Avaliação Concluída
           </div>

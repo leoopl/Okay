@@ -482,7 +482,9 @@ export const useMedicationStore = create<MedicationStore>()(
           // Replace optimistic record with server-confirmed record
           set((state) => ({
             medications: state.medications.map((m) =>
-              m.id === clientId ? { ...newMedication, _optimistic: false, _syncStatus: 'synced' } : m,
+              m.id === clientId
+                ? { ...newMedication, _optimistic: false, _syncStatus: 'synced' }
+                : m,
             ),
             loadingStates: { ...state.loadingStates, creating: false },
           }));
@@ -522,7 +524,10 @@ export const useMedicationStore = create<MedicationStore>()(
           loadingStates: { ...state.loadingStates, creating: false },
           errors: {
             ...state.errors,
-            creating: createMedicationError('network', error.message || 'Failed to create medication'),
+            creating: createMedicationError(
+              'network',
+              error.message || 'Failed to create medication',
+            ),
           },
         }));
 
@@ -698,7 +703,9 @@ export const useMedicationStore = create<MedicationStore>()(
           // Replace optimistic record with server-confirmed record
           set((state) => ({
             doseLogs: state.doseLogs.map((l) =>
-              l.id === clientId ? { ...newLog, _optimistic: false, _syncStatus: 'synced' as const } : l,
+              l.id === clientId
+                ? { ...newLog, _optimistic: false, _syncStatus: 'synced' as const }
+                : l,
             ),
             loadingStates: { ...state.loadingStates, logging: false },
           }));

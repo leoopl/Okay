@@ -8,10 +8,7 @@ import {
   rejectConnection,
 } from '@/lib/actions/supabase-connections';
 import { grantResource, revokeResource } from '@/lib/actions/supabase-shared-grants';
-import {
-  SHARED_RESOURCE_LABELS,
-  type SharedResourceType,
-} from '@/lib/schemas/provider-schemas';
+import { SHARED_RESOURCE_LABELS, type SharedResourceType } from '@/lib/schemas/provider-schemas';
 import type { Tables } from '@/lib/supabase/database.types';
 
 type Connection = Tables<'patient_provider_connections'> & {

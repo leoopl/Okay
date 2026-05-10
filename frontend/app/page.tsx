@@ -10,10 +10,10 @@ const Home: NextPage = () => {
       <div className="container mx-auto">
         <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2">
           <div className="animate-fade-in flex flex-col gap-8">
-            <h1 className="font-varela text-green-dark text-3xl leading-tight font-bold md:text-4xl lg:text-5xl">
+            <h1 className="font-varela text-accent-strong text-[clamp(1.875rem,5vw,3rem)] leading-[1.2] tracking-[-0.01em]">
               Encontre o seu caminho para se sentir melhor
             </h1>
-            <p className="font-varela text-foreground text-lg md:text-xl">
+            <p className="font-varela text-foreground max-w-[65ch] text-lg md:text-xl">
               Bem-vindo ao <span className="">Okay!</span> Um lugar onde você pode encontrar o apoio
               e a orientação de que precisa para administrar seus problemas. Entendemos que lidar
               com essas condições pode ser desafiador, mas você não precisa passar por isso sozinho.

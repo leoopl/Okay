@@ -21,7 +21,9 @@ export default async function PatientDetailPage({ params }: PageProps) {
   // Look up the active connection — single source of truth for which grants exist.
   const { data: connection } = await supabase
     .from('patient_provider_connections')
-    .select('id, patient_id, provider_id, status, accepted_at, patient_profile:profiles!patient_provider_connections_patient_id_fkey(id, name, surname, email)')
+    .select(
+      'id, patient_id, provider_id, status, accepted_at, patient_profile:profiles!patient_provider_connections_patient_id_fkey(id, name, surname, email)',
+    )
     .eq('provider_id', userData.user.id)
     .eq('patient_id', patientId)
     .eq('status', 'active')

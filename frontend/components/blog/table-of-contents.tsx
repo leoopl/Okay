@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 
 interface TOCItem {
@@ -9,14 +9,21 @@ interface TOCItem {
   level: number;
 }
 
+// Static map so Tailwind's JIT can extract these classes at build time
+const tocIndent: Record<number, string> = {
+  3: 'ml-3',
+  4: 'ml-6',
+  5: 'ml-9',
+  6: 'ml-12',
+};
+
 function extractHeadingsFromMarkdown(markdown: string): TOCItem[] {
   if (!markdown) return [];
 
-  // Extract headings from markdown text
   const headingRegex = /^(#{1,6})\s+(.+)$/gm;
   const headings: TOCItem[] = [];
-
   let match;
+
   while ((match = headingRegex.exec(markdown)) !== null) {
     const level = match[1].length;
     const text = match[2].trim();
@@ -32,52 +39,46 @@ function extractHeadingsFromMarkdown(markdown: string): TOCItem[] {
   return headings;
 }
 
+function detectHeadingsFromDOM(): TOCItem[] {
+  const articleElement = document.querySelector('article.prose');
+  if (!articleElement) return [];
+
+  const headingElements = articleElement.querySelectorAll('h1, h2, h3, h4, h5, h6');
+  const domHeadings: TOCItem[] = [];
+
+  headingElements.forEach((el) => {
+    const level = parseInt(el.tagName.charAt(1));
+    const text = el.textContent || '';
+    const id = el.id || '';
+
+    if (id && text) {
+      domHeadings.push({ id, text, level });
+    }
+  });
+
+  return domHeadings;
+}
+
 export function TableOfContents({ rawContent }: { rawContent?: string }) {
-  const [headings, setHeadings] = useState<TOCItem[]>([]);
+  const [domHeadings, setDomHeadings] = useState<TOCItem[]>([]);
   const [activeId, setActiveId] = useState<string>('');
 
-  // Function to detect headings from DOM
-  const detectHeadingsFromDOM = () => {
-    setTimeout(() => {
-      const articleElement = document.querySelector('article.prose');
-      if (!articleElement) return;
+  const parsedHeadings = useMemo(
+    () => (rawContent ? extractHeadingsFromMarkdown(rawContent) : []),
+    [rawContent],
+  );
 
-      const headingElements = articleElement.querySelectorAll('h1, h2, h3, h4, h5, h6');
-      const domHeadings: TOCItem[] = [];
+  const headings = parsedHeadings.length > 0 ? parsedHeadings : domHeadings;
 
-      headingElements.forEach((el) => {
-        const level = parseInt(el.tagName.charAt(1));
-        const text = el.textContent || '';
-        const id = el.id || '';
-
-        if (id && text) {
-          domHeadings.push({ id, text, level });
-        }
-      });
-
-      if (domHeadings.length > 0) {
-        setHeadings(domHeadings);
-      }
-    }, 500); // Wait for content to render
-  };
-
-  // Try to extract headings from markdown if available
   useEffect(() => {
-    if (rawContent) {
-      const extractedHeadings = extractHeadingsFromMarkdown(rawContent);
-      if (extractedHeadings.length > 0) {
-        setHeadings(extractedHeadings); // eslint-disable-line react-hooks/set-state-in-effect -- Derived from rawContent prop; cannot use useMemo because DOM fallback needs effect
-      } else {
-        // Fallback to DOM detection if markdown parsing fails
-        detectHeadingsFromDOM();
-      }
-    } else {
-      // If no raw content, try DOM detection
-      detectHeadingsFromDOM();
-    }
-  }, [rawContent]);
+    if (parsedHeadings.length > 0) return;
+    const timerId = setTimeout(() => {
+      const dom = detectHeadingsFromDOM();
+      if (dom.length > 0) setDomHeadings(dom);
+    }, 500);
+    return () => clearTimeout(timerId);
+  }, [parsedHeadings]);
 
-  // Set up intersection observer to track active heading
   useEffect(() => {
     if (headings.length === 0) return;
 
@@ -94,17 +95,13 @@ export function TableOfContents({ rawContent }: { rawContent?: string }) {
 
     headings.forEach(({ id }) => {
       const element = document.getElementById(id);
-      if (element) {
-        observer.observe(element);
-      }
+      if (element) observer.observe(element);
     });
 
     return () => {
       headings.forEach(({ id }) => {
         const element = document.getElementById(id);
-        if (element) {
-          observer.unobserve(element);
-        }
+        if (element) observer.unobserve(element);
       });
     };
   }, [headings]);
@@ -114,14 +111,16 @@ export function TableOfContents({ rawContent }: { rawContent?: string }) {
   }
 
   return (
-    <nav className="table-of-contents text-sm">
+    <nav aria-label="Tabela de conteúdo" className="table-of-contents text-sm">
       <ul className="space-y-1">
         {headings.map((heading) => (
           <li
             key={heading.id}
-            className={`${
-              heading.level > 2 ? 'ml-' + (heading.level - 2) * 3 : ''
-            } ${activeId === heading.id ? 'text-accent-strong font-semibold' : 'text-muted-foreground hover:text-foreground'}`}
+            className={`${tocIndent[heading.level] ?? ''} ${
+              activeId === heading.id
+                ? 'text-accent-strong font-semibold'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
           >
             <Link href={`#${heading.id}`} className="block py-1 transition-colors">
               {heading.text}

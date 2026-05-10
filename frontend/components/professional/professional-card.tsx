@@ -32,15 +32,14 @@ export function ProfessionalCard({ professional }: ProfessionalCardProps) {
                 <h3 className="font-varela text-accent-strong text-2xl font-medium">
                   {professional.name}
                 </h3>
-                <Badge
-                  variant="outline"
-                  className="text-primary border-primary bg-primary/10"
-                >
+                <Badge variant="outline" className="text-primary border-primary bg-primary/10">
                   {professional.specialty.Profession}
                 </Badge>
               </div>
 
-              <p className="text-muted-foreground mb-3 line-clamp-2 text-sm">{professional.resume}</p>
+              <p className="text-muted-foreground mb-3 line-clamp-2 text-sm">
+                {professional.resume}
+              </p>
 
               <div className="mb-3 flex flex-wrap gap-1">
                 {professional.specialty.Approach.map((approach) => (

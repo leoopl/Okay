@@ -1,12 +1,4 @@
-import {
-  MapPin,
-  Mail,
-  Phone,
-  Share2,
-  Heart,
-  Clock,
-  Building,
-} from 'lucide-react';
+import { MapPin, Mail, Phone, Share2, Heart, Clock, Building } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -91,11 +83,13 @@ export function ProfessionalDetail({ professional }: ProfessionalDetailProps) {
 
               <Separator className="my-6" />
 
-              <h2 className="font-varela text-accent-strong mb-4 text-xl font-medium">Localização</h2>
+              <h2 className="font-varela text-accent-strong mb-4 text-xl font-medium">
+                Localização
+              </h2>
 
-              <div className="aspect-video w-full overflow-hidden rounded-lg bg-secondary/20">
+              <div className="bg-secondary/20 aspect-video w-full overflow-hidden rounded-lg">
                 <div className="flex h-full w-full items-center justify-center">
-                  <p className="text-center text-sm text-muted-foreground">
+                  <p className="text-muted-foreground text-center text-sm">
                     Mapa será carregado aqui usando as coordenadas:
                     <br />
                     Latitude: {professional.address.latitude}
@@ -133,7 +127,9 @@ export function ProfessionalDetail({ professional }: ProfessionalDetailProps) {
 
           <Card className="border-border">
             <CardContent className="p-6">
-              <h2 className="font-varela text-accent-strong mb-4 text-lg font-medium">Compartilhar</h2>
+              <h2 className="font-varela text-accent-strong mb-4 text-lg font-medium">
+                Compartilhar
+              </h2>
 
               <Button variant="outline" className="w-full">
                 <Share2 className="mr-2 h-4 w-4" />

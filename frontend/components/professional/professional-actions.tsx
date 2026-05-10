@@ -131,7 +131,7 @@ export function ProfessionalMessageButton({ professional }: ProfessionalActionsP
               placeholder="Digite sua mensagem..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="min-h-30 border-border bg-background focus-visible:ring-ring"
+              className="border-border bg-background focus-visible:ring-ring min-h-30"
             />
           </div>
         </div>

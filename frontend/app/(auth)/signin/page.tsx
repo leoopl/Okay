@@ -56,9 +56,9 @@ const SigninPage: React.FC = () => {
           </h2>
 
           {sessionExpired && (
-            <div className="mb-4 rounded-md border border-primary/30 bg-primary/10 p-4 text-accent-strong">
+            <div className="border-primary/30 bg-primary/10 text-accent-strong mb-4 rounded-md border p-4">
               <div className="flex">
-                <AlertCircle className="h-5 w-5 text-primary" />
+                <AlertCircle className="text-primary h-5 w-5" />
                 <p className="ml-3 text-sm">Sua sessão expirou. Por favor, faça login novamente.</p>
               </div>
             </div>
@@ -112,9 +112,9 @@ const SigninPage: React.FC = () => {
               />
 
               {actionState?.message && (
-                <div className="rounded border border-destructive/40 bg-destructive/10 p-4 text-destructive">
+                <div className="border-destructive/40 bg-destructive/10 text-destructive rounded border p-4">
                   <div className="flex items-center">
-                    <AlertCircle className="h-5 w-5 text-destructive" />
+                    <AlertCircle className="text-destructive h-5 w-5" />
                     <span className="ml-3">{actionState.message}</span>
                   </div>
                 </div>
@@ -124,7 +124,7 @@ const SigninPage: React.FC = () => {
                 {isPending ? 'Entrando...' : 'Entrar'}
               </Button>
 
-              <p className="small-caps text-center text-sm text-foreground">
+              <p className="small-caps text-foreground text-center text-sm">
                 Ainda não tem conta?{' '}
                 <Link href="/signup" className="hover:text-muted-foreground font-semibold">
                   Cadastre-se aqui
@@ -214,9 +214,9 @@ const ForgotPasswordDialog: React.FC = () => {
 
         {success ? (
           <div className="space-y-4">
-            <div className="rounded-md border border-success/30 bg-success-bg p-4 text-success">
+            <div className="border-success/30 bg-success-bg text-success rounded-md border p-4">
               <div className="flex">
-                <CheckCircle className="h-5 w-5 text-success" />
+                <CheckCircle className="text-success h-5 w-5" />
                 <p className="ml-3 text-sm">
                   E-mail enviado com sucesso! Verifique sua caixa de entrada e siga as instruções
                   para redefinir sua senha.
@@ -254,9 +254,9 @@ const ForgotPasswordDialog: React.FC = () => {
               />
 
               {error && (
-                <div className="rounded border border-destructive/40 bg-destructive/10 p-4 text-destructive">
+                <div className="border-destructive/40 bg-destructive/10 text-destructive rounded border p-4">
                   <div className="flex items-center">
-                    <AlertCircle className="h-5 w-5 text-destructive" />
+                    <AlertCircle className="text-destructive h-5 w-5" />
                     <span className="ml-3">{error}</span>
                   </div>
                 </div>

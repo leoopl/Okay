@@ -168,13 +168,13 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
 
   const getStatusIcon = useCallback((status: DoseStatus) => {
     const iconMap = {
-      taken: <CheckCircle className="h-4 w-4 text-accent-strong" aria-label="Dose tomada" />,
-      skipped: <XCircle className="h-4 w-4 text-destructive" aria-label="Dose pulada" />,
-      delayed: <Clock className="h-4 w-4 text-primary" aria-label="Dose atrasada" />,
+      taken: <CheckCircle className="text-accent-strong h-4 w-4" aria-label="Dose tomada" />,
+      skipped: <XCircle className="text-destructive h-4 w-4" aria-label="Dose pulada" />,
+      delayed: <Clock className="text-primary h-4 w-4" aria-label="Dose atrasada" />,
     };
     return (
       iconMap[status] || (
-        <AlertCircle className="h-4 w-4 text-muted-foreground" aria-label="Status desconhecido" />
+        <AlertCircle className="text-muted-foreground h-4 w-4" aria-label="Status desconhecido" />
       )
     );
   }, []);
@@ -237,7 +237,10 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
                 {adherenceStats?.taken ?? 0}
               </div>
               <div className="mt-2 flex items-center">
-                <div className="bg-accent-strong mr-2 h-3 w-3 rounded-full" aria-hidden="true"></div>
+                <div
+                  className="bg-accent-strong mr-2 h-3 w-3 rounded-full"
+                  aria-hidden="true"
+                ></div>
                 <p className="text-muted-foreground">Tomados</p>
               </div>
             </div>
@@ -249,10 +252,7 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
                 {adherenceStats?.skipped ?? 0}
               </div>
               <div className="mt-2 flex items-center">
-                <div
-                  className="bg-primary mr-2 h-3 w-3 rounded-full"
-                  aria-hidden="true"
-                ></div>
+                <div className="bg-primary mr-2 h-3 w-3 rounded-full" aria-hidden="true"></div>
                 <p className="text-muted-foreground">Pulados</p>
               </div>
             </div>
@@ -265,10 +265,7 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
                   {adherenceStats?.delayed ?? 0}
                 </div>
                 <div className="mt-2 flex items-center">
-                  <div
-                    className="bg-secondary mr-2 h-3 w-3 rounded-full"
-                    aria-hidden="true"
-                  ></div>
+                  <div className="bg-secondary mr-2 h-3 w-3 rounded-full" aria-hidden="true"></div>
                   <p className="text-muted-foreground">Atrasadas</p>
                 </div>
               </div>
@@ -284,9 +281,9 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
     return (
       <div className={cn('space-y-6', className)}>
         <div className="py-12 text-center">
-          <AlertCircle className="mx-auto mb-4 h-16 w-16 text-destructive" />
-          <h3 className="mb-2 text-xl font-medium text-destructive">Algo deu errado</h3>
-          <p className="mb-4 text-destructive">{error}</p>
+          <AlertCircle className="text-destructive mx-auto mb-4 h-16 w-16" />
+          <h3 className="text-destructive mb-2 text-xl font-medium">Algo deu errado</h3>
+          <p className="text-destructive mb-4">{error}</p>
           <Button onClick={handleFilterChange} variant="outline">
             Tentar Novamente
           </Button>
@@ -308,7 +305,7 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
             onValueChange={setSelectedMedication}
             disabled={loadingStates.medications || loadingStates.doseLogs}
           >
-            <SelectTrigger className="focus:ring-accent-strong w-full border-border sm:w-50">
+            <SelectTrigger className="focus:ring-accent-strong border-border w-full sm:w-50">
               <SelectValue placeholder="Selecionar medicamento" />
             </SelectTrigger>
             <SelectContent>
@@ -326,7 +323,7 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
             onValueChange={(value: TimeRange) => setTimeRange(value)}
             disabled={loadingStates.doseLogs}
           >
-            <SelectTrigger className="focus:ring-accent-strong w-full border-border sm:w-45">
+            <SelectTrigger className="focus:ring-accent-strong border-border w-full sm:w-45">
               <SelectValue placeholder="Selecionar período" />
             </SelectTrigger>
             <SelectContent>
@@ -345,7 +342,7 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
                   variant="outline"
                   disabled={loadingStates.doseLogs}
                   className={cn(
-                    'w-full justify-start border-border text-left font-normal sm:w-45',
+                    'border-border w-full justify-start text-left font-normal sm:w-45',
                     !selectedDate && 'text-muted-foreground',
                   )}
                 >
@@ -389,7 +386,9 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
           <div className="bg-muted/50 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
             <CalendarIcon className="text-primary h-8 w-8" />
           </div>
-          <h3 className="text-accent-strong mb-2 text-xl font-medium">Nenhum histórico encontrado</h3>
+          <h3 className="text-accent-strong mb-2 text-xl font-medium">
+            Nenhum histórico encontrado
+          </h3>
           <p className="text-muted-foreground mb-6">
             {selectedMedication !== ALL_MEDICATIONS
               ? 'Tente um medicamento ou período diferente'
@@ -409,7 +408,7 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
                         <h3 className="text-accent-strong font-medium">
                           {getMedicationName(log.medicationId)}
                         </h3>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-muted-foreground text-sm">
                           {format(new Date(log.timestamp), 'PPP', { locale: ptBR })} às{' '}
                           {format(new Date(log.timestamp), 'HH:mm')}
                         </p>
@@ -421,7 +420,7 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
                       </Badge>
                     </div>
                     {log.notes && (
-                      <p className="text-muted-foreground mt-2 rounded bg-border/10 p-2 text-sm">
+                      <p className="text-muted-foreground bg-border/10 mt-2 rounded p-2 text-sm">
                         {log.notes}
                       </p>
                     )}

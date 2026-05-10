@@ -99,7 +99,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       >
         {title}
       </h1>
-      <p className={cn('font-varela text-lg text-foreground md:text-xl', descriptionClassName)}>
+      <p className={cn('font-varela text-foreground text-lg md:text-xl', descriptionClassName)}>
         {description}
       </p>
       {children && <div className="flex flex-col gap-4">{children}</div>}

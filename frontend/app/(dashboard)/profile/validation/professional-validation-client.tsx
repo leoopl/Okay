@@ -94,8 +94,7 @@ export default function ProfessionalValidationClient({
   //   2. There's a pending/approved/rejected existing request → show status card
   //   3. No request and not a provider → show submission form
   const showAlreadyValidated = isProvider;
-  const showPendingStatus =
-    !isProvider && existingRequest && existingRequest.status === 'pending';
+  const showPendingStatus = !isProvider && existingRequest && existingRequest.status === 'pending';
   const showRejectedStatus =
     !isProvider && existingRequest && existingRequest.status === 'rejected';
   const showForm = !isProvider && (!existingRequest || existingRequest.status === 'rejected');

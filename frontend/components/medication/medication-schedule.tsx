@@ -225,11 +225,11 @@ export default function MedicationSchedule({ className }: MedicationScheduleProp
       <Card className={cn('bg-card/90', className)}>
         <CardContent className="p-6">
           <div className="py-8 text-center">
-            <AlertCircle className="mx-auto mb-4 h-12 w-12 text-destructive" />
-            <h3 className="mb-2 text-lg font-medium text-destructive">
+            <AlertCircle className="text-destructive mx-auto mb-4 h-12 w-12" />
+            <h3 className="text-destructive mb-2 text-lg font-medium">
               Não foi possível carregar a agenda
             </h3>
-            <p className="mb-4 text-destructive">{error}</p>
+            <p className="text-destructive mb-4">{error}</p>
             <Button onClick={fetchTodaySchedule} variant="outline" disabled={isLoading}>
               {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Tentar Novamente

@@ -14,6 +14,7 @@ interface SearchInputProps {
   iconClassName?: string;
   disabled?: boolean;
   autoFocus?: boolean;
+  'aria-label'?: string;
 }
 
 const SearchInput: React.FC<SearchInputProps> = ({
@@ -27,6 +28,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
   iconClassName,
   disabled = false,
   autoFocus = false,
+  'aria-label': ariaLabel,
 }: SearchInputProps) => {
   const [internalValue, setInternalValue] = React.useState(defaultValue || '');
   const isControlled = value !== undefined;
@@ -56,6 +58,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
         className={`pl-10 ${className || 'border-border focus-visible:ring-ring bg-background/80'}`}
         disabled={disabled}
         autoFocus={autoFocus}
+        aria-label={ariaLabel}
       />
     </div>
   );

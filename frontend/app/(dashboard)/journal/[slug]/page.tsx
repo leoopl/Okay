@@ -55,14 +55,8 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
   const isNewEntry = slug === 'new';
 
   // Store state and actions
-  const {
-    isLoading,
-    error,
-    getJournalById,
-    createJournal,
-    updateJournal,
-    clearError,
-  } = useJournalStore();
+  const { isLoading, error, getJournalById, createJournal, updateJournal, clearError } =
+    useJournalStore();
 
   // Form state
   const [title, setTitle] = useState('');
@@ -290,7 +284,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
       <div className="container mx-auto max-w-3xl px-4 py-8">
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-accent-strong border-t-transparent"></div>
+            <div className="border-accent-strong mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"></div>
             <p className="text-muted-foreground">Carregando entrada...</p>
           </div>
         </div>
@@ -312,13 +306,13 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
           <div className="flex items-center gap-2 text-sm">
             {isOnline ? (
               <>
-                <div className="flex items-center gap-1 text-accent-strong">
+                <div className="text-accent-strong flex items-center gap-1">
                   <Cloud size={16} />
                   <span>Conectado</span>
                 </div>
               </>
             ) : (
-              <div className="flex items-center gap-1 text-primary">
+              <div className="text-primary flex items-center gap-1">
                 <CloudOff size={16} />
                 <span>Offline</span>
               </div>
@@ -350,7 +344,10 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
       <div className="border-border bg-muted/20 mb-6 space-y-4 rounded-lg border p-4">
         {/* Mood Selector */}
         <div className="space-y-2">
-          <Label htmlFor="mood" className="text-accent-strong flex items-center text-sm font-medium">
+          <Label
+            htmlFor="mood"
+            className="text-accent-strong flex items-center text-sm font-medium"
+          >
             <Smile size={16} className="mr-2" />
             Como você está se sentindo?
           </Label>
@@ -370,7 +367,10 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
 
         {/* Tags Section */}
         <div className="space-y-2">
-          <Label htmlFor="tags" className="text-accent-strong flex items-center text-sm font-medium">
+          <Label
+            htmlFor="tags"
+            className="text-accent-strong flex items-center text-sm font-medium"
+          >
             <Tag size={16} className="mr-2" />
             Tags
           </Label>
@@ -401,7 +401,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
                 <Badge
                   key={tag}
                   variant="secondary"
-                  className="bg-primary hover:bg-primary/80 cursor-pointer text-primary-foreground"
+                  className="bg-primary hover:bg-primary/80 text-primary-foreground cursor-pointer"
                   onClick={() => handleRemoveTag(tag)}
                 >
                   {tag} ×
@@ -413,7 +413,7 @@ export default function JournalEditorPage({ params }: JournalEditorPageProps) {
       </div>
 
       {/* Content Editor */}
-      <div className="border-border min-h-[60vh] rounded-lg border bg-card p-4">
+      <div className="border-border bg-card min-h-[60vh] rounded-lg border p-4">
         <JournalEditor content={content} onUpdate={handleContentChange} />
       </div>
 

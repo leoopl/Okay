@@ -47,30 +47,30 @@ const Footer: React.FC = () => {
 
           {/* Emergency Contact - Enhanced visibility and accessibility */}
           <div className="flex h-fit">
-            <div className="w-full rounded-xl border-2 border-crisis/30 bg-linear-to-br from-crisis/15 to-crisis-bg/10 p-6 shadow-lg backdrop-blur-sm">
+            <div className="border-crisis/30 from-crisis/15 to-crisis-bg/10 w-full rounded-xl border-2 bg-linear-to-br p-6 shadow-lg backdrop-blur-sm">
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-crisis text-crisis-foreground">
+                  <div className="bg-crisis text-crisis-foreground flex h-10 w-10 items-center justify-center rounded-full">
                     <Phone className="h-5 w-5" aria-hidden="true" />
                   </div>
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <h3 className="mb-2 text-lg font-semibold text-crisis">🚨 Emergência?</h3>
+                  <h3 className="text-crisis mb-2 text-lg font-semibold">🚨 Emergência?</h3>
 
-                  <p className="mb-3 text-sm leading-relaxed text-crisis/90">
+                  <p className="text-crisis/90 mb-3 text-sm leading-relaxed">
                     Se você está em crise, vá para a emergência mais próxima ou ligue para:
                   </p>
 
                   <a
                     href="tel:188"
-                    className="inline-flex items-center justify-center rounded-lg border border-crisis px-4 py-3 text-3xl font-bold text-crisis transition-all duration-200 hover:scale-105 hover:bg-crisis/20 focus:ring-2 focus:ring-crisis focus:ring-offset-2 focus:ring-offset-transparent focus:outline-none"
+                    className="border-crisis text-crisis hover:bg-crisis/20 focus:ring-crisis inline-flex items-center justify-center rounded-lg border px-4 py-3 text-3xl font-bold transition-all duration-200 hover:scale-105 focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent focus:outline-none"
                     aria-label="Ligar para o número de emergência 188"
                   >
                     📞 188
                   </a>
 
-                  <p className="mt-2 text-xs text-crisis/80">
+                  <p className="text-crisis/80 mt-2 text-xs">
                     Centro de Valorização da Vida - 24h gratuito
                   </p>
                 </div>
@@ -134,7 +134,7 @@ const Footer: React.FC = () => {
             <div className="text-center">
               <p className="text-muted-foreground text-xs">
                 Desenvolvido com{' '}
-                <span className="animate-pulse text-crisis" aria-label="amor">
+                <span className="text-crisis animate-pulse" aria-label="amor">
                   ❤️
                 </span>{' '}
                 por{' '}

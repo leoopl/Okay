@@ -4,12 +4,7 @@ import { useState } from 'react';
 import data from '../../data/breath.json';
 import Image from 'next/image';
 import BreathingAnimation from '../../components/breathing-animation';
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useMobile } from '@/hooks/use-mobile';
 
@@ -75,8 +70,12 @@ const Breathing: React.FC = () => {
                     style={{ backgroundColor: item.bgcolor }}
                     onClick={() => openModal(item)}
                   >
-                    <h3 className="text-base font-medium text-foreground sm:text-lg">{item.name}</h3>
-                    <span className="mt-2 text-xs text-muted-foreground sm:text-sm">Clique para ver</span>
+                    <h3 className="text-foreground text-base font-medium sm:text-lg">
+                      {item.name}
+                    </h3>
+                    <span className="text-muted-foreground mt-2 text-xs sm:text-sm">
+                      Clique para ver
+                    </span>
                   </button>
                 ))}
               </div>
@@ -96,7 +95,7 @@ const Breathing: React.FC = () => {
                 } overflow-hidden p-0`}
                 onInteractOutside={(e) => e.preventDefault()}
               >
-                <div className="relative grid size-full place-content-center overflow-hidden rounded-2xl bg-card p-4 text-left align-middle shadow-xl sm:p-6">
+                <div className="bg-card relative grid size-full place-content-center overflow-hidden rounded-2xl p-4 text-left align-middle shadow-xl sm:p-6">
                   <div className="mt-2 text-center">
                     {selectedTechnique && (
                       <div className="relative mx-auto mb-4 sm:mb-6">
@@ -113,7 +112,7 @@ const Breathing: React.FC = () => {
                         />
                       </div>
                     )}
-                    <DialogTitle className="font-varela mt-4 text-xl leading-6 font-medium text-foreground sm:mt-8 sm:text-2xl lg:text-3xl">
+                    <DialogTitle className="font-varela text-foreground mt-4 text-xl leading-6 font-medium sm:mt-8 sm:text-2xl lg:text-3xl">
                       {selectedTechnique?.name}
                     </DialogTitle>
                   </div>
@@ -121,14 +120,14 @@ const Breathing: React.FC = () => {
                     <DialogDescription
                       className={`${
                         isMobile ? 'max-w-full text-sm' : 'max-w-md text-base'
-                      } mx-auto leading-relaxed font-semibold text-muted-foreground`}
+                      } text-muted-foreground mx-auto leading-relaxed font-semibold`}
                     >
                       {selectedTechnique?.desc}
                     </DialogDescription>
                   </div>
 
                   <div className="mt-4 text-center sm:mt-6">
-                    <p className="mb-4 text-xs text-muted-foreground sm:text-sm">
+                    <p className="text-muted-foreground mb-4 text-xs sm:text-sm">
                       Fique confortável e comece a respirar.
                     </p>
                     <Button

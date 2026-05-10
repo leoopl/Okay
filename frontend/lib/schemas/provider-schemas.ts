@@ -1,9 +1,33 @@
 import { z } from 'zod';
 
 export const BR_UF_CODES = [
-  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
-  'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
-  'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
+  'AC',
+  'AL',
+  'AP',
+  'AM',
+  'BA',
+  'CE',
+  'DF',
+  'ES',
+  'GO',
+  'MA',
+  'MT',
+  'MS',
+  'MG',
+  'PA',
+  'PB',
+  'PR',
+  'PE',
+  'PI',
+  'RJ',
+  'RN',
+  'RS',
+  'RO',
+  'RR',
+  'SC',
+  'SP',
+  'SE',
+  'TO',
 ] as const;
 export type BrUfCode = (typeof BR_UF_CODES)[number];
 
@@ -31,7 +55,11 @@ export const ValidationRequestSchema = z.object({
     .max(2000, 'Bio é muito longa (máx. 2000 caracteres)')
     .optional()
     .or(z.literal('').transform(() => undefined)),
-  document_path: z.string().trim().optional().or(z.literal('').transform(() => undefined)),
+  document_path: z
+    .string()
+    .trim()
+    .optional()
+    .or(z.literal('').transform(() => undefined)),
 });
 export type ValidationRequestInput = z.infer<typeof ValidationRequestSchema>;
 

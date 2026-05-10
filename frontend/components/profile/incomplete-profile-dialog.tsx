@@ -66,8 +66,8 @@ export function IncompleteProfileDialog() {
       <AlertDialogContent className="sm:max-w-md">
         <AlertDialogHeader>
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/20">
-              <UserCircle className="h-6 w-6 text-primary" />
+            <div className="bg-primary/20 flex h-12 w-12 items-center justify-center rounded-full">
+              <UserCircle className="text-primary h-6 w-6" />
             </div>
             <AlertDialogTitle>Complete seu perfil</AlertDialogTitle>
           </div>
@@ -80,7 +80,7 @@ export function IncompleteProfileDialog() {
         <AlertDialogFooter>
           <button
             onClick={handleDismiss}
-            className="cursor-pointer px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground cursor-pointer px-4 py-2 text-sm font-medium"
           >
             Lembrar mais tarde
           </button>

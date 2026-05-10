@@ -23,7 +23,10 @@ export function calculateScores(responses: UserResponseOption[], scoringRules: a
     });
 
     responses.forEach((response) => {
-      if (response.subscale && Object.prototype.hasOwnProperty.call(scores.subscales, response.subscale)) {
+      if (
+        response.subscale &&
+        Object.prototype.hasOwnProperty.call(scores.subscales, response.subscale)
+      ) {
         scores.subscales[response.subscale] += response.optionValue;
       }
     });

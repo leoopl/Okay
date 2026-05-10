@@ -36,6 +36,7 @@ export function BlogSearch({ initialSearch = '' }: BlogSearchProps) {
       defaultValue={initialSearch}
       onChange={handleSearch}
       placeholder="Buscar artigos..."
+      aria-label="Buscar artigos"
       className="border-border focus-visible:ring-ring bg-transparent"
       containerClassName="w-full"
     />

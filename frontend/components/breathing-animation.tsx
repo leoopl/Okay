@@ -28,11 +28,7 @@ const BreathingAnimation: React.FC<BreathingAnimationProps> = ({ onClose, breath
         >
           <X className="size-6" aria-hidden="true" />
         </Button>
-        <h2
-          className="mb-6 text-2xl font-bold text-white"
-          aria-live="assertive"
-          aria-atomic="true"
-        >
+        <h2 className="mb-6 text-2xl font-bold text-white" aria-live="assertive" aria-atomic="true">
           {guideMessage}
         </h2>
         <div className="size-64 content-center justify-items-center rounded-full bg-white/10">

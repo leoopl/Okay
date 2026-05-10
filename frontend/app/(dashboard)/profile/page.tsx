@@ -20,6 +20,7 @@ import {
   Activity,
   Clock,
   Loader2,
+  BadgeCheck,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -202,14 +203,14 @@ export default function Profile() {
       <div className="mx-auto max-w-7xl pb-5">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           {/* Enhanced Profile Card */}
-          <Card className="overflow-hidden lg:col-span-3">
+          <Card className="flex flex-col overflow-hidden lg:col-span-3">
             <CardHeader className="pb-2">
               <div className="text-center">
                 <ProfilePictureUpload />
               </div>
             </CardHeader>
 
-            <CardContent className="pt-0">
+            <CardContent className="flex flex-1 flex-col pt-0">
               <div className="space-y-4">
                 {/* User Info */}
                 <div className="space-y-2 text-center">
@@ -265,6 +266,18 @@ export default function Profile() {
                   {isLoggingOut ? 'Saindo...' : 'Sair'}
                 </Button>
               </div>
+
+              {/* Professional Validation Button — pinned to card bottom */}
+              <Button
+                asChild
+                variant="outline"
+                className="mt-auto w-full transition-all duration-200"
+              >
+                <Link href="/profile/validation">
+                  <BadgeCheck className="mr-2 size-4" />
+                  Validação profissional
+                </Link>
+              </Button>
             </CardContent>
           </Card>
 

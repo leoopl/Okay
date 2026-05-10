@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import BlogCard from './blog-card';
 import { BlogPost } from '@/lib/definitions';
 
@@ -24,10 +24,18 @@ export function BlogPageClient({ initialPosts }: BlogPageClientProps) {
     }
   }, []);
 
+  const sortedPosts = useMemo(
+    () =>
+      [...initialPosts].sort((a, b) =>
+        new Date(a.metadata.publishedAt) > new Date(b.metadata.publishedAt) ? -1 : 1,
+      ),
+    [initialPosts],
+  );
+
   if (initialPosts.length === 0) {
     return (
-      <div className="rounded-xl border border-border bg-card/50 py-12 text-center">
-        <h3 className="mb-2 text-xl font-bold text-accent-strong">Nenhum artigo encontrado</h3>
+      <div className="border-border bg-card/50 rounded-xl border py-12 text-center">
+        <h3 className="text-accent-strong mb-2 text-xl font-bold">Nenhum artigo encontrado</h3>
         <p className="text-muted-foreground">
           Tente ajustar sua busca ou filtro para encontrar o que procura.
         </p>
@@ -37,21 +45,15 @@ export function BlogPageClient({ initialPosts }: BlogPageClientProps) {
 
   return (
     <div className="grid gap-8">
-      {initialPosts
-        .sort((a, b) => {
-          if (new Date(a.metadata.publishedAt) > new Date(b.metadata.publishedAt)) {
-            return -1;
-          }
-          return 1;
-        })
-        .map((post, index) => (
-          <BlogCard
-            key={post.slug}
-            slug={post.slug}
-            metadata={post.metadata}
-            reverseLayout={index % 2 !== 0}
-          />
-        ))}
+      {sortedPosts.map((post, index) => (
+        <BlogCard
+          key={post.slug}
+          slug={post.slug}
+          metadata={post.metadata}
+          reverseLayout={index % 2 !== 0}
+          priority={index === 0}
+        />
+      ))}
     </div>
   );
 }

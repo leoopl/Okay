@@ -29,15 +29,15 @@ function OAuthSectionSkeleton() {
   return (
     <div className="space-y-4">
       <div className="animate-pulse">
-        <div className="mb-2 h-4 w-32 rounded bg-muted"></div>
-        <div className="h-3 w-48 rounded bg-muted"></div>
+        <div className="bg-muted mb-2 h-4 w-32 rounded"></div>
+        <div className="bg-muted h-3 w-48 rounded"></div>
       </div>
       <div className="rounded-lg border p-4">
         <div className="animate-pulse space-y-3">
-          <div className="h-4 w-24 rounded bg-muted"></div>
+          <div className="bg-muted h-4 w-24 rounded"></div>
           <div className="space-y-2">
-            <div className="h-3 w-full rounded bg-muted"></div>
-            <div className="h-3 w-3/4 rounded bg-muted"></div>
+            <div className="bg-muted h-3 w-full rounded"></div>
+            <div className="bg-muted h-3 w-3/4 rounded"></div>
           </div>
         </div>
       </div>
@@ -47,9 +47,9 @@ function OAuthSectionSkeleton() {
 
 function OAuthSectionError() {
   return (
-    <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4">
-      <h3 className="font-medium text-destructive">Erro ao carregar contas vinculadas</h3>
-      <p className="text-sm text-destructive">
+    <div className="border-destructive/30 bg-destructive/10 rounded-lg border p-4">
+      <h3 className="text-destructive font-medium">Erro ao carregar contas vinculadas</h3>
+      <p className="text-destructive text-sm">
         Não foi possível carregar as informações das contas vinculadas. Tente recarregar a página.
       </p>
     </div>

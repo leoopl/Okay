@@ -1,11 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import {
-  createClient,
-  getAuthenticatedUser,
-  logAuditTrail,
-} from '@/lib/supabase/server';
+import { createClient, getAuthenticatedUser, logAuditTrail } from '@/lib/supabase/server';
 import { GrantResourceSchema } from '@/lib/schemas/provider-schemas';
 import type { Tables } from '@/lib/supabase/database.types';
 import type { SharedResourceType } from '@/lib/schemas/provider-schemas';
@@ -143,9 +139,7 @@ export async function revokeResource(input: {
 /**
  * Returns the active grants for a connection, observed as either party.
  */
-export async function getGrantsForConnection(
-  connectionId: string,
-): Promise<SharedResourceGrant[]> {
+export async function getGrantsForConnection(connectionId: string): Promise<SharedResourceGrant[]> {
   const user = await getAuthenticatedUser();
   if (!user) return [];
 

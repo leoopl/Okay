@@ -32,19 +32,23 @@ export function OfflineBanner({ pendingChanges }: OfflineBannerProps) {
     <div
       role="status"
       aria-live="polite"
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between gap-2 bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+      className="bg-primary text-primary-foreground fixed top-0 right-0 left-0 z-50 flex items-center justify-between gap-2 px-4 py-2 text-sm font-medium"
     >
       <span>
-        {isChecking ? 'Verificando conexão...' : 'Você está offline. Alterações serão sincronizadas automaticamente.'}
+        {isChecking
+          ? 'Verificando conexão...'
+          : 'Você está offline. Alterações serão sincronizadas automaticamente.'}
         {pendingChanges !== undefined && pendingChanges > 0 && (
-          <span className="ml-1">({pendingChanges} pendente{pendingChanges !== 1 ? 's' : ''})</span>
+          <span className="ml-1">
+            ({pendingChanges} pendente{pendingChanges !== 1 ? 's' : ''})
+          </span>
         )}
       </span>
 
       <button
         onClick={handleSyncNow}
         disabled={isSyncing || isChecking}
-        className="shrink-0 rounded bg-accent-strong px-3 py-1 text-xs text-accent-strong-foreground transition-colors hover:bg-accent-strong/90 disabled:opacity-50"
+        className="bg-accent-strong text-accent-strong-foreground hover:bg-accent-strong/90 shrink-0 rounded px-3 py-1 text-xs transition-colors disabled:opacity-50"
       >
         {isSyncing ? 'Sincronizando...' : 'Sincronizar agora'}
       </button>

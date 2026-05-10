@@ -37,9 +37,7 @@ export function PWAInstaller() {
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [isInstalled, setIsInstalled] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return (
-      window.matchMedia('(display-mode: standalone)').matches || !!window.navigator.standalone
-    );
+    return window.matchMedia('(display-mode: standalone)').matches || !!window.navigator.standalone;
   });
 
   useEffect(() => {

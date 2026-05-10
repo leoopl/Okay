@@ -54,7 +54,10 @@ export type ConnectionAccessError =
   | 'NO_GRANT';
 
 export class ConnectionAccessException extends Error {
-  constructor(public code: ConnectionAccessError, message?: string) {
+  constructor(
+    public code: ConnectionAccessError,
+    message?: string,
+  ) {
     super(message ?? code);
     this.name = 'ConnectionAccessException';
   }

@@ -164,7 +164,7 @@ export default function JournalPage() {
       <div className="container mx-auto max-w-3xl px-4 py-8">
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-accent-strong border-t-transparent"></div>
+            <div className="border-accent-strong mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"></div>
             <p className="text-muted-foreground">Inicializando diário...</p>
           </div>
         </div>
@@ -199,14 +199,14 @@ export default function JournalPage() {
 
         {/* Offline indicator */}
         {!isOnline && (
-          <div className="mb-4 flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 p-3">
+          <div className="border-primary/30 bg-primary/10 mb-4 flex items-center gap-2 rounded-lg border p-3">
             <WifiOff size={18} className="text-accent-strong" />
-            <span className="text-sm text-accent-strong">
+            <span className="text-accent-strong text-sm">
               Você está offline. Suas alterações serão sincronizadas quando a conexão for
               restaurada.
             </span>
             {pendingChanges > 0 && (
-              <span className="ml-auto text-sm font-medium text-accent-strong">
+              <span className="text-accent-strong ml-auto text-sm font-medium">
                 {pendingChanges}{' '}
                 {pendingChanges === 1 ? 'alteração pendente' : 'alterações pendentes'}
               </span>
@@ -216,8 +216,8 @@ export default function JournalPage() {
 
         {/* Manual sync button when there are pending changes */}
         {isOnline && pendingChanges > 0 && !isSyncing && (
-          <div className="mb-4 flex items-center justify-between rounded-lg border border-secondary/30 bg-secondary/10 p-3">
-            <span className="text-sm text-secondary">
+          <div className="border-secondary/30 bg-secondary/10 mb-4 flex items-center justify-between rounded-lg border p-3">
+            <span className="text-secondary text-sm">
               Você tem {pendingChanges}{' '}
               {pendingChanges === 1 ? 'alteração não salva' : 'alterações não salvas'}.
             </span>
@@ -241,7 +241,7 @@ export default function JournalPage() {
       {isLoading && entries.length === 0 && (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-accent-strong border-t-transparent"></div>
+            <div className="border-accent-strong mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"></div>
             <p className="text-muted-foreground">Carregando suas entradas...</p>
           </div>
         </div>
@@ -276,8 +276,10 @@ export default function JournalPage() {
             <div className="bg-muted/20 mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full">
               <Search size={32} className="text-accent-strong" />
             </div>
-            <h3 className="mb-2 text-lg font-medium text-muted-foreground">Nenhuma entrada encontrada</h3>
-            <p className="mb-4 text-muted-foreground">
+            <h3 className="text-muted-foreground mb-2 text-lg font-medium">
+              Nenhuma entrada encontrada
+            </h3>
+            <p className="text-muted-foreground mb-4">
               Nenhuma entrada corresponde aos seus critérios de busca.
             </p>
             <Button
@@ -308,14 +310,17 @@ export default function JournalPage() {
               {entry._syncStatus === 'pending' && (
                 <div className="absolute top-2 right-2">
                   <div
-                    className="h-2 w-2 animate-pulse rounded-full bg-primary"
+                    className="bg-primary h-2 w-2 animate-pulse rounded-full"
                     title="Sincronização pendente"
                   />
                 </div>
               )}
               {entry._syncStatus === 'error' && (
                 <div className="absolute top-2 right-2">
-                  <div className="h-2 w-2 rounded-full bg-destructive" title="Erro de sincronização" />
+                  <div
+                    className="bg-destructive h-2 w-2 rounded-full"
+                    title="Erro de sincronização"
+                  />
                 </div>
               )}
             </div>

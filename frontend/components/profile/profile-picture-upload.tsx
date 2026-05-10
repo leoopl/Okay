@@ -80,7 +80,11 @@ const StatusIndicator = ({ status }: { status: 'success' | 'error' | 'uploading'
   const configs = {
     success: { icon: CheckCircle, color: 'text-accent-strong bg-success-bg', size: 'size-3' },
     error: { icon: AlertCircle, color: 'text-destructive bg-destructive/10', size: 'size-3' },
-    uploading: { icon: Loader2, color: 'text-secondary bg-secondary/20', size: 'size-3 animate-spin' },
+    uploading: {
+      icon: Loader2,
+      color: 'text-secondary bg-secondary/20',
+      size: 'size-3 animate-spin',
+    },
   };
 
   const config = configs[status];

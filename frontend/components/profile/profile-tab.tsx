@@ -257,7 +257,7 @@ export function ProfileTab() {
                             <Button
                               variant="outline"
                               className={cn(
-                                'w-full justify-start bg-background text-left font-normal transition-all duration-200 hover:scale-[1.02]',
+                                'bg-background w-full justify-start text-left font-normal transition-all duration-200 hover:scale-[1.02]',
                                 !field.value && 'text-muted-foreground',
                               )}
                             >

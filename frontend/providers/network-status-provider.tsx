@@ -53,20 +53,17 @@ export function NetworkStatusProvider({ children }: { children: React.ReactNode 
     }
   }, []);
 
-  const updateOnlineState = useCallback(
-    (reachable: boolean) => {
-      setIsOnline(reachable);
-      // Inform SyncService so it uses the reachability-verified signal
-      if (typeof window !== 'undefined') {
-        try {
-          getSyncService().setReachabilityStatus(reachable);
-        } catch {
-          // SyncService not available (SSR or uninitialized)
-        }
+  const updateOnlineState = useCallback((reachable: boolean) => {
+    setIsOnline(reachable);
+    // Inform SyncService so it uses the reachability-verified signal
+    if (typeof window !== 'undefined') {
+      try {
+        getSyncService().setReachabilityStatus(reachable);
+      } catch {
+        // SyncService not available (SSR or uninitialized)
       }
-    },
-    [],
-  );
+    }
+  }, []);
 
   // Assign stable function to ref — avoids circular useCallback dependency
   useEffect(() => {
@@ -74,10 +71,7 @@ export function NetworkStatusProvider({ children }: { children: React.ReactNode 
       clearRetryTimer();
       const interval =
         BACKOFF_INTERVALS[Math.min(backoffIdxRef.current, BACKOFF_INTERVALS.length - 1)];
-      backoffIdxRef.current = Math.min(
-        backoffIdxRef.current + 1,
-        BACKOFF_INTERVALS.length - 1,
-      );
+      backoffIdxRef.current = Math.min(backoffIdxRef.current + 1, BACKOFF_INTERVALS.length - 1);
 
       retryTimerRef.current = setTimeout(async () => {
         setIsChecking(true);

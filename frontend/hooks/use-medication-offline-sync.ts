@@ -67,11 +67,15 @@ export function useMedicationOfflineSync() {
           const result = await syncService.syncAll();
 
           if (result.success && result.synced > 0) {
-            toast.success(`Sincronizado: ${result.synced} ${result.synced === 1 ? 'alteração' : 'alterações'}`);
+            toast.success(
+              `Sincronizado: ${result.synced} ${result.synced === 1 ? 'alteração' : 'alterações'}`,
+            );
             // Refresh medication data after sync
             await Promise.all([fetchMedications(), fetchDoseLogs()]);
           } else if (result.failed > 0) {
-            toast.warning(`Sincronização com ${result.failed} ${result.failed === 1 ? 'erro' : 'erros'}`);
+            toast.warning(
+              `Sincronização com ${result.failed} ${result.failed === 1 ? 'erro' : 'erros'}`,
+            );
           }
         } catch (error) {
           console.error('[useMedicationOfflineSync] Sync failed:', error);
@@ -98,13 +102,10 @@ export function useMedicationOfflineSync() {
   }, [isInitialized, syncService]);
 
   // Log a dose with offline support (clientId for idempotency is managed by the store)
-  const logDoseOffline = useCallback(
-    async (data: DoseLogDto) => {
-      const { logDose } = useMedicationStore.getState();
-      return logDose(data);
-    },
-    [],
-  );
+  const logDoseOffline = useCallback(async (data: DoseLogDto) => {
+    const { logDose } = useMedicationStore.getState();
+    return logDose(data);
+  }, []);
 
   // Manual sync
   const syncNow = useCallback(async () => {

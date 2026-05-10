@@ -10,12 +10,12 @@ const NotFound: React.FC = () => {
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
       <div className="grid gap-8 md:grid-cols-2 md:items-center">
         <div className="text-center">
-          <p className="font-varela mb-3 text-base leading-7 font-bold text-foreground">
+          <p className="font-varela text-foreground mb-3 text-base leading-7 font-bold">
             Algo inesperado aconteceu, não achamos a página desejada!
           </p>
           <Link
             href="/"
-            className="small-caps bg-accent-strong hover:bg-accent-strong/80 focus:ring-accent-strong inline-flex justify-center rounded-md px-4 py-2 text-sm font-semibold text-accent-strong-foreground shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
+            className="small-caps bg-accent-strong hover:bg-accent-strong/80 focus:ring-accent-strong text-accent-strong-foreground inline-flex justify-center rounded-md px-4 py-2 text-sm font-semibold shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
           >
             Vamos voltar e tentar de novo?
           </Link>

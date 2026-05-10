@@ -190,28 +190,28 @@ export default function SignupPage() {
               </form>
             </Form>
 
-            <p className="small-caps text-center text-sm text-foreground">
+            <p className="small-caps text-foreground text-center text-sm">
               Ao criar uma conta, você concorda com nossos{' '}
               <Link
                 href="/terms"
-                className="hover:text-muted-foreground leading-6 font-semibold text-foreground hover:underline"
+                className="hover:text-muted-foreground text-foreground leading-6 font-semibold hover:underline"
               >
                 Termos de Uso
               </Link>{' '}
               e{' '}
               <Link
                 href="/privacy"
-                className="hover:text-muted-foreground leading-6 font-semibold text-foreground hover:underline"
+                className="hover:text-muted-foreground text-foreground leading-6 font-semibold hover:underline"
               >
                 Política de Privacidade
               </Link>
             </p>
 
-            <p className="small-caps text-center text-sm text-foreground">
+            <p className="small-caps text-foreground text-center text-sm">
               Já tem conta?{' '}
               <Link
                 href="/signin"
-                className="hover:text-muted-foreground leading-6 font-semibold text-foreground hover:underline"
+                className="hover:text-muted-foreground text-foreground leading-6 font-semibold hover:underline"
               >
                 Entrar
               </Link>

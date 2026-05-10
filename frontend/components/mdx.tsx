@@ -18,12 +18,7 @@ function slugify(str: string) {
 }
 
 function Blockquote(props: any) {
-  return (
-    <blockquote
-      className="blockquote rounded-md bg-secondary/30 p-4"
-      {...props}
-    />
-  );
+  return <blockquote className="blockquote bg-secondary/30 rounded-md p-4" {...props} />;
 }
 
 function Code({ children, ...props }: any) {

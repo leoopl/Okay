@@ -131,10 +131,7 @@ export async function logDose(data: CreateDoseLogDto): Promise<DoseLogActionResp
       // where dose_type = 'scheduled' — enforced by partial unique index in migration.
       const { data: upserted, error } = await supabase
         .from('dose_logs')
-        .upsert(
-          { ...doseLogData, dose_type: 'scheduled' } as any,
-          { onConflict: 'id' },
-        )
+        .upsert({ ...doseLogData, dose_type: 'scheduled' } as any, { onConflict: 'id' })
         .select()
         .single();
 
@@ -148,10 +145,7 @@ export async function logDose(data: CreateDoseLogDto): Promise<DoseLogActionResp
       // PRN doses are append-only — multiple PRN doses on the same day are valid.
       const { data: inserted, error } = await supabase
         .from('dose_logs')
-        .upsert(
-          { ...doseLogData, dose_type: data.doseType || null } as any,
-          { onConflict: 'id' },
-        )
+        .upsert({ ...doseLogData, dose_type: data.doseType || null } as any, { onConflict: 'id' })
         .select()
         .single();
 

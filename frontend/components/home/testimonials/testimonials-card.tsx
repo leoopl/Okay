@@ -9,13 +9,13 @@ interface TestimonialCardProps {
 
 const TestimonialCard = memo<TestimonialCardProps>(({ message }) => {
   return (
-    <Card className="relative w-full max-w-sm rounded-lg bg-card/40 p-4 shadow-md">
+    <Card className="bg-card relative w-full max-w-sm rounded-lg p-4 shadow-md">
       <Quote
-        className="text-primary/70 absolute top-3 right-2 h-16 w-16 stroke-[1.5px]"
+        className="text-primary/50 absolute top-3 right-2 h-16 w-16 stroke-[1.5px]"
         aria-hidden="true"
       />
       <CardContent>
-        <p className="relative z-10 text-[15px] font-semibold text-foreground italic">{message}</p>
+        <p className="text-foreground relative z-10 text-base italic">{message}</p>
       </CardContent>
     </Card>
   );

@@ -83,7 +83,7 @@
     position: absolute;
 
     &:after {
-      content: "";
+      content: '';
       display: block;
       position: absolute;
       top: 1em;
@@ -149,7 +149,7 @@
       height: 100%;
       width: 0.25em;
       background-color: var(--blockquote-bg-color);
-      content: "";
+      content: '';
       border-radius: 0;
     }
   }
@@ -189,7 +189,7 @@
 /* =====================
      EMOJI
      ===================== */
-.tiptap.ProseMirror [data-type="emoji"] img {
+.tiptap.ProseMirror [data-type='emoji'] img {
   display: inline-block;
   width: 1.25em;
   height: 1.25em;
@@ -273,7 +273,7 @@
      MENTION
      ===================== */
 .tiptap.ProseMirror {
-  [data-type="mention"] {
+  [data-type='mention'] {
     display: inline-block;
     color: var(--tt-brand-color-500);
   }
@@ -381,15 +381,11 @@
 /* =====================
      PLACEHOLDER
      ===================== */
-.is-empty[data-placeholder]:has(
-    > .ProseMirror-trailingBreak:only-child
-  )::before {
+.is-empty[data-placeholder]:has(> .ProseMirror-trailingBreak:only-child)::before {
   content: "Write, type '/' for commands…";
 }
 
-.is-empty[data-placeholder]:has(
-    > .ProseMirror-trailingBreak:only-child
-  ):before {
+.is-empty[data-placeholder]:has(> .ProseMirror-trailingBreak:only-child):before {
   pointer-events: none;
   height: 0;
   position: absolute;

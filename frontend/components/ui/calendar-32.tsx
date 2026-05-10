@@ -1,10 +1,10 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { CalendarPlusIcon } from "lucide-react"
+import * as React from 'react';
+import { CalendarPlusIcon } from 'lucide-react';
 
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import {
   Drawer,
   DrawerContent,
@@ -12,12 +12,12 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer"
-import { Label } from "@/components/ui/label"
+} from '@/components/ui/drawer';
+import { Label } from '@/components/ui/label';
 
 export default function Calendar32() {
-  const [open, setOpen] = React.useState(false)
-  const [date, setDate] = React.useState<Date | undefined>(undefined)
+  const [open, setOpen] = React.useState(false);
+  const [date, setDate] = React.useState<Date | undefined>(undefined);
 
   return (
     <div className="flex flex-col gap-3">
@@ -26,12 +26,8 @@ export default function Calendar32() {
       </Label>
       <Drawer open={open} onOpenChange={setOpen}>
         <DrawerTrigger asChild>
-          <Button
-            variant="outline"
-            id="date"
-            className="w-48 justify-between font-normal"
-          >
-            {date ? date.toLocaleDateString() : "Select date"}
+          <Button variant="outline" id="date" className="w-48 justify-between font-normal">
+            {date ? date.toLocaleDateString() : 'Select date'}
             <CalendarPlusIcon />
           </Button>
         </DrawerTrigger>
@@ -45,16 +41,14 @@ export default function Calendar32() {
             selected={date}
             captionLayout="dropdown"
             onSelect={(date) => {
-              setDate(date)
-              setOpen(false)
+              setDate(date);
+              setOpen(false);
             }}
             className="mx-auto [--cell-size:clamp(0px,calc(100vw/7.5),52px)]"
           />
         </DrawerContent>
       </Drawer>
-      <div className="text-muted-foreground px-1 text-sm">
-        This example works best on mobile.
-      </div>
+      <div className="text-muted-foreground px-1 text-sm">This example works best on mobile.</div>
     </div>
-  )
+  );
 }

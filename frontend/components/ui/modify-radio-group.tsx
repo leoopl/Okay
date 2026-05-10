@@ -28,7 +28,7 @@ const RadioGroupItem = React.memo(
         ref={ref}
         className={cn(
           // Base styles
-          'group relative flex cursor-pointer rounded-lg bg-card/90 px-5 py-4 text-foreground shadow-md transition-all duration-200 focus:outline-none',
+          'group bg-card/90 text-foreground relative flex cursor-pointer rounded-lg px-5 py-4 shadow-md transition-all duration-200 focus:outline-none',
           // Hover state
           'hover:scale-[1.02] hover:shadow-lg',
           // On checked state, change background

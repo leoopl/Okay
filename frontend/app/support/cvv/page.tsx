@@ -33,7 +33,7 @@ export default function Cvv() {
       {/* Quem somos Card */}
       <section className="mt-12">
         <Card className="border-accent-strong/40 overflow-hidden transition-all duration-300 hover:shadow-md">
-          <CardHeader className="border-accent-strong/40 border-b bg-accent-strong/10">
+          <CardHeader className="border-accent-strong/40 bg-accent-strong/10 border-b">
             <CardTitle className="font-varela text-accent-strong flex items-center">
               <span className="mr-2">
                 <Info className="text-accent-strong size-6" />
@@ -128,7 +128,7 @@ export default function Cvv() {
               </p>
               <div className="bg-accent-strong/10 mb-4 rounded-lg p-4 text-center">
                 <p className="text-muted-foreground text-sm sm:text-base">
-                  <span className="mb-1 block font-semibold text-foreground">
+                  <span className="text-foreground mb-1 block font-semibold">
                     Horário de atendimento:
                   </span>
                   Domingos: 15h às 01h <br></br> Segundas-feiras: 08h às 01h <br></br>{' '}
@@ -177,7 +177,9 @@ export default function Cvv() {
                 <div className="bg-muted text-muted-foreground rounded-full p-3">
                   <Globe className="size-6" />
                 </div>
-                <CardTitle className="text-muted-foreground text-lg sm:text-xl">Site Oficial</CardTitle>
+                <CardTitle className="text-muted-foreground text-lg sm:text-xl">
+                  Site Oficial
+                </CardTitle>
               </div>
             </CardHeader>
             <CardContent className="p-4 pt-6 sm:p-6">
@@ -187,7 +189,7 @@ export default function Cvv() {
               </p>
               <div className="bg-muted/20 mb-4 rounded-lg p-4 text-center">
                 <p className="text-muted-foreground">
-                  <span className="font-varela mb-1 block text-2xl font-semibold text-foreground sm:text-3xl">
+                  <span className="font-varela text-foreground mb-1 block text-2xl font-semibold sm:text-3xl">
                     cvv.org.br
                   </span>
                   <span className="text-sm sm:text-base">

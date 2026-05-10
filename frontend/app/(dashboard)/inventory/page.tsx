@@ -198,11 +198,11 @@ export default function InventoriesPage() {
 
                 <div className="flex flex-col gap-3 sm:flex-row sm:justify-center sm:gap-4 lg:justify-start">
                   <div className="text-muted-foreground flex items-center justify-center gap-2 text-sm lg:justify-start">
-                    <div className="h-2 w-2 rounded-full bg-accent-strong"></div>
+                    <div className="bg-accent-strong h-2 w-2 rounded-full"></div>
                     <span>Seguro e Privado</span>
                   </div>
                   <div className="text-muted-foreground flex items-center justify-center gap-2 text-sm lg:justify-start">
-                    <div className="h-2 w-2 rounded-full bg-secondary"></div>
+                    <div className="bg-secondary h-2 w-2 rounded-full"></div>
                     <span>Cientificamente Validado</span>
                   </div>
                   <div className="text-muted-foreground flex items-center justify-center gap-2 text-sm lg:justify-start">

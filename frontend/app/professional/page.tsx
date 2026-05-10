@@ -1,11 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import {
-  getAllApproaches,
-  getAllProfessions,
-  mockProfessionals,
-} from '@/data/professional-data';
+import { getAllApproaches, getAllProfessions, mockProfessionals } from '@/data/professional-data';
 import { ProfessionalFilters } from '@/components/professional/professional-filters';
 import { ProfessionalSearch } from '@/components/professional/professional-search';
 import { useMemo, useState } from 'react';

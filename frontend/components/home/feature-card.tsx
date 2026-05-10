@@ -19,7 +19,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ title, description, icon: Ico
       >
         <Icon size={32} />
       </div>
-      <h3 className="text-accent-strong font-varela mb-2 text-xl font-medium">{title}</h3>
+      <h3 className="text-accent-strong font-varela mb-2 text-xl">{title}</h3>
       <p className="text-foreground">{description}</p>
     </a>
   );

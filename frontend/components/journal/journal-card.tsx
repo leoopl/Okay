@@ -59,17 +59,17 @@ export function JournalCard({ entry, onDelete, onClick }: JournalCardProps) {
 
   return (
     <Card
-      className="mb-4 cursor-pointer border-border transition-all duration-200 hover:border-accent-strong/30 hover:shadow-md hover:shadow-accent-strong/10"
+      className="border-border hover:border-accent-strong/30 hover:shadow-accent-strong/10 mb-4 cursor-pointer transition-all duration-200 hover:shadow-md"
       onClick={handleClick}
     >
       <CardContent className="pt-6">
         {/* Title */}
         <div className="mb-3 flex items-start justify-between">
-          <h3 className="line-clamp-2 flex-1 text-xl font-medium text-muted-foreground">{title}</h3>
+          <h3 className="text-muted-foreground line-clamp-2 flex-1 text-xl font-medium">{title}</h3>
 
           {/* Mood Display */}
           {mood && MOOD_DISPLAY[mood] && (
-            <div className="ml-3 flex items-center gap-1 text-sm text-muted-foreground">
+            <div className="text-muted-foreground ml-3 flex items-center gap-1 text-sm">
               <span className="text-lg">{MOOD_DISPLAY[mood]}</span>
             </div>
           )}
@@ -77,7 +77,7 @@ export function JournalCard({ entry, onDelete, onClick }: JournalCardProps) {
 
         {/* Content Preview */}
         {contentPreview && (
-          <p className="mb-3 line-clamp-3 text-sm text-muted-foreground">{contentPreview}</p>
+          <p className="text-muted-foreground mb-3 line-clamp-3 text-sm">{contentPreview}</p>
         )}
 
         {/* Tags */}
@@ -102,7 +102,7 @@ export function JournalCard({ entry, onDelete, onClick }: JournalCardProps) {
         )}
       </CardContent>
 
-      <CardFooter className="flex items-center justify-between border-t border-border/50 pt-2 pb-4 text-xs text-muted-foreground">
+      <CardFooter className="border-border/50 text-muted-foreground flex items-center justify-between border-t pt-2 pb-4 text-xs">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-1">
             <span className="font-medium">Criado:</span>
@@ -121,7 +121,7 @@ export function JournalCard({ entry, onDelete, onClick }: JournalCardProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+          className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
           onClick={handleDelete}
           title="Deletar entrada"
         >

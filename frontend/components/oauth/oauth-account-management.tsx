@@ -153,7 +153,7 @@ export function OAuthAccountManagement({
         </div>
 
         {/* Security Notice */}
-        <div className="rounded-lg bg-secondary/20 p-4 text-secondary">
+        <div className="bg-secondary/20 text-secondary rounded-lg p-4">
           <h5 className="mb-1 font-medium">Dica de Segurança</h5>
           <p className="text-sm">
             Recomendamos ter pelo menos dois métodos de login configurados: uma senha forte e uma
