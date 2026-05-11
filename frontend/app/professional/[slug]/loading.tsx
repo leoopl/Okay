@@ -7,7 +7,7 @@ export default function ProfessionalLoading() {
         <Skeleton className="mb-4 h-10 w-32" />
 
         <div className="mb-6 space-y-6">
-          <div className="flex flex-col rounded-lg bg-[#A5DCF6]/10 p-6 sm:flex-row sm:items-center sm:gap-6">
+          <div className="bg-secondary/10 flex flex-col rounded-lg p-6 sm:flex-row sm:items-center sm:gap-6">
             <Skeleton className="mb-4 h-32 w-32 rounded-full sm:mb-0" />
 
             <div className="flex flex-1 flex-col">
@@ -32,13 +32,13 @@ export default function ProfessionalLoading() {
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             <div className="md:col-span-2">
-              <div className="rounded-lg border border-[#CBCFD7]/50 p-6">
+              <div className="border-border rounded-lg border p-6">
                 <Skeleton className="mb-4 h-8 w-32" />
                 <Skeleton className="mb-2 h-4 w-full" />
                 <Skeleton className="mb-2 h-4 w-full" />
                 <Skeleton className="mb-2 h-4 w-3/4" />
 
-                <div className="my-6 h-px bg-[#CBCFD7]/50" />
+                <div className="bg-border/50 my-6 h-px" />
 
                 <Skeleton className="mb-4 h-8 w-32" />
                 <Skeleton className="aspect-video w-full rounded-lg" />
@@ -51,13 +51,13 @@ export default function ProfessionalLoading() {
             </div>
 
             <div className="space-y-4">
-              <div className="rounded-lg border border-[#CBCFD7]/50 p-6">
+              <div className="border-border rounded-lg border p-6">
                 <Skeleton className="mb-4 h-6 w-40" />
                 <Skeleton className="mb-3 h-10 w-full" />
                 <Skeleton className="h-10 w-full" />
               </div>
 
-              <div className="rounded-lg border border-[#CBCFD7]/50 p-6">
+              <div className="border-border rounded-lg border p-6">
                 <Skeleton className="mb-4 h-6 w-32" />
                 <Skeleton className="mb-4 h-10 w-full" />
                 <div className="flex items-center justify-between">
@@ -66,29 +66,15 @@ export default function ProfessionalLoading() {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-[#CBCFD7]/50 p-6">
+              <div className="border-border rounded-lg border p-6">
                 <Skeleton className="mb-4 h-6 w-40" />
                 <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-4 w-20" />
-                  </div>
-                  <div className="flex justify-between">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-4 w-20" />
-                  </div>
-                  <div className="flex justify-between">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-4 w-20" />
-                  </div>
-                  <div className="flex justify-between">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-4 w-20" />
-                  </div>
-                  <div className="flex justify-between">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-4 w-20" />
-                  </div>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="flex justify-between">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-20" />
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

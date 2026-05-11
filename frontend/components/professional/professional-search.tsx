@@ -20,14 +20,18 @@ export function ProfessionalSearch({ onSearch }: ProfessionalSearchProps) {
   };
 
   return (
-    <div className="relative w-full">
-      <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[#797D89]" />
+    <div role="search" className="relative w-full">
+      <Search
+        aria-hidden="true"
+        className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
+      />
       <Input
-        type="text"
+        type="search"
+        aria-label="Buscar profissionais"
         placeholder="Buscar profissionais..."
         value={query}
         onChange={handleSearch}
-        className="font-varela border-[#CBCFD7] bg-transparent pl-10 text-[#797D89] placeholder:text-[#A3A6B0] focus-visible:ring-[#78C7EE]"
+        className="font-varela border-border bg-transparent pl-10 text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
       />
     </div>
   );

@@ -56,7 +56,7 @@ const Breathing: React.FC = () => {
         <div className="container mx-auto">
           <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2">
             <div className="animate-fade-in flex flex-col gap-3">
-              <h1 className="font-varela text-accent-strong text-2xl leading-tight font-bold sm:text-3xl md:text-4xl lg:text-5xl">
+              <h1 className="font-varela text-accent-strong text-3xl leading-tight md:text-4xl lg:text-5xl lg:leading-[1.2] lg:tracking-[-0.01em]">
                 Técnicas de Respiração
               </h1>
               <p className="text-muted-foreground text-sm sm:text-base md:text-lg">
@@ -74,7 +74,7 @@ const Breathing: React.FC = () => {
                       {item.name}
                     </h3>
                     <span className="text-muted-foreground mt-2 text-xs sm:text-sm">
-                      Clique para ver
+                      {item.secs.filter((s) => s > 0).join(' · ')} s
                     </span>
                   </button>
                 ))}
@@ -128,7 +128,7 @@ const Breathing: React.FC = () => {
 
                   <div className="mt-4 text-center sm:mt-6">
                     <p className="text-muted-foreground mb-4 text-xs sm:text-sm">
-                      Fique confortável e comece a respirar.
+                      Encontre uma posição confortável antes de começar.
                     </p>
                     <Button
                       onClick={startAnimation}

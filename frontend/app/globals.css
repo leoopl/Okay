@@ -1,9 +1,48 @@
 @import 'tailwindcss';
-@config '../tailwind.config.ts';
-@import '../styles/_keyframe-animations.scss';
-@import '../styles/_variables.scss';
+@import 'tw-animate-css';
+@import '../styles/_keyframe-animations.css';
+@import '../styles/_variables.css';
+@source '../data/**/*.mdx';
+
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-varela: var(--font-varela-round), sans-serif;
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-float: float 6s infinite ease-in-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+}
 
 @theme inline {
   /* shadcn-required surfaces */
@@ -341,6 +380,15 @@
   }
 }
 
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+
+  @media (width >= 1400px) {
+    max-width: 1400px;
+  }
+}
+
 /* =====================================================================
  * Component layer
  * ===================================================================== */
@@ -481,22 +529,6 @@
 
   .gradient-background-dark {
     @apply from-background via-card to-muted/10 bg-gradient-to-br;
-  }
-
-  .focus-ring {
-    @apply focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none;
-  }
-
-  .focus-ring-primary {
-    @apply focus-visible:ring-primary/50;
-  }
-
-  .focus-ring-destructive {
-    @apply focus-visible:ring-destructive/50;
-  }
-
-  .focus-ring-crisis {
-    @apply focus-visible:ring-crisis/50;
   }
 
   .animate-fade-in {

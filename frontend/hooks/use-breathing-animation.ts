@@ -12,15 +12,14 @@ interface BreathingAnimationState {
   transitionDuration: number;
 }
 
-// Module-level: must remain static strings (not derived from hook scope)
-const BREATHING_PHASES = ['Breath In', 'Hold In', 'Breath Out', 'Hold Out'];
+const BREATHING_PHASES = ['Inspire', 'Segure', 'Expire', 'Espere'];
 
 export const useBreathingAnimation = ({
   breathingTime,
   isAnimating,
   countdownStart = 4, // Default to 4 seconds
 }: UseBreathingAnimationProps): BreathingAnimationState => {
-  const [guideMessage, setGuideMessage] = useState<string>('Ready...😃');
+  const [guideMessage, setGuideMessage] = useState<string>('Prepare-se... 😃');
   const [circleScale, setCircleScale] = useState<number>(0.5);
   const [transitionDuration, setTransitionDuration] = useState<number>(0);
   const phaseIndexRef = useRef<number>(0);
@@ -41,7 +40,7 @@ export const useBreathingAnimation = ({
       countdownInterval = setInterval(() => {
         countdownSeconds -= 1;
         if (countdownSeconds > 0) {
-          setGuideMessage(`Ready...😃 ${countdownSeconds}`);
+          setGuideMessage(`Prepare-se... 😃 ${countdownSeconds}`);
         } else {
           clearInterval(countdownInterval);
           startBreathing();

@@ -99,7 +99,7 @@ const Header: React.FC = () => {
 
   return (
     <header
-      className={`shadow-soft-xs ${isMobile ? 'bg-background/50 sticky top-0 z-50 backdrop-blur-sm' : ''}`}
+      className={`shadow-[0_1px_3px_hsla(199,84%,40%,0.05)] ${isMobile ? 'bg-background/50 sticky top-0 z-50 backdrop-blur-sm' : ''}`}
     >
       <nav
         aria-label="Global"

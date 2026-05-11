@@ -38,13 +38,13 @@ export function ProfessionalScheduleButton({ professional }: ProfessionalActions
     <Dialog open={isScheduleOpen} onOpenChange={setIsScheduleOpen}>
       <DialogTrigger asChild>
         <Button className="w-full">
-          <Calendar className="mr-2 h-4 w-4" />
+          <Calendar aria-hidden="true" className="mr-2 h-4 w-4" />
           Agendar Consulta
         </Button>
       </DialogTrigger>
       <DialogContent className="border-border bg-background sm:max-w-106.25">
         <DialogHeader>
-          <DialogTitle className="font-varela text-secondary">Agendar Consulta</DialogTitle>
+          <DialogTitle className="font-varela text-accent-strong">Agendar Consulta</DialogTitle>
           <DialogDescription className="text-muted-foreground">
             Preencha os dados abaixo para agendar uma consulta com {professional.name}.
           </DialogDescription>
@@ -86,7 +86,11 @@ export function ProfessionalScheduleButton({ professional }: ProfessionalActions
           </div>
         </div>
         <DialogFooter>
-          <Button type="submit" onClick={handleScheduleAppointment} className="">
+          <Button
+            type="submit"
+            onClick={handleScheduleAppointment}
+            disabled={!date || !time}
+          >
             Confirmar Agendamento
           </Button>
         </DialogFooter>
@@ -110,13 +114,13 @@ export function ProfessionalMessageButton({ professional }: ProfessionalActionsP
     <Dialog open={isMessageOpen} onOpenChange={setIsMessageOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="w-full">
-          <MessageSquare className="mr-2 h-4 w-4" />
+          <MessageSquare aria-hidden="true" className="mr-2 h-4 w-4" />
           Enviar Mensagem
         </Button>
       </DialogTrigger>
       <DialogContent className="border-border bg-background sm:max-w-106.25">
         <DialogHeader>
-          <DialogTitle className="font-varela text-secondary">Enviar Mensagem</DialogTitle>
+          <DialogTitle className="font-varela text-accent-strong">Enviar Mensagem</DialogTitle>
           <DialogDescription className="text-muted-foreground">
             Envie uma mensagem para {professional.name}.
           </DialogDescription>
@@ -136,7 +140,7 @@ export function ProfessionalMessageButton({ professional }: ProfessionalActionsP
           </div>
         </div>
         <DialogFooter>
-          <Button type="submit" onClick={handleSendMessage} className="">
+          <Button type="submit" onClick={handleSendMessage} disabled={!message.trim()}>
             Enviar
           </Button>
         </DialogFooter>

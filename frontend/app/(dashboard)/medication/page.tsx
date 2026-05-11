@@ -193,7 +193,7 @@ export default function MedicationPage() {
                     className="data-[state=active]:text-primary data-[state=active]:bg-background flex-col gap-1 px-2 py-3 text-xs transition-colors sm:flex-row sm:gap-2 sm:py-2 sm:text-sm"
                     aria-label={config.description}
                   >
-                    <IconComponent className="h-4 w-4 flex-shrink-0" />
+                    <IconComponent className="h-4 w-4 shrink-0" />
                     <span className="truncate leading-tight">{isMobile ? null : config.label}</span>
                   </TabsTrigger>
                 );

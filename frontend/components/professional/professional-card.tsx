@@ -20,8 +20,9 @@ export function ProfessionalCard({ professional }: ProfessionalCardProps) {
                 <Image
                   src={`/${professional.photo}`}
                   alt={professional.name}
-                  width={500}
-                  height={500}
+                  width={192}
+                  height={192}
+                  sizes="96px"
                   className="h-full w-full object-cover"
                 />
               </div>
@@ -29,7 +30,7 @@ export function ProfessionalCard({ professional }: ProfessionalCardProps) {
 
             <div className="flex flex-1 flex-col p-4">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <h3 className="font-varela text-accent-strong text-2xl font-medium">
+                <h3 className="font-varela text-accent-strong text-xl">
                   {professional.name}
                 </h3>
                 <Badge variant="outline" className="text-primary border-primary bg-primary/10">
@@ -55,18 +56,30 @@ export function ProfessionalCard({ professional }: ProfessionalCardProps) {
 
               <div className="text-muted-foreground mt-auto flex flex-wrap gap-4 text-xs">
                 <div className="flex items-center gap-1">
-                  <MapPin className="mt-0.5 size-3" />
+                  <MapPin aria-hidden="true" className="mt-0.5 size-3" />
                   <span>
                     {professional.address.city}, {professional.address.state}
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Mail className="mt-0.5 size-3" />
-                  <span>{professional.email}</span>
+                  <Mail aria-hidden="true" className="mt-0.5 size-3" />
+                  <a
+                    href={`mailto:${professional.email}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="hover:underline"
+                  >
+                    {professional.email}
+                  </a>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Phone className="mt-0.5 size-3" />
-                  <span>{professional.number}</span>
+                  <Phone aria-hidden="true" className="mt-0.5 size-3" />
+                  <a
+                    href={`tel:${professional.number}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="hover:underline"
+                  >
+                    {professional.number}
+                  </a>
                 </div>
               </div>
             </div>

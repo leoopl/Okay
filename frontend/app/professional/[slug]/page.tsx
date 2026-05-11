@@ -45,7 +45,7 @@ export default async function ProfessionalPage({ params }: ProfessionalPageProps
         <Link href="/professional">
           <Button
             variant="ghost"
-            className="mb-4 -ml-2 text-[#797D89] hover:bg-[#F2DECC]/10 hover:text-[#797D89]"
+            className="mb-4 -ml-2 text-muted-foreground hover:bg-muted/20 hover:text-foreground"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Voltar para a lista

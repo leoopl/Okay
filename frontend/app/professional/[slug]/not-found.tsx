@@ -15,7 +15,7 @@ export default function ProfessionalNotFound() {
         />
       </div>
 
-      <h1 className="font-varela text-secondary mb-2 text-3xl font-bold">
+      <h1 className="font-varela mb-2 text-3xl">
         Profissional não encontrado
       </h1>
 

@@ -100,16 +100,16 @@ export function ProfessionalFilters({
             )}
           </Button>
         </SheetTrigger>
-        <SheetContent className="w-[300px] sm:w-[400px]">
+        <SheetContent className="w-75 sm:w-100">
           <SheetHeader>
-            <SheetTitle className="font-varela text-secondary">Filtros</SheetTitle>
+            <SheetTitle className="font-varela text-accent-strong">Filtros</SheetTitle>
             <SheetDescription className="text-muted-foreground">
               Refine sua busca por profissionais
             </SheetDescription>
           </SheetHeader>
           <div className="mt-6 flex flex-col gap-6">
             <div className="space-y-2">
-              <h3 className="font-varela text-muted-foreground text-sm font-medium">Profissão</h3>
+              <h3 className="font-varela text-muted-foreground text-sm">Profissão</h3>
               <Select value={selectedProfession || 'all'} onValueChange={handleProfessionChange}>
                 <SelectTrigger className="border-border bg-background">
                   <SelectValue placeholder="Todas as profissões" />
@@ -128,22 +128,34 @@ export function ProfessionalFilters({
             <Separator className="bg-border/50" />
 
             <div className="space-y-3">
-              <h3 className="font-varela text-muted-foreground text-sm font-medium">Abordagens</h3>
+              <h3 className="font-varela text-muted-foreground text-sm">Abordagens</h3>
               <div className="flex flex-wrap gap-2">
-                {approaches.map((approach) => (
-                  <Badge
-                    key={approach}
-                    variant={selectedApproaches.includes(approach) ? 'default' : 'outline'}
-                    className={`cursor-pointer ${
-                      selectedApproaches.includes(approach)
-                        ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                        : 'border-border bg-background text-muted-foreground hover:bg-muted/20'
-                    }`}
-                    onClick={() => handleApproachToggle(approach)}
-                  >
-                    {approach}
-                  </Badge>
-                ))}
+                {approaches.map((approach) => {
+                  const isSelected = selectedApproaches.includes(approach);
+                  return (
+                    <Badge
+                      key={approach}
+                      role="button"
+                      tabIndex={0}
+                      aria-pressed={isSelected}
+                      variant={isSelected ? 'default' : 'outline'}
+                      className={`cursor-pointer ${
+                        isSelected
+                          ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                          : 'border-border bg-background text-muted-foreground hover:bg-muted/20'
+                      }`}
+                      onClick={() => handleApproachToggle(approach)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleApproachToggle(approach);
+                        }
+                      }}
+                    >
+                      {approach}
+                    </Badge>
+                  );
+                })}
               </div>
             </div>
 
@@ -173,10 +185,7 @@ export function ProfessionalFilters({
             >
               Limpar
             </Button>
-            <Button
-              onClick={handleApplyFilters}
-              className="bg-secondary text-secondary-foreground hover:bg-secondary/80 flex-1"
-            >
+            <Button onClick={handleApplyFilters} className="flex-1">
               Aplicar
             </Button>
           </SheetFooter>
@@ -209,6 +218,7 @@ export function ProfessionalFilters({
         <Badge variant="secondary" className="bg-primary text-primary-foreground">
           {selectedProfession}
           <button
+            aria-label={`Remover filtro ${selectedProfession}`}
             className="hover:bg-primary/20 ml-1 rounded-full"
             onClick={() => {
               setSelectedProfession(null);
@@ -225,9 +235,14 @@ export function ProfessionalFilters({
       )}
 
       {selectedApproaches.map((approach) => (
-        <Badge key={approach} variant="secondary" className="bg-secondary/30 text-secondary">
+        <Badge
+          key={approach}
+          variant="secondary"
+          className="bg-secondary/30 text-secondary-foreground"
+        >
           {approach}
           <button
+            aria-label={`Remover filtro ${approach}`}
             className="hover:bg-secondary/20 ml-1 rounded-full"
             onClick={() => {
               const newApproaches = selectedApproaches.filter((a) => a !== approach);
