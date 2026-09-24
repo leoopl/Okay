@@ -3,6 +3,7 @@
 // PALETTE: edit --breathing-* tokens in app/globals.css @theme block to recolor.
 
 import { useRef, useCallback } from 'react';
+import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -12,6 +13,7 @@ import {
   type PhaseIndex,
   type BreathingFrameData,
 } from '@/hooks/use-breathing-animation';
+import { useWakeLock } from '@/hooks/use-wake-lock';
 
 // ─── SVG geometry (viewBox 400 × 400, all radii in viewBox units) ──────────
 const VB = 400;
@@ -35,6 +37,7 @@ const OPACITY_MAX = 0.7;
 
 // ─── Phase copy (pt-BR) ─────────────────────────────────────────────────────
 const PHASE_LABELS = ['Inspire', 'Segure', 'Expire', 'Espere'] as const;
+const PREP_MESSAGE = 'Prepare-se... 😃';
 
 const PHASE_ARIA: Record<PhaseIndex, string> = {
   0: 'Inspire profundamente',
@@ -80,6 +83,8 @@ const STATIC_MAX_PATH = generateWavePath(R_MAX, 0, WAVE_FREQ_A, WAVE_FREQ_B, 0, 
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 interface BreathingAnimationProps {
+  /** Technique name — the dialog's accessible name. */
+  title: string;
   onClose: () => void;
   breathingTime: BreathingDurations;
   className?: string;
@@ -87,6 +92,7 @@ interface BreathingAnimationProps {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 export default function BreathingAnimation({
+  title,
   onClose,
   breathingTime,
   className,
@@ -109,6 +115,8 @@ export default function BreathingAnimation({
         opacity = OPACITY_MIN + (OPACITY_MAX - OPACITY_MIN) * easeInOut(progress);
       } else if (phase === 2) {
         opacity = OPACITY_MAX - (OPACITY_MAX - OPACITY_MIN) * easeInOut(progress);
+      } else if (phase === 3) {
+        opacity = OPACITY_MIN; // Espere holds where Expire ended
       }
       pathEl.style.opacity = opacity.toFixed(3);
       return;
@@ -144,92 +152,110 @@ export default function BreathingAnimation({
     if (pathEl.style.opacity) pathEl.style.opacity = '';
   }, []);
 
-  const { guideMessage, phase, secondsLeft, isPrepPhase } = useBreathingAnimation({
-    breathingTime,
-    isAnimating: true,
-    onFrame,
-  });
+  const { phase, secondsLeft, isPrepPhase } = useBreathingAnimation({ breathingTime, onFrame });
+  useWakeLock();
 
+  // Radix supplies the modal behaviour: focus trap, Escape, hiding the page from
+  // assistive tech, and — through Overlay — the scroll lock.
   return (
-    <div
-      className={cn(
-        'bg-breathing-overlay fixed inset-0 z-50 flex flex-col items-center justify-center gap-6',
-        className,
-      )}
-    >
-      {/* Screen-reader phase announcer — polite, never interrupts. */}
-      <div role="status" aria-live="polite" aria-atomic="true" className="font-varela sr-only">
-        {isPrepPhase ? 'Prepare-se' : PHASE_ARIA[phase]}
-      </div>
-
-      {/* Close button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="text-breathing-label hover:text-breathing-label absolute top-4 right-4 hover:bg-white/10"
-        onClick={onClose}
-        aria-label="Fechar"
-      >
-        <X className="size-6" aria-hidden="true" />
-      </Button>
-
-      {/* Phase label — outside, above the circle */}
-      <h2
-        className={cn(
-          'text-breathing-label font-varela select-none',
-          isPrepPhase ? 'text-xl font-light' : 'text-3xl font-light tracking-[0.18em] uppercase',
-        )}
-        aria-hidden="true"
-      >
-        {isPrepPhase ? guideMessage : PHASE_LABELS[phase]}
-      </h2>
-
-      {/* Breathing stage */}
-      <div className="relative aspect-square w-[min(82vw,400px)]">
-        <svg
-          viewBox={`0 0 ${VB} ${VB}`}
-          className="absolute inset-0 h-full w-full"
-          aria-hidden="true"
+    <DialogPrimitive.Root open onOpenChange={(open) => !open && onClose()}>
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Overlay className="bg-breathing-overlay fixed inset-0 z-50" />
+        <DialogPrimitive.Content
+          aria-describedby={undefined}
+          className={cn(
+            'bg-breathing-overlay fixed inset-0 z-50 flex flex-col items-center justify-center gap-6',
+            className,
+          )}
         >
-          <defs>
-            <radialGradient id="ba-inner-grad" cx="50%" cy="45%" r="60%">
-              <stop offset="0%" stopColor="var(--color-breathing-fill)" stopOpacity="0.9" />
-              <stop offset="100%" stopColor="var(--color-breathing-stroke)" stopOpacity="0.85" />
-            </radialGradient>
-          </defs>
+          <DialogPrimitive.Title className="sr-only">{title}</DialogPrimitive.Title>
 
-          {/* Outer ring — perfectly static at all times */}
-          <circle
-            cx={CX}
-            cy={CY}
-            r={R_OUTER}
-            fill="var(--color-breathing-ring)"
-            fillOpacity={0.2}
-          />
-          <circle
-            cx={CX}
-            cy={CY}
-            r={R_OUTER}
-            fill="none"
-            stroke="var(--color-breathing-stroke)"
-            strokeWidth={1.5}
-            strokeOpacity={0.45}
-          />
+          {/* Screen-reader phase announcer — polite, never interrupts. */}
+          <div role="status" aria-live="polite" aria-atomic="true" className="font-varela sr-only">
+            {isPrepPhase ? 'Prepare-se' : PHASE_ARIA[phase]}
+          </div>
 
-          {/* Inner animated shape — d attribute driven by rAF callback above */}
-          <path ref={pathRef} d={STATIC_MIN_PATH} fill="url(#ba-inner-grad)" fillOpacity={0.7} />
-        </svg>
+          {/* Close button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-breathing-label hover:text-breathing-label absolute top-4 right-4 hover:bg-white/10"
+            onClick={onClose}
+            aria-label="Fechar"
+          >
+            <X className="size-6" aria-hidden="true" />
+          </Button>
 
-        {/* Countdown — centered inside the inner circle */}
-        <div
-          className="pointer-events-none absolute inset-0 flex items-center justify-center"
-          aria-hidden="true"
-        >
-          <span className="text-breathing-count font-varela text-5xl font-extralight tabular-nums">
-            {secondsLeft}
-          </span>
-        </div>
-      </div>
-    </div>
+          {/* Phase label — outside, above the circle */}
+          <h2
+            className={cn(
+              'text-breathing-label font-varela select-none',
+              isPrepPhase
+                ? 'text-xl font-light'
+                : 'text-3xl font-light tracking-[0.18em] uppercase',
+            )}
+            aria-hidden="true"
+          >
+            {isPrepPhase ? PREP_MESSAGE : PHASE_LABELS[phase]}
+          </h2>
+
+          {/* Breathing stage */}
+          <div className="relative aspect-square w-[min(82vw,400px)]">
+            <svg
+              viewBox={`0 0 ${VB} ${VB}`}
+              className="absolute inset-0 h-full w-full"
+              aria-hidden="true"
+            >
+              <defs>
+                <radialGradient id="ba-inner-grad" cx="50%" cy="45%" r="60%">
+                  <stop offset="0%" stopColor="var(--color-breathing-fill)" stopOpacity="0.9" />
+                  <stop
+                    offset="100%"
+                    stopColor="var(--color-breathing-stroke)"
+                    stopOpacity="0.85"
+                  />
+                </radialGradient>
+              </defs>
+
+              {/* Outer ring — perfectly static at all times */}
+              <circle
+                cx={CX}
+                cy={CY}
+                r={R_OUTER}
+                fill="var(--color-breathing-ring)"
+                fillOpacity={0.2}
+              />
+              <circle
+                cx={CX}
+                cy={CY}
+                r={R_OUTER}
+                fill="none"
+                stroke="var(--color-breathing-stroke)"
+                strokeWidth={1.5}
+                strokeOpacity={0.45}
+              />
+
+              {/* Inner animated shape — d attribute driven by rAF callback above */}
+              <path
+                ref={pathRef}
+                d={STATIC_MIN_PATH}
+                fill="url(#ba-inner-grad)"
+                fillOpacity={0.7}
+              />
+            </svg>
+
+            {/* Countdown — centered inside the inner circle */}
+            <div
+              className="pointer-events-none absolute inset-0 flex items-center justify-center"
+              aria-hidden="true"
+            >
+              <span className="text-breathing-count font-varela text-5xl font-extralight tabular-nums">
+                {secondsLeft}
+              </span>
+            </div>
+          </div>
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
   );
 }

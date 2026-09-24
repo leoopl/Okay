@@ -15,30 +15,23 @@ export interface BreathingFrameData {
   isPrepPhase: boolean;
 }
 
-const PHASE_LABELS = ['Inspire', 'Segure', 'Expire', 'Espere'] as const;
-
 interface UseBreathingAnimationInput {
   breathingTime: BreathingDurations;
-  isAnimating: boolean;
   countdownStart?: number;
   onFrame?: (frame: BreathingFrameData) => void;
 }
 
 interface BreathingAnimationState {
-  guideMessage: string;
   phase: PhaseIndex;
   secondsLeft: number;
-  reducedMotion: boolean;
   isPrepPhase: boolean;
 }
 
 export function useBreathingAnimation({
   breathingTime,
-  isAnimating,
   countdownStart = 4,
   onFrame,
 }: UseBreathingAnimationInput): BreathingAnimationState {
-  const [guideMessage, setGuideMessage] = useState<string>('Prepare-se... 😃');
   const [phase, setPhase] = useState<PhaseIndex>(0);
   const [secondsLeft, setSecondsLeft] = useState<number>(countdownStart);
   const [reducedMotion, setReducedMotion] = useState<boolean>(() =>
@@ -50,13 +43,11 @@ export function useBreathingAnimation({
 
   // Mutable input refs — synced via cheap effects; never in the rAF effect's dep list.
   const breathingTimeRef = useRef<BreathingDurations>(breathingTime);
-  const isAnimatingRef = useRef(isAnimating);
   const countdownStartRef = useRef(countdownStart);
   const reducedMotionRef = useRef(false);
   const onFrameRef = useRef(onFrame);
 
   useEffect(() => { breathingTimeRef.current = breathingTime; }, [breathingTime]);
-  useEffect(() => { isAnimatingRef.current = isAnimating; }, [isAnimating]);
   useEffect(() => { countdownStartRef.current = countdownStart; }, [countdownStart]);
   useEffect(() => { reducedMotionRef.current = reducedMotion; }, [reducedMotion]);
   useEffect(() => { onFrameRef.current = onFrame; }, [onFrame]);
@@ -103,9 +94,7 @@ export function useBreathingAnimation({
       const delta = lastFrame === null ? 0 : now - lastFrame;
       lastFrame = now;
 
-      if (isAnimatingRef.current) {
-        elapsed += delta;
-      }
+      elapsed += delta;
 
       const durations = breathingTimeRef.current;
       const cstart = countdownStartRef.current;
@@ -121,14 +110,13 @@ export function useBreathingAnimation({
 
         onFrameRef.current?.({ delta, phase: currentPhase, progress: 0, reducedMotion: reduced, isPrepPhase: true });
 
-        if (elapsed >= prepMs && isAnimatingRef.current) {
+        if (elapsed >= prepMs) {
           inPrep = false;
-          elapsed = 0;
+          elapsed -= prepMs;
           currentPhase = firstNonZero(durations);
           prevSeconds = durations[currentPhase];
           setIsPrepPhase(false);
           setPhase(currentPhase);
-          setGuideMessage(PHASE_LABELS[currentPhase]);
           setSecondsLeft(durations[currentPhase]);
         }
       } else {
@@ -143,13 +131,12 @@ export function useBreathingAnimation({
 
         onFrameRef.current?.({ delta, phase: currentPhase, progress, reducedMotion: reduced, isPrepPhase: false });
 
-        if (elapsed >= phaseDurationMs && isAnimatingRef.current) {
-          elapsed = 0;
+        if (elapsed >= phaseDurationMs) {
+          elapsed -= phaseDurationMs; // keep the overshoot so the rhythm does not drift
           const next = advance(durations, currentPhase);
           currentPhase = next;
           prevSeconds = durations[next];
           setPhase(next);
-          setGuideMessage(PHASE_LABELS[next]);
           setSecondsLeft(durations[next]);
         }
       }
@@ -157,13 +144,20 @@ export function useBreathingAnimation({
       rafId = requestAnimationFrame(tick);
     };
 
+    // Browsers pause rAF in background tabs; don't count that gap as breathing time.
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') lastFrame = null;
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
     rafId = requestAnimationFrame(tick);
 
     return () => {
       if (rafId !== null) cancelAnimationFrame(rafId);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       lastFrame = null;
     };
   }, []); // Intentional empty deps — all inputs read via refs above.
 
-  return { guideMessage, phase, secondsLeft, reducedMotion, isPrepPhase };
+  return { phase, secondsLeft, isPrepPhase };
 }
