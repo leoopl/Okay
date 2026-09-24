@@ -345,7 +345,7 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      initialFocus
+                      autoFocus
                       locale={ptBR}
                       disabled={(date) => date < new Date('1900-01-01')}
                     />
@@ -387,7 +387,7 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      initialFocus
+                      autoFocus
                       locale={ptBR}
                       disabled={(date) => {
                         const startDate = form.getValues('startDate');

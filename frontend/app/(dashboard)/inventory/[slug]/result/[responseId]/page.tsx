@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useInventoryStore } from '@/store/inventory-store';
 import {
   getUserResponses,
@@ -53,13 +54,11 @@ const ErrorState = ({
             Tentar Novamente
           </Button>
         )}
-        <Button
-          onClick={() => (window.location.href = '/inventory')}
-          variant="outline"
-          className="gap-2"
-        >
-          <Home className="h-4 w-4" />
-          Voltar para Questionários
+        <Button asChild variant="outline" className="gap-2">
+          <Link href="/inventory">
+            <Home className="h-4 w-4" />
+            Voltar para Questionários
+          </Link>
         </Button>
       </div>
     </div>

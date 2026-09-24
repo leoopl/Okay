@@ -359,7 +359,7 @@ export default function MedicationHistoryReports({ className }: MedicationHistor
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
-                  initialFocus
+                  autoFocus
                   locale={ptBR}
                   disabled={(date) => date > new Date()}
                 />

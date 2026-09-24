@@ -280,8 +280,8 @@ export function ProfileTab() {
                             }
                             showOutsideDays={false}
                             captionLayout="dropdown"
-                            fromYear={1900}
-                            toYear={new Date().getFullYear()}
+                            startMonth={new Date(1900, 0)}
+                            endMonth={new Date(new Date().getFullYear(), 11)}
                             disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
                             locale={pt}
                           />

@@ -1,6 +1,17 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  useSyncExternalStore,
+} from 'react';
+
+// Hydration detector: false during SSR and hydration, true on the client afterwards.
+const subscribeToNothing = () => () => {};
 import type { User } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 import { usePathname } from 'next/navigation';
@@ -108,7 +119,11 @@ export function AuthProvider({ children, initialData }: AuthProviderProps) {
   const [permissions, setPermissions] = useState(initialData?.permissions || []);
   const [isLoading, setIsLoading] = useState(!initialData); // Loading if no initial data
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [isHydrated, setIsHydrated] = useState(false);
+  const isHydrated = useSyncExternalStore(
+    subscribeToNothing,
+    () => true,
+    () => false,
+  );
   const pathname = usePathname();
   const supabase = createClient();
 
@@ -203,11 +218,6 @@ export function AuthProvider({ children, initialData }: AuthProviderProps) {
     },
     [supabase],
   );
-
-  // Handle hydration
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
 
   // BroadcastChannel for multi-tab logout coordination
   useEffect(() => {
@@ -368,6 +378,7 @@ export function AuthProvider({ children, initialData }: AuthProviderProps) {
 
     // Initialize auth on mount
     if (!initialData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- auth bootstrap on mount sets loading state before the first await; refactor to a Suspense/useSyncExternalStore source later
       initializeAuth();
     } else if (isHydrated) {
       // Update state with initial data after hydration

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -151,20 +151,11 @@ const NotificationSection = ({
 export function NotificationsTab() {
   const [settings, setSettings] = useState<NotificationSettings>(defaultSettings);
   const [isLoading, setIsLoading] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
   const [originalSettings, setOriginalSettings] = useState<NotificationSettings>(defaultSettings);
 
-  // Track changes
-  useEffect(() => {
-    const settingsChanged = JSON.stringify(settings) !== JSON.stringify(originalSettings);
-    setHasChanges(settingsChanged);
-  }, [settings, originalSettings]);
-
-  // Simulate loading user settings
-  useEffect(() => {
-    // In a real app, you would fetch user settings here
-    setOriginalSettings(defaultSettings);
-  }, []);
+  // Derived: no effect needed. Loading persisted settings is not implemented yet
+  // (see /api/notification-preferences in the audit); defaults are the baseline.
+  const hasChanges = JSON.stringify(settings) !== JSON.stringify(originalSettings);
 
   const handleSave = async () => {
     setIsLoading(true);
@@ -174,7 +165,6 @@ export function NotificationsTab() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       setOriginalSettings(settings);
-      setHasChanges(false);
 
       toast.success('Preferências salvas', {
         description: 'Suas configurações de notificação foram atualizadas.',
@@ -190,7 +180,6 @@ export function NotificationsTab() {
 
   const handleReset = () => {
     setSettings(originalSettings);
-    setHasChanges(false);
   };
 
   // Update specific setting

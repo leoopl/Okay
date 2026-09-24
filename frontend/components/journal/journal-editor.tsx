@@ -289,6 +289,7 @@ export function JournalEditor({
 
   React.useEffect(() => {
     if (!isMobileDevice && mobileView !== 'main') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resets the mobile sub-view when leaving mobile layout; candidate for derived state
       setMobileView('main');
     }
   }, [isMobileDevice, mobileView]);

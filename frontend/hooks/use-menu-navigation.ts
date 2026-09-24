@@ -136,6 +136,7 @@ export function useMenuNavigation<T>({
 
   React.useEffect(() => {
     if (query) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- vendored TipTap hook; resets selection when the query changes
       setSelectedIndex(autoSelectFirstItem ? 0 : -1);
     }
   }, [query, autoSelectFirstItem]);

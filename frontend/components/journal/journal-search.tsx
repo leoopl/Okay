@@ -228,7 +228,7 @@ export function AdvancedJournalSearch({ className }: AdvancedSearchProps) {
                     mode="single"
                     selected={startDate}
                     onSelect={setStartDate}
-                    initialFocus
+                    autoFocus
                   />
                 </PopoverContent>
               </Popover>
@@ -250,7 +250,7 @@ export function AdvancedJournalSearch({ className }: AdvancedSearchProps) {
                     mode="single"
                     selected={endDate}
                     onSelect={setEndDate}
-                    initialFocus
+                    autoFocus
                     disabled={(date) => (startDate ? date < startDate : false)}
                   />
                 </PopoverContent>

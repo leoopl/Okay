@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Logo from './common/Logo';
-import { Github, Linkedin, Phone } from 'lucide-react';
+import { Phone } from 'lucide-react';
+import { GithubIcon, LinkedinIcon } from './common/icons/brand-icons';
 
 interface SocialLink {
   name: string;
@@ -15,12 +16,12 @@ export const socialLinks: SocialLink[] = [
   {
     name: 'GitHub',
     href: 'https://github.com/leoopl/Okay',
-    icon: Github,
+    icon: GithubIcon,
   },
   {
     name: 'LinkedIn',
     href: 'https://www.linkedin.com/in/leopl/',
-    icon: Linkedin,
+    icon: LinkedinIcon,
   },
 ];
 

@@ -1,0 +1,11 @@
+# pnpm settings (pnpm 12 reads these here, not from the "pnpm" field in package.json).
+
+overrides:
+  # Serwist pulls a browserslist below the fixed range; nothing else pins it.
+  browserslist: '>=4.28.9'
+
+# Optional native helpers whose postinstall scripts we do not need: both ship
+# prebuilt binaries as optional dependencies, and the build passes without them.
+allowBuilds:
+  '@parcel/watcher': false
+  unrs-resolver: false
