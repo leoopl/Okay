@@ -97,6 +97,14 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+
+  /* breathing animation surface — edit --breathing-* in :root / .dark below to recolor */
+  --color-breathing-overlay: var(--breathing-overlay);
+  --color-breathing-ring: var(--breathing-ring);
+  --color-breathing-fill: var(--breathing-fill);
+  --color-breathing-stroke: var(--breathing-stroke);
+  --color-breathing-label: var(--breathing-label);
+  --color-breathing-count: var(--breathing-count);
 }
 
 /* React Day Picker override */
@@ -222,6 +230,15 @@
     /* Design system tokens */
     --radius: 0.5rem;
     --font-varela-round: 'Varela Round', sans-serif;
+
+    /* ── Breathing animation palette ────────────────────────────────────── */
+    /* PALETTE: edit these tokens to recolor the breathing overlay surface.  */
+    --breathing-overlay: var(--primitive-surface-0);   /* warm near-black  */
+    --breathing-ring: var(--primitive-sky-light);      /* outer ring fill  */
+    --breathing-fill: var(--primitive-sky-mid);        /* inner gradient 0%  */
+    --breathing-stroke: var(--primitive-sky-dark);     /* inner gradient 100% + ring stroke */
+    --breathing-label: hsl(0 0% 100%);                 /* phase label on dark overlay */
+    --breathing-count: hsl(0 0% 100%);                 /* countdown on dark overlay */
   }
 
   .dark {
@@ -294,6 +311,14 @@
     --chart-3: hsl(86 30% 55%); /* lifted sage */
     --chart-4: hsl(26 30% 55%); /* earth lifted */
     --chart-5: hsl(28 15% 50%); /* earth muted */
+
+    /* ── Breathing animation palette (dark) ─────────────────────────────── */
+    --breathing-overlay: hsl(35 8% 6%);           /* slightly deeper in dark mode */
+    --breathing-ring: var(--primitive-sky-light);
+    --breathing-fill: hsl(201 60% 60%);            /* sky-mid calmed for dark */
+    --breathing-stroke: hsl(201 40% 40%);          /* sky-dark calmed for dark */
+    --breathing-label: hsl(0 0% 95%);
+    --breathing-count: hsl(0 0% 95%);
 
     /* Sidebar — same lift as card (consistent contained-surface logic) */
     --sidebar: hsl(35 7% 13%); /* ~#231f17 */

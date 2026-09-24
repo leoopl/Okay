@@ -7,6 +7,7 @@ import BreathingAnimation from '../../components/breathing-animation';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useMobile } from '@/hooks/use-mobile';
+import type { BreathingDurations } from '@/hooks/use-breathing-animation';
 
 interface Technique {
   id: number;
@@ -48,7 +49,7 @@ const Breathing: React.FC = () => {
             setIsAnimating(false);
             setIsModalOpen(true); // Reopen the modal when closing animation
           }}
-          breathingTime={selectedTechnique.secs}
+          breathingTime={selectedTechnique.secs as unknown as BreathingDurations}
         />
       )}
 
