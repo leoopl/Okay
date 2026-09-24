@@ -50,3 +50,6 @@ public/swe-worker*
 .impeccable
 DESIGN.md
 PRODUCT.md
+# Next.js dev server generates these agent-rule files (next.config agentRules)
+AGENTS.md
+CLAUDE.md
