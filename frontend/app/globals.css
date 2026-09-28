@@ -105,6 +105,14 @@
   --color-breathing-stroke: var(--breathing-stroke);
   --color-breathing-label: var(--breathing-label);
   --color-breathing-count: var(--breathing-count);
+
+  /* breathing technique cards — one color per technique (bg-breathing-card-*) */
+  --color-breathing-card-earth: var(--breathing-card-earth);
+  --color-breathing-card-sky: var(--breathing-card-sky);
+  --color-breathing-card-sage: var(--breathing-card-sage);
+  --color-breathing-card-lavender: var(--breathing-card-lavender);
+  --color-breathing-card-mint: var(--breathing-card-mint);
+  --color-breathing-card-sand: var(--breathing-card-sand);
 }
 
 /* React Day Picker override */
@@ -239,6 +247,14 @@
     --breathing-stroke: var(--primitive-sky-dark);     /* inner gradient 100% + ring stroke */
     --breathing-label: hsl(0 0% 100%);                 /* phase label on dark overlay */
     --breathing-count: hsl(0 0% 100%);                 /* countdown on dark overlay */
+
+    /* ── Breathing technique cards ─────────────────────────────────────── */
+    --breathing-card-earth: hsl(26 65% 87%);     /* Respiração de Caixa */
+    --breathing-card-sky: hsl(199 84% 81%);      /* Respiração 4-7-8 */
+    --breathing-card-sage: hsl(126 23% 76%);     /* Respiração Profunda */
+    --breathing-card-lavender: hsl(260 25% 90%); /* Sama Vritti Pranayama */
+    --breathing-card-mint: hsl(170 30% 85%);     /* Respiração Contada */
+    --breathing-card-sand: hsl(41 40% 90%);      /* Respiração Rítmica */
   }
 
   .dark {
@@ -319,6 +335,14 @@
     --breathing-stroke: hsl(201 40% 40%);          /* sky-dark calmed for dark */
     --breathing-label: hsl(0 0% 95%);
     --breathing-count: hsl(0 0% 95%);
+
+    /* ── Breathing technique cards (dark) ──────────────────────────────── */
+    --breathing-card-earth: hsl(26 25% 25%);
+    --breathing-card-sky: hsl(199 30% 25%);
+    --breathing-card-sage: hsl(126 20% 25%);
+    --breathing-card-lavender: hsl(260 20% 25%);
+    --breathing-card-mint: hsl(170 25% 25%);
+    --breathing-card-sand: hsl(41 25% 25%);
 
     /* Sidebar — same lift as card (consistent contained-surface logic) */
     --sidebar: hsl(35 7% 13%); /* ~#231f17 */

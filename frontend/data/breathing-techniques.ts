@@ -1,7 +1,6 @@
 import type { BreathingDurations } from '@/hooks/use-breathing-animation';
 
-// Card surface per palette family (see app/globals.css); each maps to a token in the page.
-export type BreathingTone = 'earth' | 'sky' | 'sage';
+export type BreathingTone = 'earth' | 'sky' | 'sage' | 'lavender' | 'mint' | 'sand';
 
 export interface BreathingReference {
   citation: string;
@@ -87,7 +86,7 @@ export const breathingTechniques: readonly BreathingTechnique[] = [
     purpose: 'Respiração ritmada para desacelerar e aliviar o estresse',
     desc: 'Técnica de respiração do yoga (pranayama) cujo nome, em sânscrito, significa "movimento igual": você inspira e expira pelo mesmo tempo. Nesse ritmo, são cerca de 7 respirações por minuto, uma respiração lenta que as pesquisas associam a mais relaxamento e menos ansiedade. Inspire por 4 segundos e expire por 4 segundos.',
     secs: [4, 0, 4, 0],
-    tone: 'earth',
+    tone: 'lavender',
     references: [
       ZACCARO_2018,
       {
@@ -103,7 +102,7 @@ export const breathingTechniques: readonly BreathingTechnique[] = [
     purpose: 'Exercita a atenção e ajuda a notar quando a mente se distrai',
     desc: 'Prática de atenção plena de origem zen: acompanhe a respiração e conte mentalmente cada expiração, de 1 a 10. Quando perceber que perdeu a conta ou se distraiu, recomece do 1 — perceber a distração faz parte do exercício. Estudos mostram que contar as respirações com precisão está associado a menos divagação da mente e mais consciência da própria atenção. Siga o guia: inspire por 5 segundos e expire por 5.',
     secs: [5, 0, 5, 0],
-    tone: 'sky',
+    tone: 'mint',
     references: [
       {
         citation:
@@ -123,7 +122,7 @@ export const breathingTechniques: readonly BreathingTechnique[] = [
     purpose: 'Um ritmo lento e constante para ajudar a acalmar',
     desc: 'Respiração lenta em ritmo constante, com pausas curtas depois de inspirar e de expirar. São 5 respirações por minuto, dentro da faixa de respiração lenta (4 a 10 por minuto) que as pesquisas associam a mais relaxamento e menos ansiedade. Inspire por 4 segundos, segure por 2, expire por 4 e segure por 2, sem forçar.',
     secs: [4, 2, 4, 2],
-    tone: 'sage',
+    tone: 'sand',
     references: [
       {
         citation:

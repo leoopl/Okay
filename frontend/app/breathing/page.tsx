@@ -18,11 +18,13 @@ import {
   type BreathingTone,
 } from '@/data/breathing-techniques';
 
-// Palette-family tints that follow the light/dark theme tokens.
 const TONE_CLASSES: Record<BreathingTone, string> = {
-  earth: 'bg-muted',
-  sky: 'bg-secondary/30',
-  sage: 'bg-accent/50',
+  earth: 'bg-breathing-card-earth',
+  sky: 'bg-breathing-card-sky',
+  sage: 'bg-breathing-card-sage',
+  lavender: 'bg-breathing-card-lavender',
+  mint: 'bg-breathing-card-mint',
+  sand: 'bg-breathing-card-sand',
 };
 
 const hasBreathHold = ({ secs }: BreathingTechnique) => secs[1] > 0 || secs[3] > 0;

@@ -17,8 +17,13 @@ describe('breathingTechniques', () => {
     expect(secs[2]).toBeGreaterThan(0);
   });
 
-  it.each(breathingTechniques)('$name uses a palette tone', ({ tone }) => {
-    expect(['earth', 'sky', 'sage']).toContain(tone);
+  it.each(breathingTechniques)('$name uses a breathing card color', ({ tone }) => {
+    expect(['earth', 'sky', 'sage', 'lavender', 'mint', 'sand']).toContain(tone);
+  });
+
+  it('gives every card its own color', () => {
+    const tones = breathingTechniques.map((t) => t.tone);
+    expect(new Set(tones).size).toBe(tones.length);
   });
 
   it.each(breathingTechniques)('$name has a card purpose line of up to 60 characters', ({ purpose }) => {
