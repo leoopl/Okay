@@ -160,7 +160,7 @@ export async function logDose(data: CreateDoseLogDto): Promise<DoseLogActionResp
       doseLog = inserted;
     }
 
-    revalidatePath('/medications');
+    revalidatePath('/medication');
     return {
       success: true,
       message: 'Dose registrada com sucesso',

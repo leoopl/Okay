@@ -53,7 +53,17 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Protected routes configuration
-  const protectedRoutes = ['/profile', '/medications', '/journal', '/inventories', '/admin'];
+  // Must match the real route segments under app/(dashboard) and app/(admin)
+  const protectedRoutes = [
+    '/profile',
+    '/medication',
+    '/journal',
+    '/inventory',
+    '/connections',
+    '/patients',
+    '/provider-validations',
+    '/admin',
+  ];
 
   const authRoutes = ['/signin', '/signup'];
   const isProtectedRoute = protectedRoutes.some((route) =>
@@ -106,23 +116,3 @@ export async function updateSession(request: NextRequest) {
 
   return response;
 }
-
-/**
- * Configuration for which routes should run the middleware
- */
-export const config = {
-  matcher: [
-    /*
-     * Match all request paths except:
-     * - /blog/* (public blog routes)
-     * - /breathing/* (public breathing exercises)
-     * - /support/* (public support pages)
-     * - /professionals/* (public professionals directory)
-     * - /_next/static (static files)
-     * - /_next/image (image optimization files)
-     * - /favicon.ico (favicon file)
-     * - Static files (images, etc.)
-     */
-    '/((?!blog|breathing|support|professionals|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
-};

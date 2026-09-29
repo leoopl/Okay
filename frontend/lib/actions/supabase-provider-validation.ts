@@ -76,7 +76,7 @@ export async function submitValidationRequest(
     details: { council_type: data.council_type, council_state: data.council_state },
   });
 
-  revalidatePath('/profile/professional');
+  revalidatePath('/profile/validation');
   return { success: true, message: 'Solicitação enviada para análise' };
 }
 
@@ -201,8 +201,8 @@ export async function approveRequest(requestId: string): Promise<ProviderValidat
     details: { user_id: request.user_id },
   });
 
-  revalidatePath('/admin/provider-validations');
-  revalidatePath('/profile/professional');
+  revalidatePath('/provider-validations');
+  revalidatePath('/profile/validation');
   return { success: true, message: 'Solicitação aprovada' };
 }
 
@@ -254,7 +254,7 @@ export async function rejectRequest(
     details: { user_id: request.user_id, reason: trimmed },
   });
 
-  revalidatePath('/admin/provider-validations');
-  revalidatePath('/profile/professional');
+  revalidatePath('/provider-validations');
+  revalidatePath('/profile/validation');
   return { success: true, message: 'Solicitação rejeitada' };
 }

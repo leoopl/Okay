@@ -20,7 +20,6 @@ import {
   Activity,
   Clock,
   Loader2,
-  BadgeCheck,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -267,7 +266,9 @@ export default function Profile() {
                 </Button>
               </div>
 
-              {/* Professional Validation Button — pinned to card bottom */}
+              {/* Professional Validation Button — pinned to card bottom.
+                  Hidden until the patient-provider connections feature is complete;
+                  restore it together with the BadgeCheck import.
               <Button
                 asChild
                 variant="outline"
@@ -278,6 +279,7 @@ export default function Profile() {
                   Validação profissional
                 </Link>
               </Button>
+              */}
             </CardContent>
           </Card>
 

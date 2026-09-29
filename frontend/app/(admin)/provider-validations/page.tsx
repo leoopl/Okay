@@ -1,7 +1,8 @@
-import { listValidationRequests } from '@/lib/actions/supabase-provider-validation';
-import AdminProviderValidationsClient from './admin-provider-validations-client';
+import { notFound } from 'next/navigation';
 
-export default async function AdminProviderValidationsPage() {
-  const { data, error } = await listValidationRequests('all');
-  return <AdminProviderValidationsClient initialRequests={data} initialError={error} />;
+// Patient-provider connections are unfinished, so this route is hidden until the UI is
+// complete. The real page is in ./provider-validations-page.tsx; to enable it, replace this file's
+// contents with: export { default } from './provider-validations-page';
+export default function AdminProviderValidationsPage() {
+  notFound();
 }

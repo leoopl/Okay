@@ -1,14 +1,8 @@
-import { redirect } from 'next/navigation';
-import { getUserWithRolesAndPermissions } from '@/lib/supabase/server';
-import { getMyConnections } from '@/lib/actions/supabase-connections';
-import PatientsClient from './patients-client';
+import { notFound } from 'next/navigation';
 
-export default async function PatientsPage() {
-  const userData = await getUserWithRolesAndPermissions();
-  if (!userData) redirect('/signin?returnUrl=/patients');
-  if (!userData.hasRole('healthcare_provider')) redirect('/unauthorized');
-
-  const { asProvider } = await getMyConnections();
-
-  return <PatientsClient connections={asProvider} />;
+// Patient-provider connections are unfinished, so this route is hidden until the UI is
+// complete. The real page is in ./patients-page.tsx; to enable it, replace this file's
+// contents with: export { default } from './patients-page';
+export default function PatientsPage() {
+  notFound();
 }

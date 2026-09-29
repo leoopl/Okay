@@ -38,8 +38,11 @@ CREATE TABLE IF NOT EXISTS public.dose_log_audit (
 --
 --    NOTE: IndexedDB does NOT enforce uniqueness on non-keyPath compound indexes.
 --    This server-side index is the sole dedup enforcement point for scheduled doses.
+--    The day is taken in UTC: `timestamp` is timestamptz, and a plain ::date cast depends on
+--    the session TimeZone, which Postgres rejects in an index ("must be marked IMMUTABLE").
+--    UTC matches the day range used by logDose in lib/actions/supabase-dose-logs.ts.
 CREATE UNIQUE INDEX IF NOT EXISTS dose_logs_scheduled_dedup_idx
-  ON public.dose_logs (medication_id, scheduled_time, (timestamp::date))
+  ON public.dose_logs (medication_id, scheduled_time, ((timestamp AT TIME ZONE 'UTC')::date))
   WHERE dose_type = 'scheduled' AND scheduled_time IS NOT NULL;
 
 -- 5. RLS policies for dose_log_audit
@@ -50,12 +53,22 @@ DROP POLICY IF EXISTS "Users can view own audit records" ON public.dose_log_audi
 CREATE POLICY "Users can view own audit records"
   ON public.dose_log_audit
   FOR SELECT
-  USING (overwritten_by = auth.uid());
+  TO authenticated
+  USING (overwritten_by = (SELECT auth.uid()));
 
--- Only the system (via server action) inserts audit records
--- Service role bypasses RLS; client cannot directly insert
+-- logDose writes audit records with the signed-in user's client (not the service role),
+-- so users may insert audit rows only for their own dose logs. Rows are append-only:
+-- there are no UPDATE or DELETE policies.
 DROP POLICY IF EXISTS "No direct client inserts on audit" ON public.dose_log_audit;
-CREATE POLICY "No direct client inserts on audit"
+DROP POLICY IF EXISTS "Users can audit own dose logs" ON public.dose_log_audit;
+CREATE POLICY "Users can audit own dose logs"
   ON public.dose_log_audit
   FOR INSERT
-  WITH CHECK (false);
+  TO authenticated
+  WITH CHECK (
+    overwritten_by = (SELECT auth.uid())
+    AND EXISTS (
+      SELECT 1 FROM public.dose_logs d
+      WHERE d.id = dose_log_id AND d.user_id = (SELECT auth.uid())
+    )
+  );

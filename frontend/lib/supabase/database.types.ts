@@ -4,7 +4,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: '14.1';
+    PostgrestVersion: '14.5';
   };
   public: {
     Tables: {
@@ -143,9 +143,42 @@ export type Database = {
         };
         Relationships: [];
       };
+      dose_log_audit: {
+        Row: {
+          dose_log_id: string;
+          id: string;
+          overwritten_at: string;
+          overwritten_by: string;
+          previous_data: Json;
+        };
+        Insert: {
+          dose_log_id: string;
+          id?: string;
+          overwritten_at?: string;
+          overwritten_by: string;
+          previous_data: Json;
+        };
+        Update: {
+          dose_log_id?: string;
+          id?: string;
+          overwritten_at?: string;
+          overwritten_by?: string;
+          previous_data?: Json;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'dose_log_audit_dose_log_id_fkey';
+            columns: ['dose_log_id'];
+            isOneToOne: false;
+            referencedRelation: 'dose_logs';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       dose_logs: {
         Row: {
           created_at: string;
+          dose_type: Database['public']['Enums']['dose_type'] | null;
           id: string;
           medication_id: string;
           notes: string | null;
@@ -157,6 +190,7 @@ export type Database = {
         };
         Insert: {
           created_at?: string;
+          dose_type?: Database['public']['Enums']['dose_type'] | null;
           id?: string;
           medication_id: string;
           notes?: string | null;
@@ -168,6 +202,7 @@ export type Database = {
         };
         Update: {
           created_at?: string;
+          dose_type?: Database['public']['Enums']['dose_type'] | null;
           id?: string;
           medication_id?: string;
           notes?: string | null;
@@ -1130,14 +1165,9 @@ export type Database = {
       connection_status: 'pending' | 'active' | 'rejected' | 'ended';
       council_type: 'CRM' | 'CRP';
       day_of_week:
-        | 'monday'
-        | 'tuesday'
-        | 'wednesday'
-        | 'thursday'
-        | 'friday'
-        | 'saturday'
-        | 'sunday';
+        'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
       dose_status: 'taken' | 'skipped' | 'delayed';
+      dose_type: 'scheduled' | 'prn';
       gender_type: 'male' | 'female' | 'non_binary' | 'prefer_not_to_say' | 'other';
       journal_mood:
         | 'happy'
@@ -1154,11 +1184,7 @@ export type Database = {
       medication_form: 'capsule' | 'tablet' | 'drops' | 'injectable' | 'ointment' | 'other';
       provider_validation_status: 'pending' | 'approved' | 'rejected';
       shared_resource_type:
-        | 'inventory_responses'
-        | 'dose_logs'
-        | 'todo_items'
-        | 'therapeutic_goals'
-        | 'agenda_items';
+        'inventory_responses' | 'dose_logs' | 'todo_items' | 'therapeutic_goals' | 'agenda_items';
       testimonial_status: 'pending' | 'approved' | 'rejected';
     };
     CompositeTypes: {
@@ -1175,12 +1201,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -1200,13 +1226,12 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -1225,13 +1250,12 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -1250,13 +1274,12 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema['Enums']
-    | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    keyof DefaultSchema['Enums'] | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -1267,13 +1290,12 @@ export type Enums<
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema['CompositeTypes']
-    | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    keyof DefaultSchema['CompositeTypes'] | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -1329,6 +1351,7 @@ export const Constants = {
       council_type: ['CRM', 'CRP'],
       day_of_week: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
       dose_status: ['taken', 'skipped', 'delayed'],
+      dose_type: ['scheduled', 'prn'],
       gender_type: ['male', 'female', 'non_binary', 'prefer_not_to_say', 'other'],
       journal_mood: [
         'happy',
