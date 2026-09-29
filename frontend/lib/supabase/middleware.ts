@@ -1,6 +1,7 @@
 import { CookieOptions, createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { Database } from './database.types';
+import { safeRedirectPath } from '@/lib/safe-redirect';
 
 /**
  * Supabase middleware for session management and authentication
@@ -81,8 +82,7 @@ export async function updateSession(request: NextRequest) {
 
   // Redirect authenticated users away from auth pages
   if (user && isAuthRoute) {
-    const redirectParam = request.nextUrl.searchParams.get('redirect');
-    const destination = redirectParam || '/profile';
+    const destination = safeRedirectPath(request.nextUrl.searchParams.get('redirect'));
     return NextResponse.redirect(new URL(destination, request.url));
   }
 

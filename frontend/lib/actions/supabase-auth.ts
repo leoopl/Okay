@@ -13,6 +13,7 @@ import {
 } from '@/lib/schemas/auth-schemas';
 import { ActionResult } from '../definitions';
 import { headers } from 'next/headers';
+import { safeRedirectPath } from '@/lib/safe-redirect';
 
 /**
  * Get client IP address and user agent for audit logging
@@ -314,7 +315,7 @@ export async function signInFormAction(
   });
 
   if (result.success) {
-    const redirectTo = (formData.get('redirect') as string) || '/profile';
+    const redirectTo = safeRedirectPath(formData.get('redirect') as string | null);
     redirect(redirectTo);
   }
 
@@ -341,7 +342,7 @@ export async function signUpFormAction(
   });
 
   if (result.success) {
-    const redirectTo = (formData.get('redirect') as string) || '/profile';
+    const redirectTo = safeRedirectPath(formData.get('redirect') as string | null);
     redirect(redirectTo);
   }
 
