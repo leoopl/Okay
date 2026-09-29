@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -69,10 +69,10 @@ const NotificationChannel = ({
   onCheckedChange: (checked: boolean) => void;
   disabled?: boolean;
 }) => (
-  <div className="hover:bg-yellow-light/30 flex items-start justify-between rounded-lg border p-4 transition-colors">
+  <div className="hover:bg-primary/10 flex items-start justify-between rounded-lg border p-4 transition-colors">
     <div className="flex flex-1 gap-3">
       <div className="mt-1 flex-shrink-0">
-        <Icon className="text-blue-dark size-5" />
+        <Icon className="text-primary size-5" />
       </div>
       <div className="flex-1 space-y-1">
         <Label className="cursor-pointer text-sm font-medium">{title}</Label>
@@ -104,7 +104,7 @@ const NotificationType = ({
   onCheckedChange: (checked: boolean) => void;
   disabled?: boolean;
 }) => (
-  <div className="hover:bg-yellow-light/30 flex items-start space-x-3 rounded-lg border p-3 transition-colors">
+  <div className="hover:bg-primary/10 flex items-start space-x-3 rounded-lg border p-3 transition-colors">
     <Checkbox
       id={`type-${label}`}
       checked={checked}
@@ -114,7 +114,7 @@ const NotificationType = ({
     />
     <div className="flex-1 space-y-1">
       <div className="flex items-center gap-2">
-        <Icon className="text-blue-dark size-4" />
+        <Icon className="text-primary size-4" />
         <Label htmlFor={`type-${label}`} className="cursor-pointer text-sm font-medium">
           {label}
         </Label>
@@ -139,7 +139,7 @@ const NotificationSection = ({
   <Card className="transition-all duration-200 hover:shadow-md">
     <CardHeader>
       <CardTitle className="flex items-center gap-2 text-lg">
-        <Icon className="text-blue-dark size-5" />
+        <Icon className="text-primary size-5" />
         {title}
       </CardTitle>
       {description && <CardDescription>{description}</CardDescription>}
@@ -151,20 +151,11 @@ const NotificationSection = ({
 export function NotificationsTab() {
   const [settings, setSettings] = useState<NotificationSettings>(defaultSettings);
   const [isLoading, setIsLoading] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
   const [originalSettings, setOriginalSettings] = useState<NotificationSettings>(defaultSettings);
 
-  // Track changes
-  useEffect(() => {
-    const settingsChanged = JSON.stringify(settings) !== JSON.stringify(originalSettings);
-    setHasChanges(settingsChanged);
-  }, [settings, originalSettings]);
-
-  // Simulate loading user settings
-  useEffect(() => {
-    // In a real app, you would fetch user settings here
-    setOriginalSettings(defaultSettings);
-  }, []);
+  // Derived: no effect needed. Loading persisted settings is not implemented yet
+  // (see /api/notification-preferences in the audit); defaults are the baseline.
+  const hasChanges = JSON.stringify(settings) !== JSON.stringify(originalSettings);
 
   const handleSave = async () => {
     setIsLoading(true);
@@ -174,7 +165,6 @@ export function NotificationsTab() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       setOriginalSettings(settings);
-      setHasChanges(false);
 
       toast.success('Preferências salvas', {
         description: 'Suas configurações de notificação foram atualizadas.',
@@ -190,7 +180,6 @@ export function NotificationsTab() {
 
   const handleReset = () => {
     setSettings(originalSettings);
-    setHasChanges(false);
   };
 
   // Update specific setting
@@ -256,7 +245,7 @@ export function NotificationsTab() {
 
       {/* Status Alert */}
       {hasChanges && (
-        <Alert className="border-yellow-200 bg-yellow-50 text-yellow-800">
+        <Alert className="border-primary/30 bg-primary/10 text-accent-strong">
           <AlertCircle className="size-4" />
           <AlertDescription>
             Você tem alterações não salvas. Lembre-se de salvar suas preferências.

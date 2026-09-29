@@ -49,6 +49,7 @@ export const useLinkHandler = (props: LinkHandlerProps) => {
     const { href } = editor.getAttributes('link');
 
     if (editor.isActive('link') && !url) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- vendored TipTap UI kit; reads editor state on mount
       setUrl(href || '');
       onLinkActive?.();
     }

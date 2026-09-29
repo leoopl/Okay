@@ -1,7 +1,30 @@
 'use client';
 
-import { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useSyncExternalStore,
+} from 'react';
 import { getSyncService } from '@/service/sync-service';
+
+// `navigator.onLine` exposed as an external store. The server snapshot is `true`, and React
+// also uses it for the first client render, so SSR and hydration always agree; the real value
+// applies right after hydration. Note that Node 21+ defines a global `navigator` object
+// without `onLine`, so a `typeof navigator` check alone yields `undefined` on the server.
+function subscribeToOnline(onChange: () => void) {
+  window.addEventListener('online', onChange);
+  window.addEventListener('offline', onChange);
+  return () => {
+    window.removeEventListener('online', onChange);
+    window.removeEventListener('offline', onChange);
+  };
+}
+const getOnlineSnapshot = () => navigator.onLine;
+const getOnlineServerSnapshot = () => true;
 
 interface NetworkStatusContextValue {
   isOnline: boolean;
@@ -37,9 +60,13 @@ async function checkReachability(): Promise<boolean> {
 }
 
 export function NetworkStatusProvider({ children }: { children: React.ReactNode }) {
-  const [isOnline, setIsOnline] = useState(() =>
-    typeof navigator !== 'undefined' ? navigator.onLine : true,
+  const browserOnline = useSyncExternalStore(
+    subscribeToOnline,
+    getOnlineSnapshot,
+    getOnlineServerSnapshot,
   );
+  // Reachability as verified against Supabase; combined with the browser signal below.
+  const [isReachable, setIsReachable] = useState(true);
   const [isChecking, setIsChecking] = useState(false);
   const backoffIdxRef = useRef(0);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -53,20 +80,17 @@ export function NetworkStatusProvider({ children }: { children: React.ReactNode 
     }
   }, []);
 
-  const updateOnlineState = useCallback(
-    (reachable: boolean) => {
-      setIsOnline(reachable);
-      // Inform SyncService so it uses the reachability-verified signal
-      if (typeof window !== 'undefined') {
-        try {
-          getSyncService().setReachabilityStatus(reachable);
-        } catch {
-          // SyncService not available (SSR or uninitialized)
-        }
+  const updateOnlineState = useCallback((reachable: boolean) => {
+    setIsReachable(reachable);
+    // Inform SyncService so it uses the reachability-verified signal
+    if (typeof window !== 'undefined') {
+      try {
+        getSyncService().setReachabilityStatus(reachable);
+      } catch {
+        // SyncService not available (SSR or uninitialized)
       }
-    },
-    [],
-  );
+    }
+  }, []);
 
   // Assign stable function to ref — avoids circular useCallback dependency
   useEffect(() => {
@@ -74,10 +98,7 @@ export function NetworkStatusProvider({ children }: { children: React.ReactNode 
       clearRetryTimer();
       const interval =
         BACKOFF_INTERVALS[Math.min(backoffIdxRef.current, BACKOFF_INTERVALS.length - 1)];
-      backoffIdxRef.current = Math.min(
-        backoffIdxRef.current + 1,
-        BACKOFF_INTERVALS.length - 1,
-      );
+      backoffIdxRef.current = Math.min(backoffIdxRef.current + 1, BACKOFF_INTERVALS.length - 1);
 
       retryTimerRef.current = setTimeout(async () => {
         setIsChecking(true);
@@ -159,7 +180,9 @@ export function NetworkStatusProvider({ children }: { children: React.ReactNode 
   }, [clearRetryTimer, updateOnlineState]);
 
   return (
-    <NetworkStatusContext.Provider value={{ isOnline, isChecking, checkNow }}>
+    <NetworkStatusContext.Provider
+      value={{ isOnline: browserOnline && isReachable, isChecking, checkNow }}
+    >
       {children}
     </NetworkStatusContext.Provider>
   );

@@ -1,46 +1,46 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { isNodeSelection, type Editor } from "@tiptap/react"
+import * as React from 'react';
+import { isNodeSelection, type Editor } from '@tiptap/react';
 
 // --- Hooks ---
-import { useTiptapEditor } from "@/hooks/use-tiptap-editor"
+import { useTiptapEditor } from '@/hooks/use-tiptap-editor';
 
 // --- Icons ---
-import { HeadingOneIcon } from "@/components/tiptap-icons/heading-one-icon"
-import { HeadingTwoIcon } from "@/components/tiptap-icons/heading-two-icon"
-import { HeadingThreeIcon } from "@/components/tiptap-icons/heading-three-icon"
-import { HeadingFourIcon } from "@/components/tiptap-icons/heading-four-icon"
-import { HeadingFiveIcon } from "@/components/tiptap-icons/heading-five-icon"
-import { HeadingSixIcon } from "@/components/tiptap-icons/heading-six-icon"
+import { HeadingOneIcon } from '@/components/tiptap-icons/heading-one-icon';
+import { HeadingTwoIcon } from '@/components/tiptap-icons/heading-two-icon';
+import { HeadingThreeIcon } from '@/components/tiptap-icons/heading-three-icon';
+import { HeadingFourIcon } from '@/components/tiptap-icons/heading-four-icon';
+import { HeadingFiveIcon } from '@/components/tiptap-icons/heading-five-icon';
+import { HeadingSixIcon } from '@/components/tiptap-icons/heading-six-icon';
 
 // --- Lib ---
-import { isNodeInSchema } from "@/lib/tiptap-utils"
+import { isNodeInSchema } from '@/lib/tiptap-utils';
 
 // --- UI Primitives ---
-import type { ButtonProps } from "@/components/tiptap-ui-primitive/button"
-import { Button } from "@/components/tiptap-ui-primitive/button"
+import type { ButtonProps } from '@/components/tiptap-ui-primitive/button';
+import { Button } from '@/components/tiptap-ui-primitive/button';
 
-export type Level = 1 | 2 | 3 | 4 | 5 | 6
+export type Level = 1 | 2 | 3 | 4 | 5 | 6;
 
-export interface HeadingButtonProps extends Omit<ButtonProps, "type"> {
+export interface HeadingButtonProps extends Omit<ButtonProps, 'type'> {
   /**
    * The TipTap editor instance.
    */
-  editor?: Editor | null
+  editor?: Editor | null;
   /**
    * The heading level.
    */
-  level: Level
+  level: Level;
   /**
    * Optional text to display alongside the icon.
    */
-  text?: string
+  text?: string;
   /**
    * Whether the button should hide when the heading is not available.
    * @default false
    */
-  hideWhenUnavailable?: boolean
+  hideWhenUnavailable?: boolean;
 }
 
 export const headingIcons = {
@@ -50,90 +50,86 @@ export const headingIcons = {
   4: HeadingFourIcon,
   5: HeadingFiveIcon,
   6: HeadingSixIcon,
-}
+};
 
 export const headingShortcutKeys: Partial<Record<Level, string>> = {
-  1: "Ctrl-Alt-1",
-  2: "Ctrl-Alt-2",
-  3: "Ctrl-Alt-3",
-  4: "Ctrl-Alt-4",
-  5: "Ctrl-Alt-5",
-  6: "Ctrl-Alt-6",
-}
+  1: 'Ctrl-Alt-1',
+  2: 'Ctrl-Alt-2',
+  3: 'Ctrl-Alt-3',
+  4: 'Ctrl-Alt-4',
+  5: 'Ctrl-Alt-5',
+  6: 'Ctrl-Alt-6',
+};
 
 export function canToggleHeading(editor: Editor | null, level: Level): boolean {
-  if (!editor) return false
+  if (!editor) return false;
 
   try {
-    return editor.can().toggleNode("heading", "paragraph", { level })
+    return editor.can().toggleNode('heading', 'paragraph', { level });
   } catch {
-    return false
+    return false;
   }
 }
 
 export function isHeadingActive(editor: Editor | null, level: Level): boolean {
-  if (!editor) return false
-  return editor.isActive("heading", { level })
+  if (!editor) return false;
+  return editor.isActive('heading', { level });
 }
 
 export function toggleHeading(editor: Editor | null, level: Level): void {
-  if (!editor) return
+  if (!editor) return;
 
-  if (editor.isActive("heading", { level })) {
-    editor.chain().focus().setNode("paragraph").run()
+  if (editor.isActive('heading', { level })) {
+    editor.chain().focus().setNode('paragraph').run();
   } else {
-    editor.chain().focus().toggleNode("heading", "paragraph", { level }).run()
+    editor.chain().focus().toggleNode('heading', 'paragraph', { level }).run();
   }
 }
 
 export function isHeadingButtonDisabled(
   editor: Editor | null,
   level: Level,
-  userDisabled: boolean = false
+  userDisabled: boolean = false,
 ): boolean {
-  if (!editor) return true
-  if (userDisabled) return true
-  if (!canToggleHeading(editor, level)) return true
-  return false
+  if (!editor) return true;
+  if (userDisabled) return true;
+  if (!canToggleHeading(editor, level)) return true;
+  return false;
 }
 
 export function shouldShowHeadingButton(params: {
-  editor: Editor | null
-  level: Level
-  hideWhenUnavailable: boolean
-  headingInSchema: boolean
+  editor: Editor | null;
+  level: Level;
+  hideWhenUnavailable: boolean;
+  headingInSchema: boolean;
 }): boolean {
-  const { editor, hideWhenUnavailable, headingInSchema } = params
+  const { editor, hideWhenUnavailable, headingInSchema } = params;
 
   if (!headingInSchema || !editor) {
-    return false
+    return false;
   }
 
   if (hideWhenUnavailable) {
     if (isNodeSelection(editor.state.selection)) {
-      return false
+      return false;
     }
   }
 
-  return true
+  return true;
 }
 
 export function getFormattedHeadingName(level: Level): string {
-  return `Heading ${level}`
+  return `Heading ${level}`;
 }
 
-export function useHeadingState(
-  editor: Editor | null,
-  level: Level,
-  disabled: boolean = false
-) {
-  const headingInSchema = isNodeInSchema("heading", editor)
-  const isDisabled = isHeadingButtonDisabled(editor, level, disabled)
-  const isActive = isHeadingActive(editor, level)
+export function useHeadingState(editor: Editor | null, level: Level, disabled: boolean = false) {
+  const headingInSchema = isNodeInSchema('heading', editor);
+  const isDisabled = isHeadingButtonDisabled(editor, level, disabled);
+  const isActive = isHeadingActive(editor, level);
 
-  const Icon = headingIcons[level]
-  const shortcutKey = headingShortcutKeys[level]
-  const formattedName = getFormattedHeadingName(level)
+  const Icon = headingIcons[level];
+  const shortcutKey = headingShortcutKeys[level];
+  const formattedName = getFormattedHeadingName(level);
 
   return {
     headingInSchema,
@@ -142,48 +138,39 @@ export function useHeadingState(
     Icon,
     shortcutKey,
     formattedName,
-  }
+  };
 }
 
-export const HeadingButton = React.forwardRef<
-  HTMLButtonElement,
-  HeadingButtonProps
->(
+export const HeadingButton = React.forwardRef<HTMLButtonElement, HeadingButtonProps>(
   (
     {
       editor: providedEditor,
       level,
       text,
       hideWhenUnavailable = false,
-      className = "",
+      className = '',
       disabled,
       onClick,
       children,
       ...buttonProps
     },
-    ref
+    ref,
   ) => {
-    const editor = useTiptapEditor(providedEditor)
+    const editor = useTiptapEditor(providedEditor);
 
-    const {
-      headingInSchema,
-      isDisabled,
-      isActive,
-      Icon,
-      shortcutKey,
-      formattedName,
-    } = useHeadingState(editor, level, disabled)
+    const { headingInSchema, isDisabled, isActive, Icon, shortcutKey, formattedName } =
+      useHeadingState(editor, level, disabled);
 
     const handleClick = React.useCallback(
       (e: React.MouseEvent<HTMLButtonElement>) => {
-        onClick?.(e)
+        onClick?.(e);
 
         if (!e.defaultPrevented && !isDisabled && editor) {
-          toggleHeading(editor, level)
+          toggleHeading(editor, level);
         }
       },
-      [onClick, isDisabled, editor, level]
-    )
+      [onClick, isDisabled, editor, level],
+    );
 
     const show = React.useMemo(() => {
       return shouldShowHeadingButton({
@@ -191,11 +178,11 @@ export const HeadingButton = React.forwardRef<
         level,
         hideWhenUnavailable,
         headingInSchema,
-      })
-    }, [editor, level, hideWhenUnavailable, headingInSchema])
+      });
+    }, [editor, level, hideWhenUnavailable, headingInSchema]);
 
     if (!show || !editor || !editor.isEditable) {
-      return null
+      return null;
     }
 
     return (
@@ -204,7 +191,7 @@ export const HeadingButton = React.forwardRef<
         className={className.trim()}
         disabled={isDisabled}
         data-style="ghost"
-        data-active-state={isActive ? "on" : "off"}
+        data-active-state={isActive ? 'on' : 'off'}
         data-disabled={isDisabled}
         role="button"
         tabIndex={-1}
@@ -223,10 +210,10 @@ export const HeadingButton = React.forwardRef<
           </>
         )}
       </Button>
-    )
-  }
-)
+    );
+  },
+);
 
-HeadingButton.displayName = "HeadingButton"
+HeadingButton.displayName = 'HeadingButton';
 
-export default HeadingButton
+export default HeadingButton;

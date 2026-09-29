@@ -6,13 +6,13 @@
 }
 
 .tiptap-button-group {
-  &[data-orientation="vertical"],
-  [data-orientation="vertical"] {
+  &[data-orientation='vertical'],
+  [data-orientation='vertical'] {
     flex-direction: column;
   }
 
-  &[data-orientation="horizontal"],
-  [data-orientation="horizontal"] {
+  &[data-orientation='horizontal'],
+  [data-orientation='horizontal'] {
     flex-direction: row;
   }
 }

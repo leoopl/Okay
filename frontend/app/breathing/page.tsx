@@ -1,33 +1,40 @@
 'use client';
 
 import { useState } from 'react';
-import data from '../../data/breath.json';
 import Image from 'next/image';
-import BreathingAnimation from '../../components/breathing-animation';
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
+import { Info } from 'lucide-react';
+import BreathingAnimation from '@/components/breathing-animation';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useMobile } from '@/hooks/use-mobile';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import {
+  breathingTechniques,
+  type BreathingTechnique,
+  type BreathingTone,
+} from '@/data/breathing-techniques';
 
-interface Technique {
-  id: number;
-  name: string;
-  desc: string;
-  secs: number[];
-  bgcolor: string;
-}
+const TONE_CLASSES: Record<BreathingTone, string> = {
+  earth: 'bg-breathing-card-earth',
+  sky: 'bg-breathing-card-sky',
+  sage: 'bg-breathing-card-sage',
+  lavender: 'bg-breathing-card-lavender',
+  mint: 'bg-breathing-card-mint',
+  sand: 'bg-breathing-card-sand',
+};
+
+const hasBreathHold = ({ secs }: BreathingTechnique) => secs[1] > 0 || secs[3] > 0;
 
 const Breathing: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [selectedTechnique, setSelectedTechnique] = useState<Technique | null>(null);
+  const [selectedTechnique, setSelectedTechnique] = useState<BreathingTechnique | null>(null);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
-  const isMobile = useMobile();
 
-  const openModal = (technique: Technique) => {
+  const openModal = (technique: BreathingTechnique) => {
     setSelectedTechnique(technique);
     setIsModalOpen(true);
   };
@@ -53,6 +60,7 @@ const Breathing: React.FC = () => {
             setIsAnimating(false);
             setIsModalOpen(true); // Reopen the modal when closing animation
           }}
+          title={selectedTechnique.name}
           breathingTime={selectedTechnique.secs}
         />
       )}
@@ -61,22 +69,25 @@ const Breathing: React.FC = () => {
         <div className="container mx-auto">
           <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2">
             <div className="animate-fade-in flex flex-col gap-3">
-              <h1 className="font-varela text-green-dark text-2xl leading-tight font-bold sm:text-3xl md:text-4xl lg:text-5xl">
+              <h1 className="font-varela text-accent-strong text-3xl leading-tight md:text-4xl lg:text-5xl lg:leading-[1.2] lg:tracking-[-0.01em]">
                 Técnicas de Respiração
               </h1>
-              <p className="text-beige-dark text-sm sm:text-base md:text-lg">
+              <p className="text-muted-foreground text-sm sm:text-base md:text-lg">
                 Pratique técnicas de respiração comuns para reduzir o estresse e manter a calma.
               </p>
               <div className="mt-6 grid grid-cols-1 gap-4 sm:mt-10 sm:grid-cols-2 sm:gap-6">
-                {data.map((item) => (
+                {breathingTechniques.map((item) => (
                   <button
                     key={item.id}
-                    className="relative flex cursor-pointer flex-col items-center justify-center rounded-lg px-4 py-4 shadow transition-transform duration-300 hover:-translate-y-1 hover:shadow-md sm:px-6 sm:py-5"
-                    style={{ backgroundColor: item.bgcolor }}
+                    className={`${TONE_CLASSES[item.tone]} relative flex cursor-pointer flex-col items-center justify-center rounded-lg px-4 py-4 shadow transition-transform duration-300 hover:-translate-y-1 hover:shadow-md sm:px-6 sm:py-5`}
                     onClick={() => openModal(item)}
                   >
-                    <h3 className="text-base font-medium text-gray-900 sm:text-lg">{item.name}</h3>
-                    <span className="mt-2 text-xs text-gray-700 sm:text-sm">Clique para ver</span>
+                    <h2 className="font-varela text-foreground text-base font-medium sm:text-lg">
+                      {item.name}
+                    </h2>
+                    <span className="text-foreground/75 mt-2 text-xs sm:text-sm">
+                      {item.purpose}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -90,55 +101,89 @@ const Breathing: React.FC = () => {
                 }
               }}
             >
+              {/* Scrollable body + sticky footer: the safety note and Iniciar stay visible. */}
               <DialogContent
-                className={`${
-                  isMobile ? 'mx-4 max-h-[85vh] w-full max-w-[95vw]' : 'max-h-[600px] max-w-[800px]'
-                } overflow-hidden p-0`}
+                className="bg-card flex max-h-[90vh] w-[calc(100%-2rem)] max-w-3xl flex-col gap-0 overflow-hidden p-0"
                 onInteractOutside={(e) => e.preventDefault()}
               >
-                <div className="relative grid size-full place-content-center overflow-hidden rounded-2xl bg-white p-4 text-left align-middle shadow-xl sm:p-6">
-                  <div className="mt-2 text-center">
-                    {selectedTechnique && (
-                      <div className="relative mx-auto mb-4 sm:mb-6">
-                        <Image
-                          src={`/breath${selectedTechnique.id}.svg`}
-                          alt={selectedTechnique.name || 'Technique Image'}
-                          width={isMobile ? 120 : 150}
-                          height={isMobile ? 120 : 150}
-                          className="mx-auto"
-                          style={{
-                            maxWidth: '100%',
-                            height: 'auto',
-                          }}
-                        />
-                      </div>
-                    )}
-                    <DialogTitle className="font-varela mt-4 text-xl leading-6 font-medium text-gray-900 sm:mt-8 sm:text-2xl lg:text-3xl">
-                      {selectedTechnique?.name}
-                    </DialogTitle>
-                  </div>
-                  <div className="mt-2 text-center">
-                    <DialogDescription
-                      className={`${
-                        isMobile ? 'max-w-full text-sm' : 'max-w-md text-base'
-                      } mx-auto leading-relaxed font-semibold text-gray-600`}
-                    >
-                      {selectedTechnique?.desc}
-                    </DialogDescription>
-                  </div>
+                {selectedTechnique && (
+                  <>
+                    <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+                      <div className="grid gap-4 sm:grid-cols-[minmax(0,13rem)_1fr] sm:gap-8">
+                        <div className="flex items-center gap-4 pr-8 sm:flex-col sm:pr-0 sm:text-center">
+                          <Image
+                            src={`/breath${selectedTechnique.id}.svg`}
+                            alt=""
+                            width={120}
+                            height={120}
+                            className="size-16 shrink-0 sm:size-30"
+                          />
+                          <div>
+                            <DialogTitle className="font-varela text-foreground text-xl leading-tight font-medium sm:text-2xl">
+                              {selectedTechnique.name}
+                            </DialogTitle>
+                            <p className="text-muted-foreground mt-2 hidden text-sm sm:block">
+                              {selectedTechnique.purpose}
+                            </p>
+                          </div>
+                        </div>
 
-                  <div className="mt-4 text-center sm:mt-6">
-                    <p className="mb-4 text-xs text-gray-700 sm:text-sm">
-                      Fique confortável e comece a respirar.
-                    </p>
-                    <Button
-                      onClick={startAnimation}
-                      className={`${isMobile ? 'w-full py-3 text-base' : 'px-6 py-2'}`}
-                    >
-                      Iniciar
-                    </Button>
-                  </div>
-                </div>
+                        <div className="sm:pr-6">
+                          <DialogDescription className="text-muted-foreground text-sm leading-relaxed sm:text-base">
+                            {selectedTechnique.desc}
+                          </DialogDescription>
+                          <Accordion type="single" collapsible className="mt-2">
+                            <AccordionItem value="references" className="border-none">
+                              <AccordionTrigger className="text-foreground cursor-pointer py-2 text-sm hover:no-underline">
+                                {`Referências (${selectedTechnique.references.length})`}
+                              </AccordionTrigger>
+                              <AccordionContent>
+                                <ul className="text-muted-foreground space-y-1 text-xs">
+                                  {selectedTechnique.references.map((ref) => (
+                                    <li key={ref.url}>
+                                      <a
+                                        href={ref.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="hover:text-foreground underline underline-offset-2"
+                                      >
+                                        {ref.citation}
+                                      </a>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </AccordionContent>
+                            </AccordionItem>
+                          </Accordion>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t p-4 sm:px-6">
+                      <div className="border-primary/30 bg-primary/10 flex items-start gap-2 rounded-lg border p-3">
+                        <Info
+                          size={18}
+                          className="text-accent-strong mt-0.5 shrink-0"
+                          aria-hidden="true"
+                        />
+                        <p className="text-accent-strong text-xs sm:text-sm">
+                          Respire sem forçar. Se sentir tontura, falta de ar ou desconforto, pare e
+                          volte a respirar normalmente.
+                          {hasBreathHold(selectedTechnique) &&
+                            ' Se você tem problemas cardíacos ou respiratórios, ou está grávida, converse com um profissional de saúde antes de prender a respiração.'}
+                        </p>
+                      </div>
+                      <div className="mt-3 flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
+                        <p className="text-muted-foreground text-xs sm:text-sm">
+                          Encontre uma posição confortável antes de começar.
+                        </p>
+                        <Button onClick={startAnimation} className="w-full px-6 sm:w-auto">
+                          Iniciar
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                )}
               </DialogContent>
             </Dialog>
 

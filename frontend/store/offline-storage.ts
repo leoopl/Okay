@@ -203,7 +203,11 @@ class OfflineStorageService {
         req.onsuccess = () => {
           const records: any[] = req.result || [];
           for (const record of records) {
-            if (record._syncStatus === 'synced' && record[dateField] && record[dateField] < cutoff) {
+            if (
+              record._syncStatus === 'synced' &&
+              record[dateField] &&
+              record[dateField] < cutoff
+            ) {
               store.delete(record.id);
               deleted++;
             }
@@ -758,9 +762,7 @@ class OfflineStorageService {
     });
   }
 
-  async getDoseLogsBySyncStatus(
-    status: 'pending' | 'synced' | 'error',
-  ): Promise<OfflineDoseLog[]> {
+  async getDoseLogsBySyncStatus(status: 'pending' | 'synced' | 'error'): Promise<OfflineDoseLog[]> {
     const db = await this.ensureDB();
     const transaction = db.transaction([DOSE_LOGS_STORE], 'readonly');
     const store = transaction.objectStore(DOSE_LOGS_STORE);

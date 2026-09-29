@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import type { Database } from '@/lib/supabase/database.types';
 import { startOfDay, endOfDay, subDays, format } from 'date-fns';
+import { ConnectionAccessException } from '@/lib/definitions';
 
 type DoseLog = Database['public']['Tables']['dose_logs']['Row'];
 type DoseLogInsert = Database['public']['Tables']['dose_logs']['Insert'];
@@ -106,7 +107,10 @@ export async function logDose(data: CreateDoseLogDto): Promise<DoseLogActionResp
     if (data.doseType === 'scheduled' && data.scheduledTime) {
       // Scheduled dose: upsert on (medication_id, scheduled_time, date) — server-side dedup.
       // Before upserting, capture existing record for audit trail.
-      const dateStr = new Date(timestampStr).toISOString().slice(0, 10);
+      // Same UTC day as the incoming timestamp, expressed as a half-open range so the
+      // filter stays on a real column (PostgREST does not accept casts in filter names).
+      const dayStart = `${new Date(timestampStr).toISOString().slice(0, 10)}T00:00:00.000Z`;
+      const dayEnd = new Date(Date.parse(dayStart) + 24 * 60 * 60 * 1000).toISOString();
 
       const { data: existing } = await supabase
         .from('dose_logs')
@@ -114,7 +118,8 @@ export async function logDose(data: CreateDoseLogDto): Promise<DoseLogActionResp
         .eq('medication_id', data.medicationId)
         .eq('user_id', user.id)
         .eq('scheduled_time', data.scheduledTime)
-        .eq('timestamp::date', dateStr)
+        .gte('timestamp', dayStart)
+        .lt('timestamp', dayEnd)
         .maybeSingle();
 
       if (existing) {
@@ -130,10 +135,7 @@ export async function logDose(data: CreateDoseLogDto): Promise<DoseLogActionResp
       // where dose_type = 'scheduled' — enforced by partial unique index in migration.
       const { data: upserted, error } = await supabase
         .from('dose_logs')
-        .upsert(
-          { ...doseLogData, dose_type: 'scheduled' } as any,
-          { onConflict: 'id' },
-        )
+        .upsert({ ...doseLogData, dose_type: 'scheduled' } as any, { onConflict: 'id' })
         .select()
         .single();
 
@@ -147,10 +149,7 @@ export async function logDose(data: CreateDoseLogDto): Promise<DoseLogActionResp
       // PRN doses are append-only — multiple PRN doses on the same day are valid.
       const { data: inserted, error } = await supabase
         .from('dose_logs')
-        .upsert(
-          { ...doseLogData, dose_type: data.doseType || null } as any,
-          { onConflict: 'id' },
-        )
+        .upsert({ ...doseLogData, dose_type: data.doseType || null } as any, { onConflict: 'id' })
         .select()
         .single();
 
@@ -161,7 +160,7 @@ export async function logDose(data: CreateDoseLogDto): Promise<DoseLogActionResp
       doseLog = inserted;
     }
 
-    revalidatePath('/medications');
+    revalidatePath('/medication');
     return {
       success: true,
       message: 'Dose registrada com sucesso',
@@ -402,4 +401,59 @@ export async function getAdherenceStats(
       error: 'Ocorreu um erro ao calcular as estatísticas',
     };
   }
+}
+
+/**
+ * Provider-side read: returns the patient's dose logs if the calling provider has an
+ * active connection + active grant for 'dose_logs'.
+ *
+ * Two-layer access control: helper for friendly errors, RLS predicate for hard backstop.
+ */
+export async function getDoseLogsForPatient(
+  patientId: string,
+  range?: { startDate?: Date; endDate?: Date; medicationId?: string },
+): Promise<{ success: boolean; logs: any[]; error?: string }> {
+  const { assertProviderCanAccessPatientResource } = await import('./connection-access');
+
+  try {
+    await assertProviderCanAccessPatientResource({
+      patientId,
+      resourceType: 'dose_logs',
+    });
+  } catch (e) {
+    if (e instanceof ConnectionAccessException) {
+      const map: Record<string, string> = {
+        NOT_AUTHENTICATED: 'Não autenticado',
+        NOT_PROVIDER: 'Apenas profissionais podem acessar',
+        NO_ACTIVE_CONNECTION: 'Sem conexão ativa com este paciente',
+        NO_GRANT: 'Paciente não compartilhou o histórico de medicação',
+      };
+      return { success: false, logs: [], error: map[e.code] ?? 'Acesso negado' };
+    }
+    throw e;
+  }
+
+  const supabase = await createClient();
+  let query = supabase
+    .from('dose_logs')
+    .select('*, medications(id, name, dosage, form)')
+    .eq('user_id', patientId)
+    .order('timestamp', { ascending: false });
+
+  if (range?.medicationId) {
+    query = query.eq('medication_id', range.medicationId);
+  }
+  if (range?.startDate) {
+    query = query.gte('timestamp', range.startDate.toISOString());
+  }
+  if (range?.endDate) {
+    query = query.lte('timestamp', range.endDate.toISOString());
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    console.error('Provider read of dose_logs failed:', error);
+    return { success: false, logs: [], error: 'Erro ao carregar dados' };
+  }
+  return { success: true, logs: data ?? [] };
 }

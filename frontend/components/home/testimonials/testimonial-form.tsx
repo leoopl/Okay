@@ -2,7 +2,15 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { TestimonialFormSchema } from '@/lib/definitions';
@@ -34,7 +42,6 @@ export default function TestimonialForm() {
       });
       form.reset();
     } else if (actionState?.errors) {
-      // Handle field-specific errors
       Object.entries(actionState.errors).forEach(([field, messages]) => {
         if (messages?.[0]) {
           form.setError(field as keyof z.infer<typeof TestimonialFormSchema>, {
@@ -57,12 +64,17 @@ export default function TestimonialForm() {
           name="message"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>
+                O que te ajudou?{' '}
+                <span className="text-destructive" aria-hidden="true">
+                  *
+                </span>
+              </FormLabel>
               <FormControl>
                 <Textarea
                   {...field}
-                  id="message"
-                  placeholder="O que te ajudou?"
-                  className="transition-all duration-200 focus:scale-[1.02]"
+                  placeholder="Uma técnica, um recurso, uma frase — compartilhe livremente."
+                  aria-required="true"
                 />
               </FormControl>
               <FormMessage />
@@ -74,14 +86,19 @@ export default function TestimonialForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>
+                E-mail{' '}
+                <span className="text-destructive" aria-hidden="true">
+                  *
+                </span>
+              </FormLabel>
               <FormControl>
                 <Input
                   {...field}
-                  id="email"
                   type="email"
                   autoComplete="email"
-                  placeholder="E-mail"
-                  className="transition-all duration-200 focus:scale-[1.02]"
+                  placeholder="seu@email.com"
+                  aria-required="true"
                 />
               </FormControl>
               <FormMessage />
@@ -93,14 +110,15 @@ export default function TestimonialForm() {
           name="location"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>
+                Cidade ou estado <span className="text-muted-foreground text-xs">(opcional)</span>
+              </FormLabel>
               <FormControl>
                 <Input
                   {...field}
-                  id="location"
                   type="text"
-                  placeholder="De onde você fala? (opcional)"
+                  placeholder="Ex.: São Paulo, SP"
                   autoComplete="address-level1"
-                  className="transition-all duration-200 focus:scale-[1.02]"
                 />
               </FormControl>
             </FormItem>
@@ -110,23 +128,22 @@ export default function TestimonialForm() {
           control={form.control}
           name="newsletter"
           render={({ field }) => (
-            <FormItem className="flex items-center gap-6">
+            <FormItem className="flex flex-row items-start gap-3">
               <FormControl>
                 <Checkbox checked={field.value} onCheckedChange={field.onChange} />
               </FormControl>
-              <p>Fique por dentro de todas as nossas novidades</p>
+              <div className="space-y-1 leading-none">
+                <FormLabel>Fique por dentro das novidades</FormLabel>
+                <FormDescription>
+                  Enviamos atualizações sobre novos recursos e conteúdos.
+                </FormDescription>
+              </div>
             </FormItem>
           )}
         />
-        <div>
-          <Button
-            type="submit"
-            className="w-full cursor-pointer px-4 py-2 font-bold"
-            disabled={isPending}
-          >
-            {isPending ? 'Enviando...' : 'Compartilhar'}
-          </Button>
-        </div>
+        <Button type="submit" className="w-full cursor-pointer" disabled={isPending}>
+          {isPending ? 'Enviando...' : 'Compartilhar'}
+        </Button>
       </form>
     </Form>
   );

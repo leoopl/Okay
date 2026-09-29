@@ -35,10 +35,7 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     const body: SyncRequest = await request.json();
@@ -58,7 +55,7 @@ export async function POST(request: NextRequest) {
       if (medError || !medication) {
         return NextResponse.json(
           { success: false, error: 'Medication not found or unauthorized' },
-          { status: 404 }
+          { status: 404 },
         );
       }
 
@@ -74,19 +71,13 @@ export async function POST(request: NextRequest) {
 
       const { data, error } = await supabase
         .from('dose_logs')
-        .upsert(
-          { ...doseLogData, dose_type: log.doseType || null } as any,
-          { onConflict: 'id' },
-        )
+        .upsert({ ...doseLogData, dose_type: log.doseType || null } as any, { onConflict: 'id' })
         .select()
         .single();
 
       if (error) {
         console.error('Error syncing dose log:', error);
-        return NextResponse.json(
-          { success: false, error: error.message },
-          { status: 500 }
-        );
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
       }
 
       return NextResponse.json({
@@ -133,10 +124,9 @@ export async function POST(request: NextRequest) {
 
           const { error } = await supabase
             .from('dose_logs')
-            .upsert(
-              { ...doseLogData, dose_type: log.doseType || null } as any,
-              { onConflict: 'id' },
-            );
+            .upsert({ ...doseLogData, dose_type: log.doseType || null } as any, {
+              onConflict: 'id',
+            });
 
           if (error) {
             results.failed++;
@@ -146,7 +136,9 @@ export async function POST(request: NextRequest) {
           }
         } catch (err) {
           results.failed++;
-          results.errors.push(`Unexpected error: ${err instanceof Error ? err.message : 'Unknown'}`);
+          results.errors.push(
+            `Unexpected error: ${err instanceof Error ? err.message : 'Unknown'}`,
+          );
         }
       }
 
@@ -159,13 +151,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       { success: false, error: 'No logs provided for sync' },
-      { status: 400 }
+      { status: 400 },
     );
   } catch (error) {
     console.error('Medication logs sync error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }

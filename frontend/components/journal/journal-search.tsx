@@ -108,13 +108,16 @@ export function AdvancedJournalSearch({ className }: AdvancedSearchProps) {
       {/* Main search bar */}
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="text-grey-dark absolute top-1/2 left-3 -translate-y-1/2" size={18} />
+          <Search
+            className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2"
+            size={18}
+          />
           <Input
             type="text"
             placeholder="Buscar por conteúdo, título ou tags..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="border-grey-light focus-visible:ring-blue-dark pl-10"
+            className="border-border focus-visible:ring-ring pl-10"
           />
         </div>
         <Button
@@ -134,7 +137,7 @@ export function AdvancedJournalSearch({ className }: AdvancedSearchProps) {
 
       {/* Advanced filters */}
       {showFilters && (
-        <div className="border-grey-light space-y-4 rounded-lg border bg-white p-4">
+        <div className="border-border bg-card space-y-4 rounded-lg border p-4">
           {/* Mood filter */}
           <div className="space-y-2">
             <Label className="flex items-center gap-2 text-sm font-medium">
@@ -225,7 +228,7 @@ export function AdvancedJournalSearch({ className }: AdvancedSearchProps) {
                     mode="single"
                     selected={startDate}
                     onSelect={setStartDate}
-                    initialFocus
+                    autoFocus
                   />
                 </PopoverContent>
               </Popover>
@@ -247,7 +250,7 @@ export function AdvancedJournalSearch({ className }: AdvancedSearchProps) {
                     mode="single"
                     selected={endDate}
                     onSelect={setEndDate}
-                    initialFocus
+                    autoFocus
                     disabled={(date) => (startDate ? date < startDate : false)}
                   />
                 </PopoverContent>

@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import type { Database } from '@/lib/supabase/database.types';
+import { ConnectionAccessException } from '@/lib/definitions';
 
 // Type definitions
 export type Inventory = Database['public']['Tables']['inventories']['Row'];
@@ -447,6 +448,54 @@ function getOverallRecommendation(severity: string): string {
     crisis: 'Procure ajuda profissional imediatamente. Você não está sozinho(a).',
   };
   return recommendations[severity] || 'Considere buscar apoio profissional.';
+}
+
+/**
+ * Provider-side read: returns the patient's inventory responses if the calling
+ * provider has an active connection + active grant for 'inventory_responses'.
+ *
+ * Two-layer access control:
+ *   1. assertProviderCanAccessPatientResource() — friendly Brazilian Portuguese error
+ *   2. Migration #5 RLS via provider_can_view() — hard backstop
+ */
+export async function getInventoryResponsesForPatient(patientId: string): Promise<{
+  success: boolean;
+  responses: InventoryResponse[];
+  error?: string;
+}> {
+  const { assertProviderCanAccessPatientResource } = await import('./connection-access');
+
+  try {
+    await assertProviderCanAccessPatientResource({
+      patientId,
+      resourceType: 'inventory_responses',
+    });
+  } catch (e) {
+    if (e instanceof ConnectionAccessException) {
+      const map: Record<string, string> = {
+        NOT_AUTHENTICATED: 'Não autenticado',
+        NOT_PROVIDER: 'Apenas profissionais podem acessar',
+        NO_ACTIVE_CONNECTION: 'Sem conexão ativa com este paciente',
+        NO_GRANT: 'Paciente não compartilhou os questionários',
+      };
+      return { success: false, responses: [], error: map[e.code] ?? 'Acesso negado' };
+    }
+    throw e;
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('inventory_responses')
+    .select('*, inventories(id, name, title, description)')
+    .eq('user_id', patientId)
+    .is('deleted_at', null)
+    .order('completed_at', { ascending: false });
+
+  if (error) {
+    console.error('Provider read of inventory_responses failed:', error);
+    return { success: false, responses: [], error: 'Erro ao carregar dados' };
+  }
+  return { success: true, responses: data as InventoryResponse[] };
 }
 
 function getDefaultRecommendation(severity: string): string {

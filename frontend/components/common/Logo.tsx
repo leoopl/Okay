@@ -30,11 +30,11 @@ const Logo: React.FC<LogoProps> = ({ size = 'md', variant = 'full' }) => {
   return (
     <div className="flex items-center">
       <div
-        className={`bg-yellow-light/40 flex items-center justify-center rounded-full ${paddingClasses[size]}`}
+        className={`bg-primary/20 flex items-center justify-center rounded-full ${paddingClasses[size]}`}
       >
         <svg
           viewBox="0 0 24 24"
-          className={`${variant === 'icon' ? iconSizes[size] : iconSizes[size]} text-yellow-dark`}
+          className={`${variant === 'icon' ? iconSizes[size] : iconSizes[size]} text-primary`}
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
@@ -48,7 +48,7 @@ const Logo: React.FC<LogoProps> = ({ size = 'md', variant = 'full' }) => {
         </svg>
       </div>
       {variant === 'full' && (
-        <span className={`font-varela ml-3 font-bold ${sizeClasses[size]} text-yellow-dark`}>
+        <span className={`font-varela ml-3 font-bold ${sizeClasses[size]} text-primary`}>
           Okay!
         </span>
       )}

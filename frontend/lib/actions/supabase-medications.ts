@@ -185,7 +185,7 @@ export async function createMedication(
       };
     }
 
-    revalidatePath('/medications');
+    revalidatePath('/medication');
     return {
       success: true,
       message: 'Medicamento criado com sucesso',
@@ -321,7 +321,7 @@ export async function updateMedication(
       };
     }
 
-    revalidatePath('/medications');
+    revalidatePath('/medication');
     return {
       success: true,
       message: 'Medicamento atualizado com sucesso',
@@ -365,7 +365,7 @@ export async function deleteMedication(medicationId: string): Promise<Medication
       };
     }
 
-    revalidatePath('/medications');
+    revalidatePath('/medication');
     return {
       success: true,
       message: 'Medicamento deletado com sucesso',

@@ -5,10 +5,7 @@ import {
   deleteJournalEntry,
   getJournalEntries,
 } from '@/lib/actions/supabase-journal';
-import {
-  submitInventoryResponse,
-  getUserResponses,
-} from '@/lib/actions/supabase-inventories';
+import { submitInventoryResponse, getUserResponses } from '@/lib/actions/supabase-inventories';
 import { logDose } from '@/lib/actions/supabase-dose-logs';
 import { getMedications } from '@/lib/actions/supabase-medications';
 import { offlineStorage, SyncQueueItem, OfflineDoseLog } from '../store/offline-storage';
@@ -182,7 +179,14 @@ class SyncService {
         synced: 0,
         failed: 0,
         conflicts: [],
-        errors: [{ itemId: 'sync', action: 'syncAll', error: 'Not in browser environment', retryable: false }],
+        errors: [
+          {
+            itemId: 'sync',
+            action: 'syncAll',
+            error: 'Not in browser environment',
+            retryable: false,
+          },
+        ],
       };
     }
 

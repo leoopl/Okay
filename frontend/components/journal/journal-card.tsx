@@ -59,17 +59,17 @@ export function JournalCard({ entry, onDelete, onClick }: JournalCardProps) {
 
   return (
     <Card
-      className="mb-4 cursor-pointer border-[#CBCFD7] transition-all duration-200 hover:border-[#7F9463]/30 hover:shadow-md hover:shadow-[#7F9463]/10"
+      className="border-border hover:border-accent-strong/30 hover:shadow-accent-strong/10 mb-4 cursor-pointer transition-all duration-200 hover:shadow-md"
       onClick={handleClick}
     >
       <CardContent className="pt-6">
         {/* Title */}
         <div className="mb-3 flex items-start justify-between">
-          <h3 className="line-clamp-2 flex-1 text-xl font-medium text-[#797D89]">{title}</h3>
+          <h3 className="text-muted-foreground line-clamp-2 flex-1 text-xl font-medium">{title}</h3>
 
           {/* Mood Display */}
           {mood && MOOD_DISPLAY[mood] && (
-            <div className="ml-3 flex items-center gap-1 text-sm text-[#91857A]">
+            <div className="text-muted-foreground ml-3 flex items-center gap-1 text-sm">
               <span className="text-lg">{MOOD_DISPLAY[mood]}</span>
             </div>
           )}
@@ -77,24 +77,24 @@ export function JournalCard({ entry, onDelete, onClick }: JournalCardProps) {
 
         {/* Content Preview */}
         {contentPreview && (
-          <p className="mb-3 line-clamp-3 text-sm text-[#91857A]">{contentPreview}</p>
+          <p className="text-muted-foreground mb-3 line-clamp-3 text-sm">{contentPreview}</p>
         )}
 
         {/* Tags */}
         {tags.length > 0 && (
           <div className="mb-3 flex flex-wrap gap-1">
-            <Tag size={12} className="text-grey-dark mt-0.5 mr-1" />
+            <Tag size={12} className="text-muted-foreground mt-0.5 mr-1" />
             {tags.slice(0, 3).map((tag) => (
               <Badge
                 key={tag}
                 variant="outline"
-                className="bg-yellow-medium/10 text-yellow-mebg-yellow-medium hover:bg-yellow-medium/20 text-xs"
+                className="bg-primary/10 text-primary hover:bg-primary/20 text-xs"
               >
                 {tag}
               </Badge>
             ))}
             {tags.length > 3 && (
-              <Badge variant="secondary" className="bg-grey-dark/10 text-grey-dark text-xs">
+              <Badge variant="secondary" className="bg-muted text-muted-foreground text-xs">
                 +{tags.length - 3}
               </Badge>
             )}
@@ -102,7 +102,7 @@ export function JournalCard({ entry, onDelete, onClick }: JournalCardProps) {
         )}
       </CardContent>
 
-      <CardFooter className="flex items-center justify-between border-t border-[#CBCFD7]/50 pt-2 pb-4 text-xs text-[#A3A6B0]">
+      <CardFooter className="border-border/50 text-muted-foreground flex items-center justify-between border-t pt-2 pb-4 text-xs">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-1">
             <span className="font-medium">Criado:</span>
@@ -121,7 +121,7 @@ export function JournalCard({ entry, onDelete, onClick }: JournalCardProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="text-[#C2B2A3] transition-colors hover:bg-red-50 hover:text-red-600"
+          className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
           onClick={handleDelete}
           title="Deletar entrada"
         >

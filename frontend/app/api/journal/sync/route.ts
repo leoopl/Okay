@@ -40,10 +40,7 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     const body: SyncRequest = await request.json();
@@ -78,10 +75,7 @@ export async function POST(request: NextRequest) {
 
         if (error) {
           console.error('Error creating journal entry during sync:', error);
-          return NextResponse.json(
-            { success: false, error: error.message },
-            { status: 500 }
-          );
+          return NextResponse.json({ success: false, error: error.message }, { status: 500 });
         }
 
         return NextResponse.json({
@@ -111,10 +105,7 @@ export async function POST(request: NextRequest) {
 
         if (error) {
           console.error('Error updating journal entry during sync:', error);
-          return NextResponse.json(
-            { success: false, error: error.message },
-            { status: 500 }
-          );
+          return NextResponse.json({ success: false, error: error.message }, { status: 500 });
         }
 
         return NextResponse.json({
@@ -132,10 +123,7 @@ export async function POST(request: NextRequest) {
 
         if (error) {
           console.error('Error deleting journal entry during sync:', error);
-          return NextResponse.json(
-            { success: false, error: error.message },
-            { status: 500 }
-          );
+          return NextResponse.json({ success: false, error: error.message }, { status: 500 });
         }
 
         return NextResponse.json({
@@ -206,7 +194,9 @@ export async function POST(request: NextRequest) {
           }
         } catch (err) {
           results.failed++;
-          results.errors.push(`Unexpected error: ${err instanceof Error ? err.message : 'Unknown'}`);
+          results.errors.push(
+            `Unexpected error: ${err instanceof Error ? err.message : 'Unknown'}`,
+          );
         }
       }
 
@@ -219,13 +209,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       { success: false, error: 'No entries provided for sync' },
-      { status: 400 }
+      { status: 400 },
     );
   } catch (error) {
     console.error('Journal sync error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }

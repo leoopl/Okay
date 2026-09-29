@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { updateSession, config as supabaseConfig } from '@/lib/supabase/middleware';
+import { updateSession } from '@/lib/supabase/middleware';
 
 // Rate limiting configuration
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
@@ -70,8 +70,28 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
-// Export the config from the Supabase middleware
-export { supabaseConfig as config };
+/**
+ * Which routes run the proxy. Next.js only reads this when it is a literal object
+ * exported from this file; a re-export from another module is silently ignored and
+ * the proxy then runs on every request, static files included.
+ */
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except:
+     * - /blog/* (public blog routes)
+     * - /breathing/* (public breathing exercises)
+     * - /support/* (public support pages)
+     * - /professional/* (public professionals directory)
+     * - /_next/static (static files)
+     * - /_next/image (image optimization files)
+     * - /favicon.ico (favicon file)
+     * - Static files (images, etc.)
+     * Security headers for every route come from next.config.ts, not from here.
+     */
+    '/((?!blog|breathing|support|professional|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+};
 
 // Track last cleanup time to avoid cleaning on every request
 let lastCleanupTime = 0;

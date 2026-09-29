@@ -340,12 +340,12 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className="z-[1000] w-auto p-0" align="start" sideOffset={4}>
+                  <PopoverContent className="z-1000 w-auto p-0" align="start" sideOffset={4}>
                     <Calendar
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      initialFocus
+                      autoFocus
                       locale={ptBR}
                       disabled={(date) => date < new Date('1900-01-01')}
                     />
@@ -382,12 +382,12 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className="z-[1000] w-auto p-0" align="start" sideOffset={4}>
+                  <PopoverContent className="z-1000 w-auto p-0" align="start" sideOffset={4}>
                     <Calendar
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      initialFocus
+                      autoFocus
                       locale={ptBR}
                       disabled={(date) => {
                         const startDate = form.getValues('startDate');
@@ -514,7 +514,7 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
                 <FormControl>
                   <Textarea
                     placeholder="Adicione notas pessoais sobre este medicamento"
-                    className="min-h-[80px]"
+                    className="min-h-20"
                     disabled={isLoading}
                     {...field}
                   />
@@ -533,7 +533,7 @@ export default function AddMedicationForm({ medication, onClose }: AddMedication
                 <FormControl>
                   <Textarea
                     placeholder="Adicione instruções do seu médico"
-                    className="min-h-[80px]"
+                    className="min-h-20"
                     disabled={isLoading}
                     {...field}
                   />

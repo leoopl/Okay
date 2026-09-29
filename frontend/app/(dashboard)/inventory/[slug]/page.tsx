@@ -87,10 +87,10 @@ const ConsentForm = ({
     <Card className="bg-card/50 border-0 backdrop-blur-sm">
       <CardHeader className="space-y-4 text-center">
         <div className="bg-primary/10 mx-auto w-fit rounded-full p-4">
-          <Shield className="text-blue-dark size-8" />
+          <Shield className="text-primary size-8" />
         </div>
         <div className="space-y-2">
-          <CardTitle className="fornt-varela text-green-dark text-2xl">
+          <CardTitle className="fornt-varela text-accent-strong text-2xl">
             Consentimento Informado
           </CardTitle>
           <CardDescription className="mx-auto max-w-2xl text-base">
@@ -104,7 +104,7 @@ const ConsentForm = ({
         {/* Inventory Info */}
         <div className="bg-muted/30 space-y-3 rounded-lg p-6">
           <h3 className="text-foreground flex items-center gap-2 font-semibold">
-            <FileText className="text-blue-dark size-5" />
+            <FileText className="text-primary size-5" />
             Sobre esta Avaliação
           </h3>
           <div className="grid gap-3 text-sm">
@@ -134,7 +134,7 @@ const ConsentForm = ({
         </div>
 
         {/* Consent Checkbox */}
-        <div className="bg-accent/10 border-blue-dark/80 rounded-lg border p-6">
+        <div className="bg-accent/10 border-primary/80 rounded-lg border p-6">
           <div className="flex items-start space-x-4">
             <Checkbox
               id="consent"
@@ -160,21 +160,21 @@ const ConsentForm = ({
 
         {/* Privacy Information */}
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="flex items-start gap-3 rounded-lg bg-green-50 p-4 dark:bg-green-950/20">
-            <Eye className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
+          <div className="bg-success-bg flex items-start gap-3 rounded-lg p-4">
+            <Eye className="text-success mt-0.5 h-5 w-5 shrink-0" />
             <div className="space-y-1">
-              <h4 className="font-medium text-green-800 dark:text-green-300">Seus Direitos</h4>
-              <p className="text-sm text-green-700 dark:text-green-400">
+              <h4 className="text-success font-medium">Seus Direitos</h4>
+              <p className="text-success text-sm">
                 Você pode acessar, corrigir ou excluir seus dados a qualquer momento
               </p>
             </div>
           </div>
 
-          <div className="bg-grey-light/20 flex items-start gap-3 rounded-lg p-4 dark:bg-blue-950/20">
-            <Users className="text-grey-medium mt-0.5 h-5 w-5 shrink-0" />
+          <div className="bg-muted/20 flex items-start gap-3 rounded-lg p-4">
+            <Users className="text-muted-foreground mt-0.5 h-5 w-5 shrink-0" />
             <div className="space-y-1">
-              <h4 className="text-grey-dark font-medium dark:text-blue-300">Compartilhamento</h4>
-              <p className="text-grey-dark text-sm dark:text-blue-400">
+              <h4 className="text-foreground font-medium">Compartilhamento</h4>
+              <p className="text-muted-foreground text-sm">
                 Seus dados nunca são compartilhados sem seu consentimento explícito
               </p>
             </div>
@@ -186,7 +186,7 @@ const ConsentForm = ({
           <Alert className="border-destructive/80 bg-destructive/5 text-destructive">
             <AlertCircle className="size-4" />
             <AlertTitle>Importante</AlertTitle>
-            <AlertDescription className="text-beige-dark text-sm">
+            <AlertDescription className="text-muted-foreground text-sm">
               {inventory.disclaimer}
             </AlertDescription>
           </Alert>
@@ -480,11 +480,11 @@ export default function InventoryPage({ params }: { params: Promise<{ slug: stri
 
   // Main questionnaire
   return (
-    <div className="from-background via-background to-muted/30 min-h-screen bg-gradient-to-br">
+    <div className="from-background via-background to-muted/30 min-h-screen bg-linear-to-br">
       <div className="container mx-auto max-w-4xl px-4 py-8">
         {/* Header */}
         <div className="mb-8 space-y-4 text-center">
-          <h1 className="font-varela text-green-dark text-2xl font-bold lg:text-3xl">
+          <h1 className="font-varela text-accent-strong text-2xl font-bold lg:text-3xl">
             {inventory.title}
           </h1>
           <p className="text-muted-foreground mx-auto max-w-2xl">

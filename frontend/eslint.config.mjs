@@ -24,6 +24,26 @@ const config = [
       ],
     },
   },
+  // Defense-in-depth for the service-role admin client. The module already uses
+  // `import 'server-only'` (build-time guard); this lint rule blocks app/** imports
+  // explicitly so reviewers see the failure in PRs before build.
+  {
+    files: ['app/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@/lib/supabase/admin',
+              message:
+                'Service-role admin client must only be imported by server actions in lib/actions/. Routes/components should call those server actions instead.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 ];
 
 export default config;
